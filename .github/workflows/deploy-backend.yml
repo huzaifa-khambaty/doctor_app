@@ -1,0 +1,31 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - development
+    paths:
+      - 'backend/**'
+
+jobs:
+  deploy:
+    name: Deploy to cPanel Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Execute deployment commands via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USERNAME }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_PORT }}
+          script: |
+            # Replace /home/doctorapp/public_html with the actual path where you cloned your repository on cPanel
+            cd /home/doctorapp/public_html
+            
+            # Pull the latest changes from the development branch
+            git pull origin development
+            
+            # Run database migrations
+            php artisan migrate --force
