@@ -1,0 +1,2732 @@
+{
+    "info": {
+        "_postman_id": "f8d3c5e8-1234-4a5b-6c7d-8e9f0a1b2c3d",
+        "name": "Respilink Backend API",
+        "description": "API collection for Respilink Doctor App and Admin Panel.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Admin",
+            "item": [
+                {
+                    "name": "Admin Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.token) {",
+                                    "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"superadmin@respilink.test\",\n    \"password\": \"12345678\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/v1/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "v1",
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Authenticated Admin (Me)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/v1/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "v1",
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Admin Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/v1/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "v1",
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "User Management",
+                    "item": [
+                        {
+                            "name": "List Users",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Trashed Users",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/trashed/list",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "trashed",
+                                        "list"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create User",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"full_name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"phone\": \"+1234567890\",\n    \"password\": \"password123\",\n    \"specialties\": [1]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Show User",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update User",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"full_name\": \"John Doe Updated\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Verify User",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1/verify",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1",
+                                        "verify"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Reject User",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1/reject",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1",
+                                        "reject"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"reason\": \"Incomplete credentials\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Suspend User",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1/suspend",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1",
+                                        "suspend"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"reason\": \"Policy violation\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Reinstate User",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1/reinstate",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1",
+                                        "reinstate"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "User Activity",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1/activity",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1",
+                                        "activity"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Restore User",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1/restore",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1",
+                                        "restore"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Force Delete User",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1/force-delete",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1",
+                                        "force-delete"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Soft Delete User",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "User Activity Log",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/users/1/activity",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "users",
+                                        "1",
+                                        "activity"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Admin Management",
+                    "item": [
+                        {
+                            "name": "List Admins",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/admins",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "admins"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Admin",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/admins",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "admins"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"New Admin\",\n    \"email\": \"admin@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"roles\": [\n        \"content_manager\"\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Show Admin",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/admins/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "admins",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Admin",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/admins/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "admins",
+                                        "1"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Updated Admin\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Delete Admin",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/admins/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "admins",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Account Deletion Requests",
+                    "item": [
+                        {
+                            "name": "List Requests",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/account-deletion-requests",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "account-deletion-requests"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Process Request",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/account-deletion-requests/1/process",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "account-deletion-requests",
+                                        "1",
+                                        "process"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Roles & Permissions",
+                    "item": [
+                        {
+                            "name": "List Roles",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/roles",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "roles"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Role",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/roles",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "roles"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"manager\",\n    \"permissions\": [\n        \"users.view\"\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Role",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/roles/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "roles",
+                                        "1"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"manager_updated\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Delete Role",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/roles/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "roles",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "List Permissions",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/permissions",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "permissions"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Show Role",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/roles/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "roles",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Show Permission",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/permissions/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "permissions",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "List Specialties",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/v1/specialties",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "v1",
+                                "specialties"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Events Management",
+                    "item": [
+                        {
+                            "name": "List Events",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/events",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "events"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Event",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/events",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "events"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "title",
+                                            "value": "Annual Respiratory Conference",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "type",
+                                            "value": "conference",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "speakers[0]",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "enable_qa_session",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "certificate_of_participation",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "send_email_reminders",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "starts_at",
+                                            "value": "2026-10-01 10:00:00",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "description",
+                                            "value": "A detailed look at modern respiratory treatments.",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "banner",
+                                            "type": "file",
+                                            "src": []
+                                        }
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Show Event",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/events/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "events",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Event (Requires _method=PUT in formdata)",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/events/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "events",
+                                        "1"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "title",
+                                            "value": "Annual Respiratory Conference",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "type",
+                                            "value": "conference",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "speakers[0]",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "enable_qa_session",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "certificate_of_participation",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "send_email_reminders",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "starts_at",
+                                            "value": "2026-10-01 10:00:00",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "description",
+                                            "value": "A detailed look at modern respiratory treatments.",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "banner",
+                                            "type": "file",
+                                            "src": []
+                                        }
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "List Registrations",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/events/1/registrations",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "events",
+                                        "1",
+                                        "registrations"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Delete Event",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/events/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "events",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Event Status",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/events/1/status",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "events",
+                                        "1",
+                                        "status"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"status\": \"published\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Admin Quizzes",
+                    "item": [
+                        {
+                            "name": "List Quizzes",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Create Quiz",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"Sample Quiz\",\n    \"description\": \"A great quiz\",\n    \"tie_breaker\": \"score_only\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Show Quiz",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Update Quiz",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"Updated Quiz\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Delete Quiz",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Add Question",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1/questions",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "questions"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"questions\": [\n        {\n            \"question_text\": \"What is 1+1?\",\n            \"order\": 1,\n            \"options\": [\n                {\n                    \"option_text\": \"2\",\n                    \"is_correct\": true,\n                    \"explanation\": \"Basic math\"\n                },\n                {\n                    \"option_text\": \"3\",\n                    \"is_correct\": false\n                }\n            ]\n        },\n        {\n            \"question_text\": \"What is 2+2?\",\n            \"order\": 2,\n            \"options\": [\n                {\n                    \"option_text\": \"4\",\n                    \"is_correct\": true\n                },\n                {\n                    \"option_text\": \"5\",\n                    \"is_correct\": false\n                }\n            ]\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Update Question",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1/questions/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "questions",
+                                        "1"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"questions\": [\n        {\n            \"id\": 1,\n            \"question_text\": \"Updated question text for 1+1\",\n            \"order\": 1,\n            \"options\": [\n                {\n                    \"id\": 1,\n                    \"option_text\": \"2\",\n                    \"is_correct\": true\n                },\n                {\n                    \"id\": 2,\n                    \"option_text\": \"3\",\n                    \"is_correct\": false\n                }\n            ]\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Delete Question",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1/questions/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "questions",
+                                        "1"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Submit For Review",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1/submit-for-review",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "submit-for-review"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Publish Quiz",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1/publish",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "publish"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Quiz Leaderboard (Admin)",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1/leaderboard",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "leaderboard"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Recalculate Leaderboard",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1/leaderboard/recalculate",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "leaderboard",
+                                        "recalculate"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "App",
+            "item": [
+                {
+                    "name": "Register",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"full_name\": \"Dr. John Doe\",\n    \"email\": \"johndoe@example.com\",\n    \"phone\": \"1234567890\",\n    \"specialties\": [1],\n    \"hospital_affiliation\": \"City Hospital\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Verify OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"johndoe@example.com\",\n    \"channel\": \"email\",\n    \"code\": \"123456\",\n    \"purpose\": \"register\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/otp/verify",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "otp",
+                                "verify"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Send OTP (Resend)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"johndoe@example.com\",\n    \"channel\": \"email\",\n    \"purpose\": \"register\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/otp/send",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "otp",
+                                "send"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.token) {",
+                                    "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"johndoe@example.com\",\n    \"password\": \"password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Forgot Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"johndoe@example.com\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"johndoe@example.com\",\n    \"code\": \"123456\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Toggle Biometric",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/biometric/toggle",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "biometric",
+                                "toggle"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Profile",
+                    "item": [
+                        {
+                            "name": "Verification Status",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/profile/verification-status",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "profile",
+                                        "verification-status"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Deletion Request",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/profile/deletion-request",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "profile",
+                                        "deletion-request"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"reason\": \"Closing practice\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "List Specialties",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/specialties",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "specialties"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Events",
+                    "item": [
+                        {
+                            "name": "List Published Events",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/events",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "events"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Show Event",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/events/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "events",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Register for Event",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/events/1/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "events",
+                                        "1",
+                                        "register"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Cancel Registration",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/events/1/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "events",
+                                        "1",
+                                        "register"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "My Events",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/events/mine",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "events",
+                                        "mine"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Doctor Quizzes",
+                    "item": [
+                        {
+                            "name": "List Published Quizzes",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/quizzes",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "quizzes"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Show Quiz",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/quizzes/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "quizzes",
+                                        "1"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Start Quiz Attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/quizzes/1/start",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "start"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Submit Answer",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/quizzes/1/answer",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "answer"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"answers\": [\n        {\n            \"question_id\": 1,\n            \"option_id\": 2\n        },\n        {\n            \"question_id\": 2,\n            \"option_id\": 4\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Submit Quiz Attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/quizzes/1/submit",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "submit"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Quiz Leaderboard (Doctor)",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/quizzes/1/leaderboard",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "leaderboard"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Quiz Result & Rank",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/quizzes/1/result",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "result"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "My Badges",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/badges/mine",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "badges",
+                                        "mine"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://192.168.100.100:8000"
+        },
+        {
+            "key": "token",
+            "value": ""
+        }
+    ]
+}
