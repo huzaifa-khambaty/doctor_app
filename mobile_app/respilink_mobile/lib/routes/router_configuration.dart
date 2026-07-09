@@ -1,0 +1,125 @@
+import 'package:respilink_mobile/features/auth/presentation/pages/badges_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/change_password_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/forgot_password_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/login_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/otp_verification_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/register_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/reset_password_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/settings_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/splash_view.dart';
+import 'package:respilink_mobile/features/content_library/presentation/pages/article_reader_view.dart';
+import 'package:respilink_mobile/features/dashboard/presentation/pages/dashboard_view.dart';
+import 'package:respilink_mobile/features/events/domain/models/conference_detail_model.dart';
+import 'package:respilink_mobile/features/events/domain/models/event_detail_model.dart';
+import 'package:respilink_mobile/features/events/presentation/pages/conference_detail_view.dart';
+import 'package:respilink_mobile/features/events/presentation/pages/webinar_detail_view.dart';
+import 'package:respilink_mobile/features/events/presentation/pages/workshop_detail_view.dart';
+import 'package:respilink_mobile/features/onboarding/presentation/pages/onboarding_view.dart';
+import 'package:respilink_mobile/features/quiz/presentation/pages/leaderboard_view.dart';
+import 'package:respilink_mobile/features/quiz/presentation/pages/quiz_play_view.dart';
+import 'package:respilink_mobile/features/quiz/presentation/pages/quiz_results_view.dart';
+import 'package:respilink_mobile/features/query_form/presentation/pages/query_form_view.dart';
+
+import '../exports.dart';
+
+class RouterConfiguration {
+  RouterConfiguration._();
+
+  static final GoRouter router = GoRouter(
+    navigatorKey: locator<NavigationService>().navigationKey,
+    initialLocation: RouterStrings.initial,
+    routes: [
+      GoRoute(
+        path: RouterStrings.initial,
+        builder: (context, state) => SplashView(),
+      ),
+      GoRoute(
+        path: RouterStrings.onboarding,
+        builder: (context, state) => const OnboardingView(),
+      ),
+      GoRoute(
+        path: RouterStrings.dashboard,
+        builder: (context, state) => const DashboardView(),
+      ),
+      GoRoute(
+        path: RouterStrings.login,
+        builder: (context, state) => LoginView(),
+      ),
+      GoRoute(
+        path: RouterStrings.register,
+        builder: (context, state) => RegisterView(),
+      ),
+      GoRoute(
+        path: RouterStrings.forgetPassword,
+        builder: (context, state) => ForgotPasswordView(),
+      ),
+      GoRoute(
+        path: RouterStrings.changePassword,
+        builder: (context, state) => ChangePasswordView(),
+      ),
+      GoRoute(
+        path: RouterStrings.resetPassword,
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>;
+
+          final email = args['email'] as String;
+          final code = args['code'] as String;
+          return ResetPasswordView(email: email, code: code);
+        },
+      ),
+      GoRoute(
+        path: RouterStrings.otpVerificationView,
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>;
+
+          final email = args['email'] as String;
+          final purpose = args['purpose'] as String;
+          return OtpVerificationView(email: email, purpose: purpose);
+        },
+      ),
+      GoRoute(
+        path: RouterStrings.webinarDetail,
+        builder: (context, state) =>
+            WebinarDetailView(detail: state.extra as EventDetailModel),
+      ),
+      GoRoute(
+        path: RouterStrings.workshopDetail,
+        builder: (context, state) =>
+            WorkshopDetailView(detail: state.extra as EventDetailModel),
+      ),
+      GoRoute(
+        path: RouterStrings.conferenceDetail,
+        builder: (context, state) =>
+            ConferenceDetailView(detail: state.extra as ConferenceDetailModel),
+      ),
+      GoRoute(
+        path: RouterStrings.settings,
+        builder: (context, state) => const SettingsView(),
+      ),
+      GoRoute(
+        path: RouterStrings.badges,
+        builder: (context, state) => BadgesView(),
+      ),
+      GoRoute(
+        path: RouterStrings.quizPlay,
+        builder: (context, state) => const QuizPlayView(),
+      ),
+      GoRoute(
+        path: RouterStrings.quizResults,
+        builder: (context, state) => const QuizResultsView(),
+      ),
+      GoRoute(
+        path: RouterStrings.leaderboard,
+        builder: (context, state) => const LeaderboardView(),
+      ),
+      GoRoute(
+        path: RouterStrings.queryForm,
+        builder: (context, state) => const QueryFormView(),
+      ),
+      GoRoute(
+        path: RouterStrings.articleReaderView,
+        builder: (context, state) => const ArticleReaderView(),
+      ),
+    ],
+  );
+}
