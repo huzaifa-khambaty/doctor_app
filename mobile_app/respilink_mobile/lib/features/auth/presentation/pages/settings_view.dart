@@ -23,8 +23,19 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {
   bool _pushNotifications = true;
   bool _newsletter = false;
-  bool _biometricLogin = true;
+  bool _biometricLogin = false;
   bool _darkMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _biometricLogin = GlobalNotifiers.userNotifier.value?.biometricEnabled ?? false;
+  }
+
+  void _handleBiometricToggle(bool value) {
+    setState(() => _biometricLogin = value);
+    context.read<AuthBloc>().add(ToggleBiometricRequested(enabled: value));
+  }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -81,7 +92,15 @@ class _SettingsViewState extends State<SettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) => current is BiometricToggleFailed,
+      listener: (context, state) {
+        if (state is BiometricToggleFailed) {
+          setState(() => _biometricLogin = state.enabled);
+          SnackbarUtil.showSnackbar(message: state.message, isError: true);
+        }
+      },
+      child: Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
         backgroundColor: AppColors.white,
@@ -219,7 +238,7 @@ class _SettingsViewState extends State<SettingsView> {
                         icon: Icons.fingerprint,
                         label: 'Biometric Login',
                         toggleValue: _biometricLogin,
-                        onToggle: (v) => setState(() => _biometricLogin = v),
+                        onToggle: _handleBiometricToggle,
                         isLast: true,
                       ),
                     ],
@@ -279,6 +298,7 @@ class _SettingsViewState extends State<SettingsView> {
             ),
           );
         },
+      ),
       ),
     );
   }

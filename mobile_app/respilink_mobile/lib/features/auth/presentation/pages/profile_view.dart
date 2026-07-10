@@ -249,7 +249,7 @@ class _ProfileCard extends StatelessWidget {
           );
           }).toList() ?? [],
           AppText.small(
-            label: user?.specialties?.map((e) => e.name).whereType<String>().join(", ") ?? 'General Physician' ,
+            label: user?.specialties?.map((e) => e.name).whereType<String>().join(", ") ?? 'General Physician',
             color: AppColors.white.withValues(alpha: 0.85),
           ),
           SizedBox(height: 6.h),

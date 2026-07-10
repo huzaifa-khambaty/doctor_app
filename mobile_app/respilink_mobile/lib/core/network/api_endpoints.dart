@@ -14,6 +14,7 @@ class ApiEndpoints {
   static const String resendOtp = '/auth/otp/send';
   static const String otpVerify = '/auth/otp/verify';
   static const String profilePicture = '/profile/photo';
+  static const String toggleBiometric = '/auth/biometric/toggle';
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
 

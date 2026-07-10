@@ -23,6 +23,12 @@ class AuthSuccess extends AuthState {
   AuthSuccess({this.model});
 }
 
+class RegisterSuccess extends AuthState {
+  final Doctor? model;
+
+  RegisterSuccess({this.model});
+}
+
 class ForgetPasswordSuccess extends AuthState {
   final String message;
 
@@ -71,4 +77,17 @@ class SpecialitiesFailed extends AuthState {
   String message;
 
   SpecialitiesFailed({required this.message});
+}
+
+class BiometricToggleSuccess extends AuthState {
+  final Doctor? model;
+
+  BiometricToggleSuccess({this.model});
+}
+
+class BiometricToggleFailed extends AuthState {
+  final String message;
+  final bool enabled;
+
+  BiometricToggleFailed({required this.message, required this.enabled});
 }

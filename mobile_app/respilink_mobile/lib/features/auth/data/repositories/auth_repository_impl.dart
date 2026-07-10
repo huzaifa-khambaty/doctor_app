@@ -165,4 +165,16 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<ApiResponse<List<SpecialitiesModel>>> specialities() async {
     return _remoteDataSource.specialities();
   }
+
+  @override
+  Future<ApiResponse<Doctor>> toggleBiometric(bool enabled) async {
+    final response = await _remoteDataSource.toggleBiometric(enabled);
+
+    if (response.success && response.data != null) {
+      await _localManager.saveUser(response.data);
+      GlobalNotifiers.userNotifier.value = response.data;
+    }
+
+    return response;
+  }
 }

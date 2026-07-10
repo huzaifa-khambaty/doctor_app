@@ -207,7 +207,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                                     final request = OtpRequest(
                                       email: widget.email,
                                       otp: _otpCode,
-                                      purpose: "reset",
+                                      purpose: widget.purpose,
                                     );
                                     BlocProvider.of<AuthBloc>(context).add(
                                       VerifyOtpRequested(request: request),
@@ -225,7 +225,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                                   onTap: () {
                                     final request = ResendOtpRequest(
                                       email: widget.email,
-                                      purpose: "reset",
+                                      purpose: widget.purpose,
                                     );
                                     BlocProvider.of<AuthBloc>(context).add(
                                       ResendOtpRequested(request: request),
