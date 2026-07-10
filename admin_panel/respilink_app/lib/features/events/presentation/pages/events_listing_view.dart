@@ -783,7 +783,7 @@ class _EventRowMenu extends StatelessWidget {
       onSelected: (value) async {
         if (value == 'toggle') {
           context.read<EventsBloc>().add(
-                ToggleEventStatusRequested(event.id!, _isPublished ? 'draft' : 'published'));
+                ToggleEventStatusRequested(event.id!, _isPublished ? 'unpublished' : 'published'));
         } else if (value == 'delete') {
           final confirmed = await _confirmDelete(context);
           if (confirmed && context.mounted) {
