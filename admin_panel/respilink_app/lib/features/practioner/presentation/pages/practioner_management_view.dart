@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/practioner/data/model/practioner_model.dart';
@@ -8,6 +7,7 @@ import 'package:respilink_app/features/practioner/presentation/bloc/practioner_b
 import 'package:respilink_app/features/practioner/presentation/bloc/practioner_event.dart';
 import 'package:respilink_app/features/practioner/presentation/bloc/practioner_state.dart';
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
+import 'package:respilink_app/shared/widgets/app_popup_menu_button.dart';
 import 'package:shimmer/shimmer.dart';
 
 class PractitionerManagementContent extends StatelessWidget {
@@ -28,9 +28,16 @@ class PractitionerManagementContent extends StatelessWidget {
           (prev.error != curr.error && curr.error != null),
       listener: (context, state) {
         if (state.actionSuccess) {
-          SnackbarUtil.showSnackbar(context, message: 'Action completed successfully');
+          SnackbarUtil.showSnackbar(
+            context,
+            message: 'Action completed successfully',
+          );
         } else if (state.error != null) {
-          SnackbarUtil.showSnackbar(context, message: state.error!, isError: true);
+          SnackbarUtil.showSnackbar(
+            context,
+            message: state.error!,
+            isError: true,
+          );
         }
       },
       child: Padding(
@@ -459,7 +466,13 @@ class _FilterControlsBarState extends State<_FilterControlsBar> {
                       ],
                       onChanged: (val) {
                         setState(() => _selectedSpecialtyId = val);
-                        _dispatchFetch();
+                        context.read<PractionerBloc>().add(
+                          FetchPractionersRequested(
+                            page: 1,
+                            status: _selectedStatus,
+                            specialtyId: val != null ? int.tryParse(val) : null,
+                          ),
+                        );
                       },
                     ),
             );
@@ -551,11 +564,11 @@ class _PractitionerDataTable extends StatelessWidget {
             children: [
               Table(
                 columnWidths: const {
-                  0: FlexColumnWidth(2.5),
-                  1: FlexColumnWidth(1.8),
-                  2: FlexColumnWidth(2.2),
-                  3: FlexColumnWidth(1.5),
-                  4: FlexColumnWidth(1.7),
+                  0: FlexColumnWidth(3.0),
+                  1: FlexColumnWidth(4.5),
+                  2: FlexColumnWidth(3.0),
+                  3: FlexColumnWidth(2.0),
+                  4: FlexColumnWidth(2.0),
                   5: FlexColumnWidth(3.5),
                 },
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -566,7 +579,9 @@ class _PractitionerDataTable extends StatelessWidget {
                   else if (practitioners.isEmpty)
                     _buildEmptyRow()
                   else
-                    ...practitioners.map((p) => _buildDataRow(context, p, state)),
+                    ...practitioners.map(
+                      (p) => _buildDataRow(context, p, state),
+                    ),
                 ],
               ),
               const _TablePaginationFooter(),
@@ -678,11 +693,19 @@ class _PractitionerDataTable extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _Shimmer(
-                        child: Container(height: 12, width: 120, decoration: _shBox),
+                        child: Container(
+                          height: 12,
+                          width: 120,
+                          decoration: _shBox,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       _Shimmer(
-                        child: Container(height: 10, width: 70, decoration: _shBox),
+                        child: Container(
+                          height: 10,
+                          width: 70,
+                          decoration: _shBox,
+                        ),
                       ),
                     ],
                   ),
@@ -690,28 +713,65 @@ class _PractitionerDataTable extends StatelessWidget {
               ],
             ),
           ),
+          // Specialty — chip pills
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _Shimmer(
+                  child: Container(
+                    height: 22,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+                _Shimmer(
+                  child: Container(
+                    height: 22,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Hospital
           Padding(
             padding: const EdgeInsets.all(16),
-            child: _Shimmer(child: Container(height: 12, width: 90, decoration: _shBox)),
+            child: _Shimmer(
+              child: Container(height: 12, width: 110, decoration: _shBox),
+            ),
           ),
+          // Reg. Date
           Padding(
             padding: const EdgeInsets.all(16),
-            child: _Shimmer(child: Container(height: 12, width: 110, decoration: _shBox)),
+            child: _Shimmer(
+              child: Container(height: 12, width: 70, decoration: _shBox),
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: _Shimmer(child: Container(height: 12, width: 70, decoration: _shBox)),
-          ),
+          // Status pill
           Padding(
             padding: const EdgeInsets.all(16),
             child: _Shimmer(
               child: Container(
                 height: 22,
                 width: 72,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
+          // Actions — eye icon + more_vert icon
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -721,23 +781,21 @@ class _PractitionerDataTable extends StatelessWidget {
                   child: Container(
                     width: 32,
                     height: 32,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 _Shimmer(
                   child: Container(
-                    width: 72,
-                    height: 28,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _Shimmer(
-                  child: Container(
-                    width: 64,
-                    height: 28,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                   ),
                 ),
               ],
@@ -772,7 +830,11 @@ class _PractitionerDataTable extends StatelessWidget {
     );
   }
 
-  TableRow _buildDataRow(BuildContext context, Practioners p, PractionerState state) {
+  TableRow _buildDataRow(
+    BuildContext context,
+    Practioners p,
+    PractionerState state,
+  ) {
     final regDate = p.createdAt != null ? p.createdAt!.substring(0, 10) : '—';
     final status = (p.status ?? 'pending').toLowerCase();
     final statusColor = switch (status) {
@@ -782,6 +844,9 @@ class _PractitionerDataTable extends StatelessWidget {
     };
     final photoUrl = p.photoUrl ?? p.photoPath;
     final isActioning = state.isActionLoading && state.actioningUserId == p.id;
+
+    final specialties =
+        p.specialties?.where((e) => e.name != null).toList() ?? [];
 
     return TableRow(
       decoration: const BoxDecoration(
@@ -795,7 +860,7 @@ class _PractitionerDataTable extends StatelessWidget {
               AppNetworkImage(
                 height: 25,
                 width: 25,
-                imageUrl: '${ApiEndpoints.imageUrl}$photoUrl',
+                imageUrl: '$photoUrl',
                 isCircle: true,
               ),
               const SizedBox(width: 12),
@@ -812,7 +877,10 @@ class _PractitionerDataTable extends StatelessWidget {
                   ),
                   Text(
                     'ID: ${p.uuid?.substring(0, 8) ?? p.id?.toString() ?? '—'}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted,
+                    ),
                   ),
                 ],
               ),
@@ -820,11 +888,31 @@ class _PractitionerDataTable extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            p.qualifications ?? '—',
-            style: const TextStyle(fontSize: 13, color: AppColors.textDark),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: specialties.isEmpty
+              ? const Text('—', style: TextStyle(fontSize: 13, color: AppColors.textMuted))
+              : Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: specialties.map((s) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        s.name!,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
         ),
         Padding(
           padding: const EdgeInsets.all(16),
@@ -877,52 +965,27 @@ class _PractitionerDataTable extends StatelessWidget {
                 const SizedBox(
                   width: 24,
                   height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
                 )
               else ...[
                 IconButton(
-                  icon: const Icon(Icons.visibility_outlined, size: 18, color: AppColors.textMuted),
+                  icon: const Icon(
+                    Icons.visibility_outlined,
+                    size: 18,
+                    color: AppColors.textMuted,
+                  ),
                   onPressed: () => onUserTapped(p),
                   tooltip: 'View Details',
                 ),
-                const SizedBox(width: 4),
-                if (status == 'pending') ...[
-                  OutlinedButton.icon(
-                    onPressed: () => _confirmApprove(context, p),
-                    icon: const Icon(Icons.check, size: 12, color: AppColors.successGreen),
-                    label: const Text(
-                      'Approve',
-                      style: TextStyle(
-                        color: AppColors.successGreen,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.successGreen),
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    onPressed: () => _confirmReject(context, p),
-                    icon: const Icon(Icons.close, size: 12, color: AppColors.errorRed),
-                    label: const Text(
-                      'Reject',
-                      style: TextStyle(
-                        color: AppColors.errorRed,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.errorRed),
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    ),
-                  ),
-                ],
+                _PractitionerRowMenu(
+                  practioner: p,
+                  status: status,
+                  onApprove: _confirmApprove,
+                  onReject: _confirmReject,
+                ),
               ],
             ],
           ),
@@ -936,14 +999,23 @@ class _PractitionerDataTable extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Approve Practitioner'),
-        content: Text('Verify and approve ${p.fullName ?? 'this practitioner'}?'),
+        content: Text(
+          'Verify and approve ${p.fullName ?? 'this practitioner'}?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.successGreen),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.successGreen,
+            ),
             onPressed: () {
               Navigator.pop(context);
-              context.read<PractionerBloc>().add(VerifyPractionerRequested(p.id!));
+              context.read<PractionerBloc>().add(
+                VerifyPractionerRequested(p.id!),
+              );
             },
             child: const Text('Approve', style: TextStyle(color: Colors.white)),
           ),
@@ -957,19 +1029,74 @@ class _PractitionerDataTable extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Reject Practitioner'),
-        content: Text('Reject the application of ${p.fullName ?? 'this practitioner'}?'),
+        content: Text(
+          'Reject the application of ${p.fullName ?? 'this practitioner'}?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.errorRed,
+            ),
             onPressed: () {
               Navigator.pop(context);
-              context.read<PractionerBloc>().add(RejectPractionerRequested(p.id!));
+              context.read<PractionerBloc>().add(
+                RejectPractionerRequested(p.id!),
+              );
             },
             child: const Text('Reject', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
+    );
+  }
+}
+
+// =========================================================================
+// Per-row popup menu
+// =========================================================================
+
+class _PractitionerRowMenu extends StatelessWidget {
+  final Practioners practioner;
+  final String status;
+  final void Function(BuildContext, Practioners) onApprove;
+  final void Function(BuildContext, Practioners) onReject;
+
+  const _PractitionerRowMenu({
+    required this.practioner,
+    required this.status,
+    required this.onApprove,
+    required this.onReject,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isPending = status == 'pending';
+    return AppPopupMenuButton(
+      onSelected: (value) {
+        if (value == 'approve') onApprove(context, practioner);
+        if (value == 'reject') onReject(context, practioner);
+      },
+      items: [
+        if (isPending) ...[
+          const AppPopupMenuItem(
+            value: 'approve',
+            icon: Icons.check_circle_outline,
+            label: 'Approve',
+            color: AppColors.successGreen,
+            hasDividerAfter: true,
+          ),
+          const AppPopupMenuItem(
+            value: 'reject',
+            icon: Icons.cancel_outlined,
+            label: 'Reject',
+            color: AppColors.errorRed,
+          ),
+        ],
+      ],
     );
   }
 }
@@ -1025,7 +1152,10 @@ class _TablePaginationFooter extends StatelessWidget {
             children: [
               Text(
                 total == 0 ? '' : 'Showing $from – $to of $total practitioners',
-                style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textMuted,
+                ),
               ),
               if (last > 1)
                 Row(
@@ -1040,7 +1170,10 @@ class _TablePaginationFooter extends StatelessWidget {
                       if (page == null) {
                         return const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 4),
-                          child: Text('…', style: TextStyle(color: AppColors.textMuted)),
+                          child: Text(
+                            '…',
+                            style: TextStyle(color: AppColors.textMuted),
+                          ),
                         );
                       }
                       return _PageNumberItem(

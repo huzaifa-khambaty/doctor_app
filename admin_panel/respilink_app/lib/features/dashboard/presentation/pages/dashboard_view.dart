@@ -23,6 +23,10 @@ import 'package:respilink_app/features/query/presentation/pages/notification_his
 import 'package:respilink_app/features/query/presentation/pages/query_inbox_view.dart';
 import 'package:respilink_app/features/quiz/presentation/pages/create_quiz_content.dart';
 import 'package:respilink_app/features/quiz/presentation/pages/quiz_directory_view.dart';
+import 'package:respilink_app/features/quiz/presentation/bloc/quiz_bloc.dart';
+import 'package:respilink_app/features/quiz/presentation/bloc/quiz_event.dart';
+import 'package:respilink_app/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:respilink_app/features/settings/presentation/bloc/settings_event.dart';
 import 'package:respilink_app/features/settings/presentation/pages/setttings_view.dart';
 import 'package:respilink_app/features/settings/presentation/pages/user_permission_content_view.dart';
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
@@ -56,10 +60,19 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   late final EventsBloc _eventsBloc = locator<EventsBloc>()
     ..add(FetchEventsRequested());
 
+  late final SettingsBloc _settingsBloc = locator<SettingsBloc>()
+    ..add(FetchRolesRequested())
+    ..add(FetchPermissionsRequested());
+
+  late final QuizBloc _quizBloc = locator<QuizBloc>()
+    ..add(FetchTopicsRequested());
+
   @override
   void dispose() {
     _practionerBloc.close();
     _eventsBloc.close();
+    _settingsBloc.close();
+    _quizBloc.close();
     super.dispose();
   }
 
@@ -100,14 +113,17 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       case 2:
         return const ContentRepositoryContent();
       case 3:
-        if (_showCreateQuizForm) {
-          return CreateQuizContent(
-            onBackToQuizDirectory: () =>
-                setState(() => _showCreateQuizForm = false),
-          );
-        }
-        return QuizDirectoryContent(
-          onCreateQuizClicked: () => setState(() => _showCreateQuizForm = true),
+        return BlocProvider<QuizBloc>.value(
+          value: _quizBloc,
+          child: _showCreateQuizForm
+              ? CreateQuizContent(
+                  onBackToQuizDirectory: () =>
+                      setState(() => _showCreateQuizForm = false),
+                )
+              : QuizDirectoryContent(
+                  onCreateQuizClicked: () =>
+                      setState(() => _showCreateQuizForm = true),
+                ),
         );
       case 4:
         return BlocProvider<EventsBloc>.value(
@@ -131,7 +147,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       case 6:
         return EngagementAnalyticsContent();
       case 7:
-        return UserPermissionsContent();
+        return BlocProvider<SettingsBloc>.value(
+          value: _settingsBloc,
+          child: const UserPermissionsContent(),
+        );
       case 8:
         return SettingsContent();
       case 9:

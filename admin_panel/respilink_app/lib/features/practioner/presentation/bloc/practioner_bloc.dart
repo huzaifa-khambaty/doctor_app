@@ -9,10 +9,29 @@ class PractionerBloc extends Bloc<PractionerEvent, PractionerState> {
   PractionerBloc(this._repository) : super(const PractionerState()) {
     on<FetchSpecialtiesRequested>(_fetchSpecialties);
     on<FetchPractionersRequested>(_fetchPractioners);
+    on<CreatePractionerRequested>(_createPractioner);
     on<VerifyPractionerRequested>(_verifyPractioner);
     on<RejectPractionerRequested>(_rejectPractioner);
     on<SuspendPractionerRequested>(_suspendPractioner);
     on<ReinstatePractionerRequested>(_reinstatePractioner);
+  }
+
+  Future<void> _createPractioner(
+    CreatePractionerRequested event,
+    Emitter<PractionerState> emit,
+  ) async {
+    emit(state.copyWith(isCreating: true));
+    final res = await _repository.createPractioner(event.request, photo: event.photo);
+    if (res.success) {
+      emit(state.copyWith(isCreating: false, createSuccess: true));
+      add(FetchPractionersRequested(
+        page: state.practioners?.currentPage ?? 1,
+        status: state.activeStatus,
+        specialtyId: state.activeSpecialtyId,
+      ));
+    } else {
+      emit(state.copyWith(isCreating: false, error: res.fullErrorMessage));
+    }
   }
 
   Future<void> _fetchSpecialties(

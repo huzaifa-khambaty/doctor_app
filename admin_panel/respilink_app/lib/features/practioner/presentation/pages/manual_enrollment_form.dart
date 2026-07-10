@@ -3,11 +3,13 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
+import 'package:respilink_app/features/practioner/data/model/requests/create_practioner_request.dart';
 import 'package:respilink_app/features/practioner/data/model/specialities_model.dart';
 import 'package:respilink_app/features/practioner/presentation/bloc/practioner_bloc.dart';
 import 'package:respilink_app/features/practioner/presentation/bloc/practioner_event.dart';
 import 'package:respilink_app/features/practioner/presentation/bloc/practioner_state.dart';
 import 'package:respilink_app/service/image_picker_service.dart';
+import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
 
 class ManualEnrollmentContent extends StatefulWidget {
@@ -24,13 +26,34 @@ class ManualEnrollmentContent extends StatefulWidget {
 }
 
 class _ManualEnrollmentContentState extends State<ManualEnrollmentContent> {
+  PickedImage? _pickedPhoto;
   Uint8List? _profileImage;
   final List<SpecialitiesModel> _selectedSpecialties = [];
+
+  final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _licenseCtrl = TextEditingController();
+  final _hospitalCtrl = TextEditingController();
+  final _yearCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     context.read<PractionerBloc>().add(FetchSpecialtiesRequested());
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
+    _passwordCtrl.dispose();
+    _licenseCtrl.dispose();
+    _hospitalCtrl.dispose();
+    _yearCtrl.dispose();
+    super.dispose();
   }
 
   void _toggleSpecialty(SpecialitiesModel s) {
@@ -57,8 +80,56 @@ class _ManualEnrollmentContentState extends State<ManualEnrollmentContent> {
     setState(() {});
   }
 
+  void _submit() {
+    final name = _nameCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final phone = _phoneCtrl.text.trim();
+    final password = _passwordCtrl.text;
+    final license = _licenseCtrl.text.trim();
+    final hospital = _hospitalCtrl.text.trim();
+    final year = _yearCtrl.text.trim();
+
+    if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty ||
+        license.isEmpty || hospital.isEmpty || year.isEmpty) {
+      SnackbarUtil.showSnackbar(context, message: 'Please fill in all required fields.');
+      return;
+    }
+
+    final request = CreatePractionerRequest(
+      name: name,
+      email: email,
+      phone: phone,
+      password: password,
+      licenseNumber: license,
+      hospitalAffiliation: hospital,
+      yearOfRegistration: year,
+      specialtyIds: _selectedSpecialties.map((s) => s.id!).toList(),
+    );
+
+    context.read<PractionerBloc>().add(
+          CreatePractionerRequested(request, photo: _pickedPhoto),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
+    return BlocListener<PractionerBloc, PractionerState>(
+      listenWhen: (prev, curr) =>
+          (prev.createSuccess != curr.createSuccess && curr.createSuccess) ||
+          (prev.error != curr.error && curr.error != null),
+      listener: (context, state) {
+        if (state.createSuccess) {
+          SnackbarUtil.showSnackbar(context, message: 'Practitioner enrolled successfully!');
+          widget.onBackToUserManagement();
+        } else if (state.error != null) {
+          SnackbarUtil.showSnackbar(context, message: state.error!, isError: true);
+        }
+      },
+      child: _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     InputDecoration inputDecoration(String hint) => InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
@@ -169,8 +240,9 @@ class _ManualEnrollmentContentState extends State<ManualEnrollmentContent> {
                                   final image = await ImagePickerService
                                       .instance
                                       .pickFromGallery();
-                                  if (image.isSuccess) {
+                                  if (image.isSuccess && image.image != null) {
                                     setState(() {
+                                      _pickedPhoto = image.image;
                                       _profileImage = image.image?.bytes;
                                     });
                                   }
@@ -232,23 +304,32 @@ class _ManualEnrollmentContentState extends State<ManualEnrollmentContent> {
                       _FieldWrapper(
                         label: 'Full Name',
                         child: TextField(
-                          decoration:
-                              inputDecoration('Dr. Jane Smith'),
+                          controller: _nameCtrl,
+                          decoration: inputDecoration('Dr. Jane Smith'),
                         ),
                       ),
                       _FieldWrapper(
                         label: 'Email Address',
                         child: TextField(
-                          decoration: inputDecoration(
-                            'jane.smith@hospital.org',
-                          ),
+                          controller: _emailCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: inputDecoration('jane.smith@hospital.org'),
                         ),
                       ),
                       _FieldWrapper(
                         label: 'Phone Number',
                         child: TextField(
-                          decoration:
-                              inputDecoration('+1 (555) 000-0000'),
+                          controller: _phoneCtrl,
+                          keyboardType: TextInputType.phone,
+                          decoration: inputDecoration('+1 (555) 000-0000'),
+                        ),
+                      ),
+                      _FieldWrapper(
+                        label: 'Password',
+                        child: TextField(
+                          controller: _passwordCtrl,
+                          obscureText: true,
+                          decoration: inputDecoration('••••••••'),
                         ),
                       ),
                     ],
@@ -285,21 +366,24 @@ class _ManualEnrollmentContentState extends State<ManualEnrollmentContent> {
                   _FieldWrapper(
                     label: 'License Number',
                     child: TextField(
-                        decoration:
-                            inputDecoration('MD-98234-X')),
+                      controller: _licenseCtrl,
+                      decoration: inputDecoration('MD-98234-X'),
+                    ),
                   ),
                   _FieldWrapper(
                     label: 'Hospital / Clinic Affiliation',
                     child: TextField(
-                      decoration: inputDecoration(
-                        'Central City General Hospital',
-                      ),
+                      controller: _hospitalCtrl,
+                      decoration: inputDecoration('Central City General Hospital'),
                     ),
                   ),
                   _FieldWrapper(
                     label: 'Year of Registration',
-                    child:
-                        TextField(decoration: inputDecoration('2020')),
+                    child: TextField(
+                      controller: _yearCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: inputDecoration('2020'),
+                    ),
                   ),
                 ],
               ),
@@ -328,26 +412,38 @@ class _ManualEnrollmentContentState extends State<ManualEnrollmentContent> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Save & Onboard',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                BlocBuilder<PractionerBloc, PractionerState>(
+                  builder: (context, state) {
+                    return ElevatedButton.icon(
+                      onPressed: state.isCreating ? null : _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: state.isCreating
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.check, size: 16, color: Colors.white),
+                      label: Text(
+                        state.isCreating ? 'Saving...' : 'Save & Onboard',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
@@ -54,9 +53,7 @@ class AppNetworkImage extends StatelessWidget {
         SizedBox(
           width: width,
           height: height,
-          child: const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
         );
   }
 
@@ -65,7 +62,7 @@ class AppNetworkImage extends StatelessWidget {
         SizedBox(
           width: width,
           height: height,
-          child:  Center(
+          child: Center(
             child: Icon(
               Icons.person,
               color: Colors.grey,
@@ -109,10 +106,7 @@ class AppNetworkImage extends StatelessWidget {
               alignment: alignment,
               colorFilter: color == null
                   ? null
-                  : ColorFilter.mode(
-                      color!,
-                      colorBlendMode ?? BlendMode.srcIn,
-                    ),
+                  : ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn),
               placeholderBuilder: (_) => _loading(),
             )
           : SvgPicture.asset(
@@ -123,29 +117,28 @@ class AppNetworkImage extends StatelessWidget {
               alignment: alignment,
               colorFilter: color == null
                   ? null
-                  : ColorFilter.mode(
-                      color!,
-                      colorBlendMode ?? BlendMode.srcIn,
-                    ),
+                  : ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn),
               placeholderBuilder: (_) => _loading(),
             );
     }
 
     if (isNetwork) {
-      return CachedNetworkImage(
-        imageUrl: url,
-        width: width,
-        height: height,
-        fit: fit,
-        alignment: alignment,
-        color: color,
-        colorBlendMode: colorBlendMode,
-        cacheKey: cacheKey,
-        httpHeaders: headers,
-        memCacheWidth: memCacheWidth,
-        memCacheHeight: memCacheHeight,
-        placeholder: (_, error) => _loading(),
-        errorWidget: (_, error, stacktrace) => _error(),
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          url,
+          width: height,
+          height: width,
+          fit: fit,
+          webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
+          errorBuilder: (_, object, err) => const Center(
+            child: Icon(
+              Icons.broken_image_outlined,
+              color: Colors.grey,
+              size: 32,
+            ),
+          ),
+        ),
       );
     }
 
@@ -172,14 +165,9 @@ class AppNetworkImage extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: AppColors.primary,
-          width: 2,
-        ),
+        border: Border.all(color: AppColors.primary, width: 2),
       ),
-      child: ClipOval(
-        child: child,
-      ),
+      child: ClipOval(child: child),
     );
   }
 }

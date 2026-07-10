@@ -672,7 +672,7 @@ class _ScheduleEventContentState extends State<ScheduleEventContent> {
                                             child: Row(
                                               children: [
                                                 AppNetworkImage(
-                                                  imageUrl: '${ApiEndpoints.imageUrl}${s.photoUrl ?? s.photoPath}',
+                                                  imageUrl: '${s.photoUrl ?? s.photoPath}',
                                                   width: 32,
                                                   height: 32,
                                                   isCircle: true,
@@ -1000,7 +1000,7 @@ class _SpeakerSelectionDialogState extends State<_SpeakerSelectionDialog> {
                             child: Row(
                               children: [
                                 AppNetworkImage(
-                                  imageUrl: '${ApiEndpoints.imageUrl}${p.photoUrl ?? p.photoPath}',
+                                  imageUrl: '${p.photoUrl ?? p.photoPath}',
                                   width: 38,
                                   height: 38,
                                   isCircle: true,

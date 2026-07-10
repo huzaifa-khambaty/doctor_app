@@ -16,6 +16,8 @@ class PractionerState {
   final bool isActionLoading;
   final int? actioningUserId;
 
+  final bool isCreating;
+  final bool createSuccess;
   final String? error;
   final bool actionSuccess;
 
@@ -28,6 +30,8 @@ class PractionerState {
     this.activeSpecialtyId,
     this.isActionLoading = false,
     this.actioningUserId,
+    this.isCreating = false,
+    this.createSuccess = false,
     this.error,
     this.actionSuccess = false,
   });
@@ -41,6 +45,8 @@ class PractionerState {
     int? activeSpecialtyId,
     bool? isActionLoading,
     int? actioningUserId,
+    bool? isCreating,
+    bool? createSuccess,
     String? error,
     bool? actionSuccess,
     bool clearStatus = false,
@@ -56,6 +62,8 @@ class PractionerState {
       activeSpecialtyId: clearSpecialtyId ? null : (activeSpecialtyId ?? this.activeSpecialtyId),
       isActionLoading: isActionLoading ?? this.isActionLoading,
       actioningUserId: clearActioningUserId ? null : (actioningUserId ?? this.actioningUserId),
+      isCreating: isCreating ?? this.isCreating,
+      createSuccess: createSuccess ?? false,
       error: error,
       actionSuccess: actionSuccess ?? false,
     );

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_topic_model.dart';
+import 'package:respilink_app/features/quiz/presentation/bloc/quiz_bloc.dart';
+import 'package:respilink_app/features/quiz/presentation/bloc/quiz_state.dart';
+import 'package:shimmer/shimmer.dart';
 
 class CreateQuizContent extends StatefulWidget {
   final VoidCallback onBackToQuizDirectory;
@@ -14,7 +19,7 @@ class CreateQuizContent extends StatefulWidget {
 }
 
 class _CreateQuizContentState extends State<CreateQuizContent> {
-  String? _selectedTopic = 'Pulmonology';
+  QuizTopicModel? _selectedTopic;
   int _correctOptionIndex = 0; // Tracks which option is set to 'Correct'
 
   @override
@@ -138,24 +143,45 @@ class _CreateQuizContentState extends State<CreateQuizContent> {
                       children: [
                         const Text('TOPIC AREA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textDark, letterSpacing: 0.5)),
                         const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F8FA),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.borderLight),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedTopic,
-                              isExpanded: true,
-                              icon: const Icon(Icons.keyboard_arrow_down, size: 18),
-                              items: <String>['Pulmonology', 'Anatomy', 'Cardiology', 'Radiology']
-                                  .map((val) => DropdownMenuItem(value: val, child: Text(val, style: const TextStyle(fontSize: 13))))
-                                  .toList(),
-                              onChanged: (val) => setState(() => _selectedTopic = val),
-                            ),
-                          ),
+                        BlocBuilder<QuizBloc, QuizState>(
+                          builder: (context, state) {
+                            if (state.isLoadingTopics) {
+                              return Shimmer.fromColors(
+                                baseColor: const Color(0xFFE2E8F0),
+                                highlightColor: const Color(0xFFF8FAFC),
+                                child: Container(
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              );
+                            }
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F8FA),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.borderLight),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<QuizTopicModel>(
+                                  value: _selectedTopic,
+                                  isExpanded: true,
+                                  hint: const Text('Select a topic', style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+                                  icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+                                  items: state.topics
+                                      .map((t) => DropdownMenuItem(
+                                            value: t,
+                                            child: Text(t.name ?? '', style: const TextStyle(fontSize: 13)),
+                                          ))
+                                      .toList(),
+                                  onChanged: (val) => setState(() => _selectedTopic = val),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                         const Text('OPEN PERIOD', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textDark, letterSpacing: 0.5)),

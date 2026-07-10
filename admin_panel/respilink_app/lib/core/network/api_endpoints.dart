@@ -21,6 +21,13 @@ class ApiEndpoints {
   static const String specialties = '/specialties';
   static const String practioners = '/users';
 
-    /// Events
+  /// Events
   static const String events = '/events';
+
+  ///Permissions
+  static const String roles = '/roles';
+  static const String permissions = '/permissions';
+
+  ///Quiz
+  static const String topics = '/topics';
 }

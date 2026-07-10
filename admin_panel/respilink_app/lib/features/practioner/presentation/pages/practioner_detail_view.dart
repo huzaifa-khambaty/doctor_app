@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/practioner/data/model/practioner_model.dart';
@@ -70,10 +69,7 @@ class _DetailContent extends StatelessWidget {
 
     return BlocBuilder<PractionerBloc, PractionerState>(
       builder: (context, state) {
-        final specialtyName = state.specialties
-            .where((s) => s.id == practioner.specialtyId)
-            .map((s) => s.name ?? s.slug ?? '')
-            .firstOrNull ?? 'Unknown';
+        final specialtyName = practioner.specialties?.map((e) => e.name).whereType<String>().join(", ") ?? 'Unknown';
 
         final isActioning = state.isActionLoading &&
             state.actioningUserId == practioner.id;
@@ -132,7 +128,7 @@ class _DetailContent extends StatelessWidget {
                               border: Border.all(color: Colors.tealAccent.withValues(alpha: 0.6), width: 2),
                             ),
                             child: AppNetworkImage(
-                              imageUrl: '${ApiEndpoints.imageUrl}$photoUrl',
+                              imageUrl: '$photoUrl',
                               width: 72,
                               height: 72,
                               isCircle: true,

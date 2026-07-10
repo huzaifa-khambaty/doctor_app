@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
+import 'package:respilink_app/shared/widgets/app_popup_menu_button.dart';
 
 class ContentRepositoryContent extends StatelessWidget {
   const ContentRepositoryContent({super.key});
@@ -547,81 +548,28 @@ class _ContentRepositoryTable extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.all(16),
-          child: PopupMenuButton<String>(
-            icon: const Icon(
-              Icons.more_vert,
-              size: 20,
-              color: AppColors.textMuted,
-            ),
-            color: Colors.white,
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: AppColors.borderLight),
-            ),
-            offset: const Offset(0, 40),
+          child: AppPopupMenuButton(
             onSelected: (value) {
               switch (value) {
                 case 'unpublish':
                   break;
-
                 case 'delete':
                   break;
               }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem<String>(
+            items: const [
+              AppPopupMenuItem(
                 value: 'unpublish',
-                padding: EdgeInsets.zero,
-                child: SizedBox(
-                  width: 150,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      children: const [
-                        Icon(
-                          Icons.visibility_off_outlined,
-                          color: AppColors.sidebarBg,
-                          size: 20,
-                        ),
-                        SizedBox(width: 14),
-                        Text(
-                          'Unpublish',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.sidebarBg,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                icon: Icons.visibility_off_outlined,
+                label: 'Unpublish',
+                color: AppColors.sidebarBg,
+                hasDividerAfter: true,
               ),
-              const PopupMenuDivider(height: .5),
-              PopupMenuItem<String>(
+              AppPopupMenuItem(
                 value: 'delete',
-                padding: EdgeInsets.zero,
-                child: SizedBox(
-                  width: 150,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                        SizedBox(width: 14),
-                        Text(
-                          'Delete',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.red,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                icon: Icons.delete_outline,
+                label: 'Delete',
+                color: Colors.red,
               ),
             ],
           ),

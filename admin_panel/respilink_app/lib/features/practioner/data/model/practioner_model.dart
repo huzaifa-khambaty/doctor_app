@@ -15,20 +15,21 @@ class PractionersModel {
   int? to;
   int? total;
 
-  PractionersModel(
-      {this.currentPage,
-      this.data,
-      this.firstPageUrl,
-      this.from,
-      this.lastPage,
-      this.lastPageUrl,
-      this.links,
-      this.nextPageUrl,
-      this.path,
-      this.perPage,
-      this.prevPageUrl,
-      this.to,
-      this.total});
+  PractionersModel({
+    this.currentPage,
+    this.data,
+    this.firstPageUrl,
+    this.from,
+    this.lastPage,
+    this.lastPageUrl,
+    this.links,
+    this.nextPageUrl,
+    this.path,
+    this.perPage,
+    this.prevPageUrl,
+    this.to,
+    this.total,
+  });
 
   PractionersModel.fromJson(Map<String, dynamic> json) {
     currentPage = json['current_page'];
@@ -85,7 +86,9 @@ class Practioners {
   String? fullName;
   String? email;
   String? phone;
-  int? specialtyId;
+  String? licenseNumber;
+  String? hospitalClinicAffiliation;
+  int? yearOfRegistration;
   String? hospitalAffiliation;
   String? photoPath;
   String? qualifications;
@@ -94,38 +97,33 @@ class Practioners {
   String? rejectionReason;
   String? verifiedAt;
   int? verifiedBy;
-  String? emailVerifiedAt;
-  String? phoneVerifiedAt;
-  bool? biometricEnabled;
-  String? lastActiveAt;
   String? createdAt;
   String? updatedAt;
-  String? deletedAt;
   String? photoUrl;
+  List<Specialties>? specialties;
 
-  Practioners(
-      {this.id,
-      this.uuid,
-      this.fullName,
-      this.email,
-      this.phone,
-      this.specialtyId,
-      this.hospitalAffiliation,
-      this.photoPath,
-      this.qualifications,
-      this.location,
-      this.status,
-      this.rejectionReason,
-      this.verifiedAt,
-      this.verifiedBy,
-      this.emailVerifiedAt,
-      this.phoneVerifiedAt,
-      this.biometricEnabled,
-      this.lastActiveAt,
-      this.createdAt,
-      this.updatedAt,
-      this.deletedAt,
-      this.photoUrl});
+  Practioners({
+    this.id,
+    this.uuid,
+    this.fullName,
+    this.email,
+    this.phone,
+    this.licenseNumber,
+    this.hospitalClinicAffiliation,
+    this.yearOfRegistration,
+    this.hospitalAffiliation,
+    this.photoPath,
+    this.qualifications,
+    this.location,
+    this.status,
+    this.rejectionReason,
+    this.verifiedAt,
+    this.verifiedBy,
+    this.createdAt,
+    this.updatedAt,
+    this.photoUrl,
+    this.specialties,
+  });
 
   Practioners.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -133,7 +131,9 @@ class Practioners {
     fullName = json['full_name'];
     email = json['email'];
     phone = json['phone'];
-    specialtyId = json['specialty_id'];
+    licenseNumber = json['license_number'];
+    hospitalClinicAffiliation = json['hospital_clinic_affiliation'];
+    yearOfRegistration = json['year_of_registration'];
     hospitalAffiliation = json['hospital_affiliation'];
     photoPath = json['photo_path'];
     qualifications = json['qualifications'];
@@ -142,14 +142,15 @@ class Practioners {
     rejectionReason = json['rejection_reason'];
     verifiedAt = json['verified_at'];
     verifiedBy = json['verified_by'];
-    emailVerifiedAt = json['email_verified_at'];
-    phoneVerifiedAt = json['phone_verified_at'];
-    biometricEnabled = json['biometric_enabled'];
-    lastActiveAt = json['last_active_at'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    deletedAt = json['deleted_at'];
     photoUrl = json['photo_url'];
+    if (json['specialties'] != null) {
+      specialties = <Specialties>[];
+      json['specialties'].forEach((v) {
+        specialties!.add(Specialties.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -159,7 +160,9 @@ class Practioners {
     data['full_name'] = fullName;
     data['email'] = email;
     data['phone'] = phone;
-    data['specialty_id'] = specialtyId;
+    data['license_number'] = licenseNumber;
+    data['hospital_clinic_affiliation'] = hospitalClinicAffiliation;
+    data['year_of_registration'] = yearOfRegistration;
     data['hospital_affiliation'] = hospitalAffiliation;
     data['photo_path'] = photoPath;
     data['qualifications'] = qualifications;
@@ -168,14 +171,71 @@ class Practioners {
     data['rejection_reason'] = rejectionReason;
     data['verified_at'] = verifiedAt;
     data['verified_by'] = verifiedBy;
-    data['email_verified_at'] = emailVerifiedAt;
-    data['phone_verified_at'] = phoneVerifiedAt;
-    data['biometric_enabled'] = biometricEnabled;
-    data['last_active_at'] = lastActiveAt;
     data['created_at'] = createdAt;
     data['updated_at'] = updatedAt;
-    data['deleted_at'] = deletedAt;
     data['photo_url'] = photoUrl;
+    if (specialties != null) {
+      data['specialties'] = specialties!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class Specialties {
+  int? id;
+  String? name;
+  String? slug;
+  String? createdAt;
+  String? updatedAt;
+  Pivot? pivot;
+
+  Specialties({
+    this.id,
+    this.name,
+    this.slug,
+    this.createdAt,
+    this.updatedAt,
+    this.pivot,
+  });
+
+  Specialties.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    slug = json['slug'];
+    createdAt = json['created_at'];
+    updatedAt = json['updated_at'];
+    pivot = json['pivot'] != null ? Pivot.fromJson(json['pivot']) : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['slug'] = slug;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
+    if (pivot != null) {
+      data['pivot'] = pivot!.toJson();
+    }
+    return data;
+  }
+}
+
+class Pivot {
+  int? userId;
+  int? specialtyId;
+
+  Pivot({this.userId, this.specialtyId});
+
+  Pivot.fromJson(Map<String, dynamic> json) {
+    userId = json['user_id'];
+    specialtyId = json['specialty_id'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['user_id'] = userId;
+    data['specialty_id'] = specialtyId;
     return data;
   }
 }

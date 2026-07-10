@@ -1,6 +1,14 @@
+import 'package:respilink_app/features/practioner/data/model/requests/create_practioner_request.dart';
 import 'package:respilink_app/features/practioner/data/model/requests/suspend_user_request.dart';
+import 'package:respilink_app/service/image_picker_service.dart';
 
 abstract class PractionerEvent {}
+
+class CreatePractionerRequested extends PractionerEvent {
+  final CreatePractionerRequest request;
+  final PickedImage? photo;
+  CreatePractionerRequested(this.request, {this.photo});
+}
 
 class FetchSpecialtiesRequested extends PractionerEvent {}
 

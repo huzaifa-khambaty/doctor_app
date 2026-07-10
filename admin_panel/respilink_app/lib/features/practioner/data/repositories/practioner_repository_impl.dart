@@ -1,9 +1,11 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
 import 'package:respilink_app/features/practioner/data/model/practioner_model.dart';
+import 'package:respilink_app/features/practioner/data/model/requests/create_practioner_request.dart';
 import 'package:respilink_app/features/practioner/data/model/requests/suspend_user_request.dart';
 import 'package:respilink_app/features/practioner/data/model/specialities_model.dart';
 import 'package:respilink_app/features/practioner/data/sources/practioner_remote_data_source.dart';
 import 'package:respilink_app/features/practioner/domain/repositories/practioner_repository.dart';
+import 'package:respilink_app/service/image_picker_service.dart';
 
 class PractionerRepositoryImpl implements PractionerRepository {
   final PractionerRemoteDataSource _remoteDataSource;
@@ -25,6 +27,10 @@ class PractionerRepositoryImpl implements PractionerRepository {
         status: status,
         specialtyId: specialtyId,
       );
+
+  @override
+  Future<ApiResponse<dynamic>> createPractioner(CreatePractionerRequest request, {PickedImage? photo}) =>
+      _remoteDataSource.createPractioner(request, photo: photo);
 
   @override
   Future<ApiResponse<dynamic>> verifyPractioner({required int userId}) =>
