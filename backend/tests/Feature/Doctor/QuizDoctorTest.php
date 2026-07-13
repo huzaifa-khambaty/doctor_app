@@ -7,6 +7,7 @@ use App\Domain\Shared\Models\Quiz;
 use App\Domain\Shared\Models\QuizQuestion;
 use App\Domain\Shared\Models\QuizOption;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class QuizDoctorTest extends TestCase
@@ -17,8 +18,23 @@ class QuizDoctorTest extends TestCase
     {
         parent::setUp();
         
-        $this->user = User::factory()->create(['status' => 'verified']);
-        $this->unverifiedUser = User::factory()->create(['status' => 'pending']);
+        $this->user = User::create([
+            'full_name' => 'Test Doctor',
+            'email' => 'doctor@test.com',
+            'phone' => '1234567890',
+            'password' => Hash::make('password'),
+            'status' => 'verified',
+            'email_verified_at' => now(),
+            'phone_verified_at' => now(),
+        ]);
+        
+        $this->unverifiedUser = User::create([
+            'full_name' => 'Unverified Doctor',
+            'email' => 'unverified@test.com',
+            'phone' => '0987654321',
+            'password' => Hash::make('password'),
+            'status' => 'pending',
+        ]);
 
         $this->quiz = Quiz::create([
             'title' => 'Test Quiz',

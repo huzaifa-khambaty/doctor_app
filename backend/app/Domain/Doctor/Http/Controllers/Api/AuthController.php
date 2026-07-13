@@ -28,6 +28,8 @@ class AuthController extends Controller
 
     public function register(RegisterDoctorRequest $request)
     {
+
+    // return ($request->all());
         $user = User::create([
             'uuid' => (string) Str::uuid(),
             'full_name' => $request->full_name,
@@ -91,7 +93,13 @@ class AuthController extends Controller
             }
         }
 
-        return response()->json(['success' => true, 'message' => 'OTP verified successfully.']);
+        $user->load('specialties');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP verified successfully.',
+            'user' => $user
+        ]);
     }
 
     public function login(LoginRequest $request)

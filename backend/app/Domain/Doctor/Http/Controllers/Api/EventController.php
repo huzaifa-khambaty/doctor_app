@@ -5,7 +5,7 @@ namespace App\Domain\Doctor\Http\Controllers\Api;
 use App\Domain\Shared\Models\Event;
 use App\Domain\Shared\Models\EventRegistration;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
@@ -34,7 +34,7 @@ class EventController extends Controller
             }
         }
 
-        $events = $query->paginate(15);
+        $events = $query->paginate($request->query('per_page', 15));
 
         $user = $request->user();
         
@@ -44,7 +44,7 @@ class EventController extends Controller
             return $event;
         });
 
-        return response()->json($events);
+        return $this->jsonWithPagination($events);
     }
 
     public function show(Event $event, Request $request)
@@ -112,24 +112,134 @@ class EventController extends Controller
         return response()->json(['message' => 'Registration cancelled successfully.']);
     }
 
+    public function webinarDetail(Event $event, Request $request)
+    {
+        if ($event->status !== 'published' || $event->type !== 'webinar') {
+            return response()->json(['message' => 'Event not found.'], 404);
+        }
+
+        $event->load('webinarDetail.learningObjectives', 'speakers');
+
+        $user = $request->user();
+        $isRegistered = $event->registrations()->where('user_id', $user->id)->where('status', '!=', 'cancelled')->exists();
+
+        $speaker = $event->speakers->first();
+        $detail = $event->webinarDetail;
+
+        return response()->json([
+            'id' => $event->id,
+            'title' => $event->title,
+            'banner' => $event->banner_url,
+            'speaker' => $speaker ? [
+                'name' => $speaker->full_name,
+                'designation' => $detail?->speaker_designation,
+                'image' => $speaker->photo_url,
+            ] : null,
+            'date' => $event->starts_at?->format('Y-m-d'),
+            'start_time' => $event->starts_at?->format('H:i'),
+            'end_time' => $event->ends_at?->format('H:i'),
+            'cme_credits' => (float) ($detail?->cme_credits ?? 0),
+            'format' => $detail?->format,
+            'description' => $event->description,
+            'syllabus' => $detail?->syllabus,
+            'learning_objectives' => $detail?->learningObjectives->pluck('objective') ?? [],
+            'registration_fee' => (float) ($detail?->registration_fee ?? 0),
+            'is_registered' => $isRegistered,
+        ]);
+    }
+
+    public function conferenceDetail(Event $event, Request $request)
+    {
+        if ($event->status !== 'published' || $event->type !== 'conference') {
+            return response()->json(['message' => 'Event not found.'], 404);
+        }
+
+        $event->load('conferenceDetail.agendaItems', 'speakers');
+
+        $user = $request->user();
+        $isRegistered = $event->registrations()->where('user_id', $user->id)->where('status', '!=', 'cancelled')->exists();
+
+        $detail = $event->conferenceDetail;
+
+        return response()->json([
+            'id' => $event->id,
+            'title' => $event->title,
+            'banner' => $event->banner_url,
+            'duration' => $detail?->duration,
+            'date_from' => $event->starts_at?->format('Y-m-d'),
+            'date_to' => $event->ends_at?->format('Y-m-d'),
+            'time' => $detail?->time,
+            'format' => $detail?->format,
+            'venue' => $detail?->venue ?? $event->location,
+            'speakers' => $event->speakers->map(fn ($s) => [
+                'name' => $s->full_name,
+                'image' => $s->photo_url,
+            ]),
+            'agenda' => $detail?->agendaItems->map(fn ($item) => [
+                'day' => $item->day,
+                'time' => $item->time,
+                'title' => $item->title,
+                'description' => $item->description,
+                'location' => $item->location,
+            ]) ?? [],
+            'price' => (float) ($detail?->price ?? 0),
+            'currency' => $detail?->currency ?? 'USD',
+            'is_registered' => $isRegistered,
+        ]);
+    }
+
+    public function workshopDetail(Event $event, Request $request)
+    {
+        if ($event->status !== 'published' || $event->type !== 'workshop') {
+            return response()->json(['message' => 'Event not found.'], 404);
+        }
+
+        $event->load('workshopDetail.prerequisites', 'speakers');
+
+        $user = $request->user();
+        $isRegistered = $event->registrations()->where('user_id', $user->id)->where('status', '!=', 'cancelled')->exists();
+
+        $trainer = $event->speakers->first();
+        $detail = $event->workshopDetail;
+
+        return response()->json([
+            'id' => $event->id,
+            'title' => $event->title,
+            'banner' => $event->banner_url,
+            'trainer' => $trainer ? [
+                'name' => $trainer->full_name,
+                'designation' => $detail?->trainer_designation,
+                'image' => $trainer->photo_url,
+            ] : null,
+            'date' => $event->starts_at?->format('Y-m-d'),
+            'start_time' => $event->starts_at?->format('H:i'),
+            'end_time' => $event->ends_at?->format('H:i'),
+            'location' => $event->location,
+            'fee' => (float) ($detail?->fee ?? 0),
+            'currency' => $detail?->currency ?? 'USD',
+            'description' => $event->description,
+            'prerequisites' => $detail?->prerequisites->pluck('prerequisite') ?? [],
+            'is_registered' => $isRegistered,
+        ]);
+    }
+
     public function myEvents(Request $request)
     {
         $user = $request->user();
-        
+
         $registrations = EventRegistration::where('user_id', $user->id)
             ->where('status', '!=', 'cancelled')
             ->with('event.creator:id,name')
-            ->get()
-            ->sortBy(function ($reg) {
-                return $reg->event->starts_at;
-            })
-            ->values();
+            ->orderByDesc(
+                Event::select('starts_at')->whereColumn('id', 'event_registrations.event_id')
+            )
+            ->paginate($request->query('per_page', 15));
 
-        $registrations->transform(function ($reg) {
+        $registrations->getCollection()->transform(function ($reg) {
             $reg->event->is_live = now()->between($reg->event->starts_at, $reg->event->ends_at ?? $reg->event->starts_at->copy()->addHours(2));
             return $reg;
         });
 
-        return response()->json($registrations);
+        return $this->jsonWithPagination($registrations);
     }
 }

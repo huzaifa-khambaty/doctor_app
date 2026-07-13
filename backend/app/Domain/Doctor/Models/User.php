@@ -42,6 +42,11 @@ class User extends Authenticatable
         'rejection_reason',
         'verified_at',
         'verified_by',
+        'medical_specialty_id',
+        'license_number',
+        'hospital_clinic_affiliation',
+        'year_of_registration',
+        'points',
     ];
 
     protected $hidden = [
@@ -56,6 +61,8 @@ class User extends Authenticatable
         'password' => 'hashed',
         'biometric_enabled' => 'boolean',
         'verified_at' => 'datetime',
+        'year_of_registration' => 'integer',
+        'points' => 'integer',
     ];
 
     public function scopeStatus(Builder $query, string $status)
@@ -66,6 +73,11 @@ class User extends Authenticatable
     public function specialties()
     {
         return $this->belongsToMany(Specialty::class);
+    }
+
+    public function medicalSpecialty()
+    {
+        return $this->belongsTo(Specialty::class, 'medical_specialty_id');
     }
 
     public function otps()
@@ -83,6 +95,17 @@ class User extends Authenticatable
         return $this->hasMany(AccountDeletionRequest::class);
     }
 
+    public function quizAttempts()
+    {
+        return $this->hasMany(\App\Domain\Shared\Models\QuizAttempt::class);
+    }
+
+    public function badges()
+    {
+        return $this->belongsToMany(\App\Domain\Shared\Models\Badge::class, 'user_badges', 'user_id', 'badge_id')
+                    ->withPivot('awarded_at');
+    }
+
     protected function photoUrl(): Attribute
     {
         return Attribute::make(
@@ -93,7 +116,7 @@ class User extends Authenticatable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['full_name', 'email', 'phone', 'status', 'hospital_affiliation', 'location'])
+            ->logOnly(['full_name', 'email', 'phone', 'status', 'hospital_affiliation', 'location', 'medical_specialty_id', 'license_number', 'hospital_clinic_affiliation', 'year_of_registration'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn(string $eventName) => "User profile has been {$eventName}");

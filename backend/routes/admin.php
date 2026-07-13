@@ -10,6 +10,7 @@ use App\Domain\Admin\Http\Controllers\Api\PermissionController;
 use App\Domain\Shared\Http\Controllers\Api\SpecialtyController;
 use App\Domain\Admin\Http\Controllers\Api\EventController;
 use App\Domain\Admin\Http\Controllers\Api\AdminQuizController;
+use App\Domain\Admin\Http\Controllers\Api\AdminTopicController;
 
 Route::prefix('admin/v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -59,8 +60,11 @@ Route::prefix('admin/v1')->group(function () {
             Route::delete('{quiz}/questions/{question}', 'destroyQuestion');
             Route::post('{quiz}/submit-for-review', 'submitForReview');
             Route::post('{quiz}/publish', 'publish');
+            Route::post('{quiz}/unpublish', 'unpublish');
             Route::get('{quiz}/leaderboard', 'leaderboard');
             Route::post('{quiz}/leaderboard/recalculate', 'recalculateLeaderboard');
+            Route::get('analytics', 'generalAnalytics');
+            Route::get('{quiz}/analytics', 'quizAnalytics');
         });
 
         Route::apiResource('events', EventController::class);
@@ -69,6 +73,8 @@ Route::prefix('admin/v1')->group(function () {
             Route::patch('{event}/status', 'updateStatus');
             Route::get('{event}/registrations', 'registrations');
         });
+
+        Route::apiResource('topics', AdminTopicController::class);
 
         Route::get('specialties', [SpecialtyController::class, 'index']);
     });

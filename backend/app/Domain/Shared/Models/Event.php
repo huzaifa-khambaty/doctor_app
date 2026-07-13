@@ -58,6 +58,21 @@ class Event extends Model
         return $this->belongsToMany(User::class, 'event_speaker');
     }
 
+    public function webinarDetail()
+    {
+        return $this->hasOne(WebinarDetail::class);
+    }
+
+    public function conferenceDetail()
+    {
+        return $this->hasOne(ConferenceDetail::class);
+    }
+
+    public function workshopDetail()
+    {
+        return $this->hasOne(WorkshopDetail::class);
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', 'published');

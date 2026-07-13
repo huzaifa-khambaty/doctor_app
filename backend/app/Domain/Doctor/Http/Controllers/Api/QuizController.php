@@ -9,7 +9,7 @@ use App\Domain\Shared\Models\QuizOption;
 use App\Domain\Shared\Services\LeaderboardService;
 use App\Domain\Shared\Services\BadgeAwardService;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 
 class QuizController extends Controller
@@ -17,7 +17,11 @@ class QuizController extends Controller
     public function index(Request $request)
     {
         $status = $request->query('status', 'active');
-        $query = Quiz::where('status', 'published');
+        $query = Quiz::where('status', 'published')
+            ->where(function ($q) {
+                $q->whereNull('opens_at')
+                  ->orWhere('opens_at', '<=', now());
+            });
 
         if ($status === 'active') {
             $query->where(function ($q) {
@@ -28,7 +32,9 @@ class QuizController extends Controller
             $query->where('closes_at', '<', now());
         }
 
-        return response()->json($query->paginate(15));
+        $quizzes = $query->paginate($request->query('per_page', 15));
+
+        return $this->jsonWithPagination($quizzes);
     }
 
     public function show(Request $request, Quiz $quiz)
@@ -100,8 +106,13 @@ class QuizController extends Controller
             'answers' => 'required_without:question_id|array',
             'answers.*.question_id' => 'required_with:answers|exists:quiz_questions,id',
             'answers.*.option_id' => 'nullable|exists:quiz_options,id',
+            'answers.*.option_ids' => 'nullable|array',
+            'answers.*.option_ids.*' => 'exists:quiz_options,id',
+            
             'question_id' => 'required_without:answers|exists:quiz_questions,id',
             'option_id' => 'nullable|exists:quiz_options,id',
+            'option_ids' => 'nullable|array',
+            'option_ids.*' => 'exists:quiz_options,id',
         ]);
 
         $attempt = QuizAttempt::where('quiz_id', $quiz->id)
@@ -115,7 +126,11 @@ class QuizController extends Controller
 
         $answersToProcess = $request->has('answers') 
             ? $validated['answers'] 
-            : [['question_id' => $validated['question_id'], 'option_id' => $validated['option_id'] ?? null]];
+            : [[
+                'question_id' => $validated['question_id'],
+                'option_id' => $validated['option_id'] ?? null,
+                'option_ids' => $validated['option_ids'] ?? null
+            ]];
 
         $results = [];
 
@@ -123,25 +138,40 @@ class QuizController extends Controller
             $isCorrect = false;
             $explanation = null;
 
-            if (!empty($ans['option_id'])) {
-                $option = QuizOption::find($ans['option_id']);
-                if ($option && $option->quiz_question_id == $ans['question_id']) {
-                    $isCorrect = $option->is_correct;
-                    $explanation = $option->explanation;
+            $question = \App\Domain\Shared\Models\QuizQuestion::with('options')->find($ans['question_id']);
+            if ($question) {
+                $correctOptionIds = $question->options->where('is_correct', true)->pluck('id')->toArray();
+                
+                $selectedOptionIds = [];
+                if (!empty($ans['option_ids'])) {
+                    $selectedOptionIds = (array) $ans['option_ids'];
+                } elseif (!empty($ans['option_id'])) {
+                    $selectedOptionIds = [$ans['option_id']];
                 }
+
+                sort($correctOptionIds);
+                sort($selectedOptionIds);
+
+                if (!empty($selectedOptionIds) && $correctOptionIds === $selectedOptionIds) {
+                    $isCorrect = true;
+                }
+
+                $explanation = $question->options->where('is_correct', true)->pluck('explanation')->filter()->join('; ');
             }
 
-            QuizAttemptAnswer::updateOrCreate(
+            $attemptAnswer = QuizAttemptAnswer::updateOrCreate(
                 [
                     'quiz_attempt_id' => $attempt->id,
                     'quiz_question_id' => $ans['question_id'],
                 ],
                 [
-                    'quiz_option_id' => $ans['option_id'] ?? null,
+                    'quiz_option_id' => count($selectedOptionIds) === 1 ? $selectedOptionIds[0] : null,
                     'is_correct' => $isCorrect,
                     'answered_at' => now(),
                 ]
             );
+
+            $attemptAnswer->selectedOptions()->sync($selectedOptionIds);
 
             $results[] = [
                 'question_id' => $ans['question_id'],
@@ -183,6 +213,9 @@ class QuizController extends Controller
             'score' => $score,
         ]);
 
+        $pointsEarned = $score * 100;
+        $request->user()->increment('points', $pointsEarned);
+
         $badgeService->evaluate($attempt);
 
         \Illuminate\Support\Facades\Cache::forget("quiz_{$quiz->id}_leaderboard");
@@ -190,18 +223,29 @@ class QuizController extends Controller
         return response()->json([
             'message' => 'Quiz submitted successfully.',
             'score' => $score,
-            'duration_seconds' => $durationSeconds
+            'duration_seconds' => $durationSeconds,
+            'points_earned' => $pointsEarned,
         ]);
     }
 
     public function leaderboard(Request $request, Quiz $quiz, LeaderboardService $leaderboardService)
     {
-        $ranked = $leaderboardService->rank($quiz, 10);
+        $limit = (int) $request->query('per_page', 10);
+        $ranked = $leaderboardService->rank($quiz, $limit);
         $myRank = $leaderboardService->myRank($quiz, $request->user());
+        $total = $quiz->attempts()->where('status', 'submitted')->count();
 
         return response()->json([
             'leaderboard' => $ranked,
             'me' => $myRank,
+            'pagination' => [
+                'page' => 1,
+                'per_page' => $limit,
+                'total' => $total,
+                'last_page' => (int) ceil($total / max($limit, 1)),
+                'has_next' => $total > $limit,
+                'has_previous' => false,
+            ],
         ]);
     }
 

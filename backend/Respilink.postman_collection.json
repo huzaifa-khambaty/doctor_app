@@ -206,13 +206,59 @@
                                     ]
                                 },
                                 "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n    \"full_name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"phone\": \"+1234567890\",\n    \"password\": \"password123\",\n    \"specialties\": [1]\n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "full_name",
+                                            "value": "John Doe",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "email",
+                                            "value": "john@example.com",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "phone",
+                                            "value": "+1234567890",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "password",
+                                            "value": "password123",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "specialties[0]",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "medical_specialty_id",
+                                            "value": "1",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "license_number",
+                                            "value": "LIC-123-456",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "hospital_clinic_affiliation",
+                                            "value": "City Hospital",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "year_of_registration",
+                                            "value": "2015",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "photo",
+                                            "type": "file",
+                                            "src": ""
                                         }
-                                    }
+                                    ]
                                 }
                             },
                             "response": []
@@ -279,13 +325,39 @@
                                     ]
                                 },
                                 "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n    \"full_name\": \"John Doe Updated\"\n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "full_name",
+                                            "value": "John Doe Updated",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "medical_specialty_id",
+                                            "value": "2",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "license_number",
+                                            "value": "LIC-789-012",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "hospital_clinic_affiliation",
+                                            "value": "General Hospital",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "year_of_registration",
+                                            "value": "2018",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "photo",
+                                            "type": "file",
+                                            "src": ""
                                         }
-                                    }
+                                    ]
                                 }
                             },
                             "response": []
@@ -1532,7 +1604,7 @@
                                 },
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"title\": \"Sample Quiz\",\n    \"description\": \"A great quiz\",\n    \"tie_breaker\": \"score_only\"\n}",
+                                    "raw": "{\n    \"title\": \"Sample Quiz\",\n    \"topic_id\": 1,\n    \"description\": \"A great quiz\",\n    \"time_limit_minutes\": 30,\n    \"tie_breaker\": \"score_only\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -1603,7 +1675,7 @@
                                 },
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"title\": \"Updated Quiz\"\n}",
+                                    "raw": "{\n    \"title\": \"Updated Quiz\",\n    \"topic_id\": 2,\n    \"time_limit_minutes\": 45\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -1675,7 +1747,7 @@
                                 },
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"questions\": [\n        {\n            \"question_text\": \"What is 1+1?\",\n            \"order\": 1,\n            \"options\": [\n                {\n                    \"option_text\": \"2\",\n                    \"is_correct\": true,\n                    \"explanation\": \"Basic math\"\n                },\n                {\n                    \"option_text\": \"3\",\n                    \"is_correct\": false\n                }\n            ]\n        },\n        {\n            \"question_text\": \"What is 2+2?\",\n            \"order\": 2,\n            \"options\": [\n                {\n                    \"option_text\": \"4\",\n                    \"is_correct\": true\n                },\n                {\n                    \"option_text\": \"5\",\n                    \"is_correct\": false\n                }\n            ]\n        }\n    ]\n}",
+                                    "raw": "{\n    \"questions\": [\n        {\n            \"question_text\": \"What is 1+1?\",\n            \"order\": 1,\n            \"is_multiple\": false,\n            \"options\": [\n                {\n                    \"option_text\": \"2\",\n                    \"is_correct\": true,\n                    \"explanation\": \"Basic math\"\n                },\n                {\n                    \"option_text\": \"3\",\n                    \"is_correct\": false\n                }\n            ]\n        },\n        {\n            \"question_text\": \"Which are prime numbers?\",\n            \"order\": 2,\n            \"is_multiple\": true,\n            \"options\": [\n                {\n                    \"option_text\": \"2\",\n                    \"is_correct\": true\n                },\n                {\n                    \"option_text\": \"3\",\n                    \"is_correct\": true\n                },\n                {\n                    \"option_text\": \"4\",\n                    \"is_correct\": false\n                }\n            ]\n        }\n    ]\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -1717,7 +1789,7 @@
                                 },
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"questions\": [\n        {\n            \"id\": 1,\n            \"question_text\": \"Updated question text for 1+1\",\n            \"order\": 1,\n            \"options\": [\n                {\n                    \"id\": 1,\n                    \"option_text\": \"2\",\n                    \"is_correct\": true\n                },\n                {\n                    \"id\": 2,\n                    \"option_text\": \"3\",\n                    \"is_correct\": false\n                }\n            ]\n        }\n    ]\n}",
+                                    "raw": "{\n    \"questions\": [\n        {\n            \"id\": 1,\n            \"question_text\": \"Updated question text for 1+1\",\n            \"order\": 1,\n            \"is_multiple\": true,\n            \"options\": [\n                {\n                    \"id\": 1,\n                    \"option_text\": \"2\",\n                    \"is_correct\": true\n                },\n                {\n                    \"id\": 2,\n                    \"option_text\": \"3\",\n                    \"is_correct\": true\n                },\n                {\n                    \"option_text\": \"4\",\n                    \"is_correct\": false\n                }\n            ]\n        }\n    ]\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -1884,6 +1956,277 @@
                                         "1",
                                         "leaderboard",
                                         "recalculate"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Unpublish Quiz",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1/unpublish",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "unpublish"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "General Quiz Analytics",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/analytics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "analytics"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Quiz Analytics",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/quizzes/1/analytics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "quizzes",
+                                        "1",
+                                        "analytics"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Topics Management",
+                    "item": [
+                        {
+                            "name": "List Topics",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/topics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "topics"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Create Topic",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/topics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "topics"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Respiratory\",\n    \"slug\": \"respiratory\",\n    \"description\": \"Respiratory system topics\",\n    \"is_active\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Show Topic",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/topics/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "topics",
+                                        "1"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Update Topic",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/topics/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "topics",
+                                        "1"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Updated Topic\",\n    \"description\": \"Updated description\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Delete Topic",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/admin/v1/topics/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "v1",
+                                        "topics",
+                                        "1"
                                     ]
                                 }
                             }
@@ -2239,6 +2582,36 @@
                                 }
                             },
                             "response": []
+                        },
+                        {
+                            "name": "Profile Statistics",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/profile/statistics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "profile",
+                                        "statistics"
+                                    ]
+                                }
+                            }
                         }
                     ]
                 },
@@ -2298,7 +2671,20 @@
                                     ]
                                 }
                             },
-                            "response": []
+                            "response": [
+                                {
+                                    "name": "Paginated Response Example",
+                                    "status": "OK",
+                                    "code": 200,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"title\": \"Sample Event\",\n            \"is_registered\": false,\n            \"is_live\": false\n        }\n    ],\n    \"pagination\": {\n        \"page\": 1,\n        \"per_page\": 15,\n        \"total\": 50,\n        \"last_page\": 4,\n        \"has_next\": true,\n        \"has_previous\": false\n    }\n}"
+                                }
+                            ]
                         },
                         {
                             "name": "Show Event",
@@ -2424,6 +2810,115 @@
                                     ]
                                 }
                             },
+                            "response": [
+                                {
+                                    "name": "Paginated Response Example",
+                                    "status": "OK",
+                                    "code": 200,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"event\": {\n                \"title\": \"Sample Event\"\n            },\n            \"status\": \"registered\"\n        }\n    ],\n    \"pagination\": {\n        \"page\": 1,\n        \"per_page\": 15,\n        \"total\": 5,\n        \"last_page\": 1,\n        \"has_next\": false,\n        \"has_previous\": false\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Webinar Detail",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/events/webinars/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "events",
+                                        "webinars",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Conference Detail",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/events/conferences/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "events",
+                                        "conferences",
+                                        "1"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Workshop Detail",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/events/workshops/1",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "events",
+                                        "workshops",
+                                        "1"
+                                    ]
+                                }
+                            },
                             "response": []
                         }
                     ]
@@ -2458,7 +2953,21 @@
                                         "quizzes"
                                     ]
                                 }
-                            }
+                            },
+                            "response": [
+                                {
+                                    "name": "Paginated Response Example",
+                                    "status": "OK",
+                                    "code": 200,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"title\": \"Sample Quiz\",\n            \"status\": \"published\"\n        }\n    ],\n    \"pagination\": {\n        \"page\": 1,\n        \"per_page\": 15,\n        \"total\": 30,\n        \"last_page\": 2,\n        \"has_next\": true,\n        \"has_previous\": false\n    }\n}"
+                                }
+                            ]
                         },
                         {
                             "name": "Show Quiz",
@@ -2552,7 +3061,7 @@
                                 },
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"answers\": [\n        {\n            \"question_id\": 1,\n            \"option_id\": 2\n        },\n        {\n            \"question_id\": 2,\n            \"option_id\": 4\n        }\n    ]\n}",
+                                    "raw": "{\n    \"answers\": [\n        {\n            \"question_id\": 1,\n            \"option_ids\": [2, 3]\n        },\n        {\n            \"question_id\": 2,\n            \"option_id\": 4\n        }\n    ]\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -2621,7 +3130,21 @@
                                         "leaderboard"
                                     ]
                                 }
-                            }
+                            },
+                            "response": [
+                                {
+                                    "name": "Paginated Response Example",
+                                    "status": "OK",
+                                    "code": 200,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"leaderboard\": [\n        {\n            \"rank\": 1,\n            \"full_name\": \"Dr. Smith\",\n            \"score\": 95\n        }\n    ],\n    \"me\": {\n        \"rank\": 5,\n        \"score\": 70\n    },\n    \"pagination\": {\n        \"page\": 1,\n        \"per_page\": 10,\n        \"total\": 45,\n        \"last_page\": 5,\n        \"has_next\": true,\n        \"has_previous\": false\n    }\n}"
+                                }
+                            ]
                         },
                         {
                             "name": "Quiz Result & Rank",
@@ -2655,6 +3178,69 @@
                             }
                         },
                         {
+                            "name": "Quiz Home",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/quizzes/home",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "quizzes",
+                                        "home"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Topic Quizzes",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/v1/topics/1/quizzes",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "topics",
+                                        "1",
+                                        "quizzes"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
                             "name": "My Badges",
                             "request": {
                                 "method": "GET",
@@ -2682,7 +3268,21 @@
                                         "mine"
                                     ]
                                 }
-                            }
+                            },
+                            "response": [
+                                {
+                                    "name": "Paginated Response Example",
+                                    "status": "OK",
+                                    "code": 200,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"badge\": {\n                \"name\": \"Quiz Master\"\n            },\n            \"awarded_at\": \"2026-07-09T12:00:00Z\"\n        }\n    ],\n    \"pagination\": {\n        \"page\": 1,\n        \"per_page\": 15,\n        \"total\": 8,\n        \"last_page\": 1,\n        \"has_next\": false,\n        \"has_previous\": false\n    }\n}"
+                                }
+                            ]
                         }
                     ]
                 }
@@ -2722,7 +3322,7 @@
     "variable": [
         {
             "key": "base_url",
-            "value": "http://192.168.100.100:8000"
+            "value": "http://192.168.100.115:8000"
         },
         {
             "key": "token",
