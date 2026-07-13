@@ -9,16 +9,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(this._repository) : super(AuthInitial()) {
     on<UserAuthenticationRequested>(_isUserLoggedIn);
     on<LoginRequested>(_login);
- 
+
     on<LogoutRequested>(_logout);
 
     on<UpdateProfileEvent>(_updateProfile);
-  
+
     on<ForgetPasswordRequested>(_forgetPassword);
     on<ResetPasswordRequested>(_resetPassword);
   }
 
-   void _isUserLoggedIn(
+  void _isUserLoggedIn(
     UserAuthenticationRequested event,
     Emitter<AuthState> emit,
   ) async {
@@ -32,7 +32,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(Unauthenticated());
     }
   }
-  
+
   void _login(LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
 
@@ -51,8 +51,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLogoutSuccess());
   }
 
-
-
   void _updateProfile(UpdateProfileEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
 
@@ -64,8 +62,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthFailed(message: res.fullErrorMessage));
     }
   }
-
-
 
   void _forgetPassword(
     ForgetPasswordRequested event,

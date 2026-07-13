@@ -42,3 +42,12 @@ class AuthProfileEvent extends AuthEvent {
   AuthProfileEvent();
 }
 
+class FetchMeRequested extends AuthEvent {}
+
+class SaveProfileRequested extends AuthEvent {
+  final String name;
+  final String phone;
+
+  SaveProfileRequested({required this.name, required this.phone});
+}
+

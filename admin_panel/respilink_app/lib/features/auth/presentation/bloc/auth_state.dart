@@ -43,3 +43,10 @@ class AuthFailed extends AuthState {
 
   AuthFailed({required this.message});
 }
+
+class ProfileSaveSuccess extends AuthState {}
+
+class ProfileSaveFailed extends AuthState {
+  final String message;
+  ProfileSaveFailed(this.message);
+}

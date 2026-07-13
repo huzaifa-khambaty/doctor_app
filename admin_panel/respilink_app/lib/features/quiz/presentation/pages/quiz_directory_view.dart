@@ -1,51 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
+import 'package:respilink_app/core/utils/snackbar_util.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
+import 'package:respilink_app/features/quiz/presentation/bloc/quiz_bloc.dart';
+import 'package:respilink_app/features/quiz/presentation/bloc/quiz_event.dart';
+import 'package:respilink_app/features/quiz/presentation/bloc/quiz_state.dart';
+import 'package:shimmer/shimmer.dart';
 
 class QuizDirectoryContent extends StatelessWidget {
-  const QuizDirectoryContent({super.key, required this.onCreateQuizClicked});
+  const QuizDirectoryContent({
+    super.key,
+    required this.onCreateQuizClicked,
+    required this.onEditQuizClicked,
+  });
 
   final VoidCallback onCreateQuizClicked;
+  final void Function(int quizId) onEditQuizClicked;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Top Global Search Bar Line
-            const _QuizSearchBarHeader(),
-            const SizedBox(height: 24),
-
-            // 2. Breadcrumbs and Title Action Section
-            _QuizTitleActionRow(onCreateQuizClicked: onCreateQuizClicked),
-            const SizedBox(height: 24),
-
-            // 3. Grid Row Statistics Summary Layer
-            const _QuizMetricsGridSection(),
-            const SizedBox(height: 28),
-
-            // 4. Utility Search Filters / Sort Row Controls
-            const _QuizUtilityControlRow(),
-            const SizedBox(height: 16),
-
-            // 5. Main Structured Interactive Quiz Listing Panel
-            const _QuizDirectoryListBlock(),
-          ],
+    return BlocListener<QuizBloc, QuizState>(
+      listenWhen: (prev, curr) =>
+          (prev.actionSuccess != curr.actionSuccess && curr.actionSuccess) ||
+          (prev.error != curr.error && curr.error != null),
+      listener: (context, state) {
+        if (state.actionSuccess) {
+          SnackbarUtil.showSnackbar(context, message: 'Action completed.');
+        } else if (state.error != null) {
+          SnackbarUtil.showSnackbar(
+            context,
+            message: state.error!,
+            isError: true,
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _QuizSearchBarHeader(),
+              const SizedBox(height: 24),
+              _QuizTitleActionRow(onCreateQuizClicked: onCreateQuizClicked),
+              const SizedBox(height: 24),
+              const _QuizMetricsGridSection(),
+              const SizedBox(height: 28),
+              const _QuizUtilityControlRow(),
+              const SizedBox(height: 16),
+              _QuizDirectoryListBlock(onEditQuizClicked: onEditQuizClicked),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// =========================================================================
-// Header, Title and Control Components
-// =========================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+// Header / title
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _QuizSearchBarHeader extends StatelessWidget {
-  const _QuizSearchBarHeader();
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -56,10 +73,8 @@ class _QuizSearchBarHeader extends StatelessWidget {
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search quizzes or topics...',
-                hintStyle: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 13,
-                ),
+                hintStyle:
+                    const TextStyle(color: AppColors.textMuted, fontSize: 13),
                 prefixIcon: const Icon(
                   Icons.search,
                   color: AppColors.textMuted,
@@ -102,7 +117,6 @@ class _QuizSearchBarHeader extends StatelessWidget {
 
 class _QuizTitleActionRow extends StatelessWidget {
   const _QuizTitleActionRow({required this.onCreateQuizClicked});
-
   final VoidCallback onCreateQuizClicked;
 
   @override
@@ -156,7 +170,7 @@ class _QuizTitleActionRow extends StatelessWidget {
           ],
         ),
         ElevatedButton.icon(
-          onPressed: () => onCreateQuizClicked.call(),
+          onPressed: onCreateQuizClicked,
           icon: const Icon(Icons.add, size: 16, color: Colors.white),
           label: const Text(
             'Create New Quiz',
@@ -168,7 +182,8 @@ class _QuizTitleActionRow extends StatelessWidget {
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -184,123 +199,143 @@ class _QuizUtilityControlRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
+    return BlocBuilder<QuizBloc, QuizState>(
+      buildWhen: (p, c) => p.totalQuizzes != c.totalQuizzes,
+      builder: (context, state) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.filter_list_rounded,
-                size: 14,
-                color: AppColors.textDark,
-              ),
-              label: const Text(
-                'Filter',
-                style: TextStyle(
-                  color: AppColors.textDark,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(
+                    Icons.filter_list_rounded,
+                    size: 14,
+                    color: AppColors.textDark,
+                  ),
+                  label: const Text(
+                    'Filter',
+                    style: TextStyle(
+                      color: AppColors.textDark,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side:
+                        const BorderSide(color: AppColors.borderLight),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
                 ),
-              ),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: AppColors.borderLight),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(
+                    Icons.sort_rounded,
+                    size: 14,
+                    color: AppColors.textDark,
+                  ),
+                  label: const Text(
+                    'Sort: Newest',
+                    style: TextStyle(
+                      color: AppColors.textDark,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side:
+                        const BorderSide(color: AppColors.borderLight),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(width: 8),
-            OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.sort_rounded,
-                size: 14,
-                color: AppColors.textDark,
-              ),
-              label: const Text(
-                'Sort: Newest',
-                style: TextStyle(
-                  color: AppColors.textDark,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: AppColors.borderLight),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
+            Text(
+              state.totalQuizzes == 0
+                  ? 'No quizzes found'
+                  : 'Total ${state.totalQuizzes} quiz${state.totalQuizzes == 1 ? '' : 'zes'}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textMuted,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
-        ),
-        const Text(
-          'Showing 1-10 of 128 results',
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textMuted,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
 
-// =========================================================================
-// Statistics Grid Summary Subsystem
-// =========================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+// Stats grid — driven by real totals from state
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _QuizMetricsGridSection extends StatelessWidget {
   const _QuizMetricsGridSection();
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double cardWidth = (constraints.maxWidth - (3 * 16)) / 4;
-        if (cardWidth < 165) cardWidth = 165;
+    return BlocBuilder<QuizBloc, QuizState>(
+      buildWhen: (p, c) =>
+          p.quizzes != c.quizzes || p.totalQuizzes != c.totalQuizzes,
+      builder: (context, state) {
+        final total = state.totalQuizzes;
+        final active = state.quizzes
+            .where((q) => q.status?.toLowerCase() == 'live' ||
+                q.status?.toLowerCase() == 'published')
+            .length;
+        final participants = state.quizzes.fold<int>(
+            0, (sum, q) => sum + (q.participantsCount ?? 0));
 
-        return Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          children: [
-            _QuizStatCard(
-              width: cardWidth,
-              title: 'Total Quizzes',
-              value: '128',
-              icon: Icons.grid_view_rounded,
-              iconColor: Colors.teal,
-              badgeLabel: '+4 this week',
-            ),
-            _QuizStatCard(
-              width: cardWidth,
-              title: 'Active Quizzes',
-              value: '12',
-              icon: Icons.bolt,
-              iconColor: Colors.blueAccent,
-            ),
-            _QuizStatCard(
-              width: cardWidth,
-              title: 'Total Participants',
-              value: '3,492',
-              icon: Icons.people_outline_rounded,
-              iconColor: Colors.orangeAccent,
-              badgeLabel: '↑ 12%',
-              badgeColor: Colors.orange,
-            ),
-            _QuizStatCard(
-              width: cardWidth,
-              title: 'Completion Rate',
-              value: '84%',
-              icon: Icons.assignment_turned_in_outlined,
-              iconColor: Colors.purpleAccent,
-            ),
-          ],
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            double cardWidth = (constraints.maxWidth - (3 * 16)) / 4;
+            if (cardWidth < 165) cardWidth = 165;
+
+            return Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                _QuizStatCard(
+                  width: cardWidth,
+                  title: 'Total Quizzes',
+                  value: '$total',
+                  icon: Icons.grid_view_rounded,
+                  iconColor: Colors.teal,
+                ),
+                _QuizStatCard(
+                  width: cardWidth,
+                  title: 'Active Quizzes',
+                  value: '$active',
+                  icon: Icons.bolt,
+                  iconColor: Colors.blueAccent,
+                ),
+                _QuizStatCard(
+                  width: cardWidth,
+                  title: 'Total Participants',
+                  value: '$participants',
+                  icon: Icons.people_outline_rounded,
+                  iconColor: Colors.orangeAccent,
+                ),
+                _QuizStatCard(
+                  width: cardWidth,
+                  title: 'Completion Rate',
+                  value: '—',
+                  icon: Icons.assignment_turned_in_outlined,
+                  iconColor: Colors.purpleAccent,
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -313,8 +348,6 @@ class _QuizStatCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color iconColor;
-  final String? badgeLabel;
-  final Color badgeColor;
 
   const _QuizStatCard({
     required this.width,
@@ -322,8 +355,6 @@ class _QuizStatCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.iconColor,
-    this.badgeLabel,
-    this.badgeColor = Colors.teal,
   });
 
   @override
@@ -350,25 +381,6 @@ class _QuizStatCard extends StatelessWidget {
                 ),
                 child: Icon(icon, size: 16, color: iconColor),
               ),
-              if (badgeLabel != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: badgeColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    badgeLabel!,
-                    style: TextStyle(
-                      color: badgeColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 14),
@@ -395,186 +407,175 @@ class _QuizStatCard extends StatelessWidget {
   }
 }
 
-// =========================================================================
-// Main Core Listing Data Matrix Table
-// =========================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+// Main quiz table
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _QuizDirectoryListBlock extends StatelessWidget {
-  const _QuizDirectoryListBlock();
+  const _QuizDirectoryListBlock({required this.onEditQuizClicked});
+
+  final void Function(int quizId) onEditQuizClicked;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Column(
-        children: [
-          Table(
-            columnWidths: const {
-              0: FlexColumnWidth(2.6),
-              1: FlexColumnWidth(1.0),
-              2: FlexColumnWidth(1.1),
-              3: FlexColumnWidth(1.1),
-              4: FlexColumnWidth(1.3),
-              5: FlexColumnWidth(1.5),
-            },
-            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+    return BlocBuilder<QuizBloc, QuizState>(
+      builder: (context, state) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.cardBg,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: Column(
             children: [
-              _buildTableHeaderRow(),
-              _buildDataRow(
-                'Advanced Asthma Management',
-                'Updated Oct 12, 2023',
-                Icons.medical_services_outlined,
-                Colors.teal,
-                'Asthma',
-                '25 Questions',
-                'Live',
-                Colors.teal,
-                '1,240',
-                showAvatars: true,
+              Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(2.6),
+                  1: FlexColumnWidth(1.0),
+                  2: FlexColumnWidth(1.1),
+                  3: FlexColumnWidth(1.1),
+                  4: FlexColumnWidth(1.3),
+                  5: FlexColumnWidth(1.5),
+                },
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                children: [
+                  _headerRow(),
+                  if (state.isLoadingQuizzes)
+                    ..._shimmerRows()
+                  else if (state.quizzes.isEmpty)
+                    _emptyRow()
+                  else
+                    ...state.quizzes.map(
+                      (q) => _dataRow(
+                        context,
+                        q,
+                        state.actioningQuizId == q.id,
+                        onEditQuizClicked,
+                      ),
+                    ),
+                ],
               ),
-              _buildDataRow(
-                'COPD Diagnostic Protocols',
-                'Updated Oct 08, 2023',
-                Icons.analytics_outlined,
-                Colors.redAccent,
-                'COPD',
-                '15 Questions',
-                'Draft',
-                Colors.grey,
-                '—',
-                showAvatars: false,
-              ),
-              _buildDataRow(
-                'Vaccination Schedule Q3',
-                'Ended Sep 30, 2023',
-                Icons.shield_outlined,
-                Colors.orangeAccent,
-                'Immunology',
-                '20 Questions',
-                'Completed',
-                Colors.blue,
-                '2,105',
-                showAvatars: false,
-              ),
-              _buildDataRow(
-                'Neuro-Imaging Essentials',
-                'Updated Sep 25, 2023',
-                Icons.biotech_outlined,
-                Colors.purpleAccent,
-                'Radiology',
-                '30 Questions',
-                'Live',
-                Colors.teal,
-                '845',
-                showAvatars: false,
+              _TablePaginationFooter(
+                currentPage: state.currentPage,
+                lastPage: state.lastPage,
               ),
             ],
           ),
-          const _TablePaginationFooter(),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  TableRow _buildTableHeaderRow() {
-    return const TableRow(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
-      ),
-      children: [
+  TableRow _headerRow() {
+    const style = TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.bold,
+      color: AppColors.textMuted,
+    );
+    const deco = BoxDecoration(
+      border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+    );
+    return TableRow(
+      decoration: deco,
+      children: const [
+        Padding(padding: EdgeInsets.all(14), child: Text('Quiz Title', style: style)),
+        Padding(padding: EdgeInsets.all(14), child: Text('Topic', style: style)),
+        Padding(padding: EdgeInsets.all(14), child: Text('Questions', style: style)),
+        Padding(padding: EdgeInsets.all(14), child: Text('Status', style: style)),
+        Padding(padding: EdgeInsets.all(14), child: Text('Participants', style: style)),
         Padding(
           padding: EdgeInsets.all(14),
-          child: Text(
-            'Quiz Title',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(14),
-          child: Text(
-            'Topic',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(14),
-          child: Text(
-            'Questions',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(14),
-          child: Text(
-            'Status',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(14),
-          child: Text(
-            'Participants',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(14),
-          child: Text(
-            'Actions',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-            textAlign: TextAlign.right,
-          ),
+          child: Text('Actions', style: style, textAlign: TextAlign.right),
         ),
       ],
     );
   }
 
-  TableRow _buildDataRow(
-    String title,
-    String timestamp,
-    IconData leadingIcon,
-    Color leadingColor,
-    String topicTag,
-    String questionCount,
-    String statusText,
-    Color statusColor,
-    String totalParticipants, {
-    required bool showAvatars,
-  }) {
+  List<TableRow> _shimmerRows() {
+    return List.generate(
+      5,
+      (_) => TableRow(
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+        ),
+        children: List.generate(
+          6,
+          (ci) => Padding(
+            padding: const EdgeInsets.all(14),
+            child: Shimmer.fromColors(
+              baseColor: const Color(0xFFE2E8F0),
+              highlightColor: const Color(0xFFF8FAFC),
+              child: Container(
+                height: 14,
+                width: ci == 0 ? 160 : 80,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  TableRow _emptyRow() {
+    return TableRow(children: [
+      TableCell(
+        child: Container(),
+      ),
+      TableCell(child: Container()),
+      TableCell(child: Container()),
+      TableCell(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Center(
+            child: Text(
+              'No quizzes found',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textMuted.withValues(alpha: 0.7),
+              ),
+            ),
+          ),
+        ),
+      ),
+      TableCell(child: Container()),
+      TableCell(child: Container()),
+    ]);
+  }
+
+  TableRow _dataRow(
+    BuildContext context,
+    Data quiz,
+    bool isActioning,
+    void Function(int quizId) onEditQuizClicked,
+  ) {
+    final status = quiz.status ?? 'draft';
+    final statusLower = status.toLowerCase();
+    final isLive =
+        statusLower == 'live' || statusLower == 'published';
+    final isCompleted = statusLower == 'completed' || statusLower == 'closed';
+
+    final statusColor = isLive
+        ? Colors.teal
+        : isCompleted
+            ? Colors.blue
+            : Colors.grey;
+
+    final statusLabel = isLive
+        ? 'Live'
+        : isCompleted
+            ? 'Completed'
+            : 'Draft';
+
     return TableRow(
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.borderLight)),
       ),
       children: [
-        // Title cell row block
+        // Title
         Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
@@ -582,10 +583,14 @@ class _QuizDirectoryListBlock extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: leadingColor.withValues(alpha: 0.08),
+                  color: AppColors.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Icon(leadingIcon, size: 16, color: leadingColor),
+                child: const Icon(
+                  Icons.quiz_outlined,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -593,16 +598,19 @@ class _QuizDirectoryListBlock extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      quiz.title ?? '—',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textDark,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      timestamp,
+                      quiz.createdAt != null
+                          ? 'Created ${_formatDate(quiz.createdAt!)}'
+                          : '',
                       style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.textMuted,
@@ -614,19 +622,20 @@ class _QuizDirectoryListBlock extends StatelessWidget {
             ],
           ),
         ),
-        // Topic tag chip badge cell
+        // Topic
         Padding(
           padding: const EdgeInsets.all(14),
           child: UnconstrainedBox(
             alignment: Alignment.centerLeft,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.blue.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                topicTag,
+                quiz.topic?.name ?? '—',
                 style: const TextStyle(
                   color: Colors.blue,
                   fontSize: 11,
@@ -636,11 +645,11 @@ class _QuizDirectoryListBlock extends StatelessWidget {
             ),
           ),
         ),
-        // Question totals count label
+        // Questions count
         Padding(
           padding: const EdgeInsets.all(14),
           child: Text(
-            questionCount,
+            '${quiz.questionsCount ?? 0} Questions',
             style: const TextStyle(
               fontSize: 13,
               color: AppColors.textDark,
@@ -648,7 +657,7 @@ class _QuizDirectoryListBlock extends StatelessWidget {
             ),
           ),
         ),
-        // Status dot row item block
+        // Status
         Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
@@ -656,7 +665,7 @@ class _QuizDirectoryListBlock extends StatelessWidget {
               Icon(Icons.fiber_manual_record, color: statusColor, size: 8),
               const SizedBox(width: 6),
               Text(
-                statusText,
+                statusLabel,
                 style: const TextStyle(
                   color: AppColors.textDark,
                   fontSize: 12,
@@ -666,80 +675,241 @@ class _QuizDirectoryListBlock extends StatelessWidget {
             ],
           ),
         ),
-        // Participant aggregate metric counter stack column layout
+        // Participants
         Padding(
           padding: const EdgeInsets.all(14),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (showAvatars) ...[
-                const CircleAvatar(
-                  radius: 9,
-                  backgroundColor: Colors.orange,
-                  child: Text(
-                    'JD',
-                    style: TextStyle(
-                      fontSize: 8,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                totalParticipants,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textDark,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          child: Text(
+            '${quiz.participantsCount ?? 0}',
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textDark,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
-        // Control actions contextual button vectors icon strip assembly line
+        // Actions
         Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (statusText != 'Draft')
-                IconButton(
-                  icon: const Icon(
-                    Icons.analytics_outlined,
-                    size: 16,
-                    color: AppColors.textMuted,
-                  ),
-                  onPressed: () {},
-                ),
-              if (statusText != 'Completed')
-                IconButton(
-                  icon: const Icon(
-                    Icons.edit_outlined,
-                    size: 16,
-                    color: AppColors.textMuted,
-                  ),
-                  onPressed: () {},
-                ),
               IconButton(
                 icon: const Icon(
-                  Icons.more_vert,
+                  Icons.visibility_outlined,
                   size: 16,
                   color: AppColors.textMuted,
                 ),
-                onPressed: () {},
+                splashRadius: 16,
+                tooltip: 'Edit',
+                onPressed: quiz.id != null ? () => onEditQuizClicked(quiz.id!) : null,
               ),
+              if (isLive)
+                IconButton(
+                  icon: const Icon(
+                    Icons.bar_chart_rounded,
+                    size: 16,
+                    color: AppColors.textMuted,
+                  ),
+                  splashRadius: 16,
+                  tooltip: 'Analytics',
+                  onPressed: () {},
+                ),
+              if (isActioning)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                )
+              else
+                PopupMenuButton<_QuizAction>(
+                  icon: const Icon(
+                    Icons.more_vert,
+                    size: 16,
+                    color: AppColors.textMuted,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(color: AppColors.borderLight),
+                  ),
+                  color: Colors.white,
+                  elevation: 4,
+                  onSelected: (action) =>
+                      _handleAction(context, action, quiz, onEditQuizClicked),
+                  itemBuilder: (_) => [
+                    if (!isLive && !isCompleted)
+                      _menuItem(
+                        _QuizAction.publish,
+                        Icons.publish_rounded,
+                        'Publish',
+                        Colors.teal,
+                      ),
+                    if (isLive)
+                      _menuItem(
+                        _QuizAction.unpublish,
+                        Icons.unpublished_outlined,
+                        'Unpublish',
+                        Colors.orange,
+                      ),
+                    // _menuItem(
+                    //   _QuizAction.edit,
+                    //   Icons.edit_outlined,
+                    //   'Edit',
+                    //   Colors.blueAccent,
+                    // ),
+                    _menuItem(
+                      _QuizAction.delete,
+                      Icons.delete_outline,
+                      'Delete',
+                      Colors.red,
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
       ],
     );
   }
+
+  PopupMenuItem<_QuizAction> _menuItem(
+    _QuizAction action,
+    IconData icon,
+    String label,
+    Color color,
+  ) {
+    return PopupMenuItem<_QuizAction>(
+      value: action,
+      child: Row(
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleAction(
+    BuildContext context,
+    _QuizAction action,
+    Data quiz,
+    void Function(int quizId) onEditQuizClicked,
+  ) {
+    if (quiz.id == null) return;
+    switch (action) {
+      case _QuizAction.publish:
+        context.read<QuizBloc>().add(
+              ToggleQuizStatusRequested(quizId: quiz.id!, publish: true),
+            );
+        break;
+      case _QuizAction.unpublish:
+        context.read<QuizBloc>().add(
+              ToggleQuizStatusRequested(quizId: quiz.id!, publish: false),
+            );
+        break;
+      case _QuizAction.edit:
+        onEditQuizClicked(quiz.id!);
+        break;
+      case _QuizAction.delete:
+        _confirmDelete(context, quiz);
+        break;
+    }
+  }
+
+  void _confirmDelete(BuildContext context, Data quiz) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text(
+          'Delete Quiz',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${quiz.title}"? This action cannot be undone.',
+          style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context
+                  .read<QuizBloc>()
+                  .add(DeleteQuizRequested(quiz.id!));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(String raw) {
+    try {
+      final dt = DateTime.parse(raw);
+      return '${_mon(dt.month)} ${dt.day}, ${dt.year}';
+    } catch (_) {
+      return raw;
+    }
+  }
+
+  String _mon(int m) => const [
+        '',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ][m];
 }
 
+enum _QuizAction { publish, unpublish, edit, delete }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pagination footer
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _TablePaginationFooter extends StatelessWidget {
-  const _TablePaginationFooter();
+  final int currentPage;
+  final int lastPage;
+
+  const _TablePaginationFooter({
+    required this.currentPage,
+    required this.lastPage,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -748,54 +918,63 @@ class _TablePaginationFooter extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Showing 1-4 of 12 events',
-            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+          Text(
+            'Page $currentPage of $lastPage',
+            style:
+                const TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
           Row(
             children: [
               IconButton(
                 icon: const Icon(Icons.keyboard_arrow_left, size: 16),
-                onPressed: () {},
+                onPressed: currentPage <= 1
+                    ? null
+                    : () => context.read<QuizBloc>().add(
+                          FetchQuizzesRequested(page: currentPage - 1),
+                        ),
               ),
-              _PageIndicatorBox(label: '1', active: true),
-              _PageIndicatorBox(label: '2', active: false),
-              _PageIndicatorBox(label: '3', active: false),
+              ...List.generate(lastPage, (i) {
+                final page = i + 1;
+                final active = page == currentPage;
+                return GestureDetector(
+                  onTap: active
+                      ? null
+                      : () => context.read<QuizBloc>().add(
+                            FetchQuizzesRequested(page: page),
+                          ),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: active
+                          ? AppColors.sidebarBg
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '$page',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: active ? Colors.white : AppColors.textDark,
+                      ),
+                    ),
+                  ),
+                );
+              }),
               IconButton(
                 icon: const Icon(Icons.keyboard_arrow_right, size: 16),
-                onPressed: () {},
+                onPressed: currentPage >= lastPage
+                    ? null
+                    : () => context.read<QuizBloc>().add(
+                          FetchQuizzesRequested(page: currentPage + 1),
+                        ),
               ),
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PageIndicatorBox extends StatelessWidget {
-  final String label;
-  final bool active;
-  const _PageIndicatorBox({required this.label, required this.active});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      width: 24,
-      height: 24,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: active ? AppColors.sidebarBg : Colors.transparent,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: active ? Colors.white : AppColors.textDark,
-        ),
       ),
     );
   }

@@ -22,6 +22,7 @@ import 'package:respilink_app/injections.dart';
 import 'package:respilink_app/features/query/presentation/pages/notification_history_view.dart';
 import 'package:respilink_app/features/query/presentation/pages/query_inbox_view.dart';
 import 'package:respilink_app/features/quiz/presentation/pages/create_quiz_content.dart';
+import 'package:respilink_app/features/quiz/presentation/pages/edit_quiz_content.dart';
 import 'package:respilink_app/features/quiz/presentation/pages/quiz_directory_view.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_bloc.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_event.dart';
@@ -46,6 +47,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   bool _showCreateEventForm = false;
   Events? _selectedEvent;
   bool _showCreateQuizForm = false;
+  int? _editingQuizId;
   bool _showNotificationHistory = false;
 
   // Practitioner section
@@ -65,7 +67,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     ..add(FetchPermissionsRequested());
 
   late final QuizBloc _quizBloc = locator<QuizBloc>()
-    ..add(FetchTopicsRequested());
+    ..add(FetchTopicsRequested())
+    ..add(FetchQuizzesRequested());
 
   @override
   void dispose() {
@@ -120,10 +123,18 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                   onBackToQuizDirectory: () =>
                       setState(() => _showCreateQuizForm = false),
                 )
-              : QuizDirectoryContent(
-                  onCreateQuizClicked: () =>
-                      setState(() => _showCreateQuizForm = true),
-                ),
+              : _editingQuizId != null
+                  ? EditQuizContent(
+                      quizId: _editingQuizId!,
+                      onBackToQuizDirectory: () =>
+                          setState(() => _editingQuizId = null),
+                    )
+                  : QuizDirectoryContent(
+                      onCreateQuizClicked: () =>
+                          setState(() => _showCreateQuizForm = true),
+                      onEditQuizClicked: (id) =>
+                          setState(() => _editingQuizId = id),
+                    ),
         );
       case 4:
         return BlocProvider<EventsBloc>.value(

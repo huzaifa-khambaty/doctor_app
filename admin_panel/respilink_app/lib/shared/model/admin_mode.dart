@@ -26,6 +26,8 @@ class Admin {
   String? uuid;
   String? name;
   String? email;
+  String? phone;
+  String? photoUrl;
   String? status;
   String? lastLoginAt;
   List<String>? roles;
@@ -36,6 +38,8 @@ class Admin {
       this.uuid,
       this.name,
       this.email,
+      this.phone,
+      this.photoUrl,
       this.status,
       this.lastLoginAt,
       this.roles,
@@ -46,13 +50,15 @@ class Admin {
     uuid = json['uuid'];
     name = json['name'];
     email = json['email'];
+    phone = json['phone'];
+    photoUrl = json['photo_url'] ?? json['photo'] ?? json['avatar'];
     status = json['status'];
     lastLoginAt = json['last_login_at'];
     roles = (json['roles'] as List?)?.cast<String>() ?? [];
     permissions = (json['permissions'] as List?)?.cast<String>() ?? [];
   }
 
-    // Convert Model to JSON String (For Secure Storage)
+  // Convert Model to JSON String (For Secure Storage)
   String toJson() => json.encode(toMap());
 
   // Create Model from JSON String
@@ -65,6 +71,8 @@ class Admin {
     data['uuid'] = uuid;
     data['name'] = name;
     data['email'] = email;
+    data['phone'] = phone;
+    data['photo_url'] = photoUrl;
     data['status'] = status;
     data['last_login_at'] = lastLoginAt;
     data['roles'] = roles;
