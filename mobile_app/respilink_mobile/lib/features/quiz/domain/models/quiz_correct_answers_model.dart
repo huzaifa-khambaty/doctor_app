@@ -53,7 +53,7 @@ class Questions {
   int? order;
   String? createdAt;
   String? updatedAt;
-  Null? image;
+  String? image;
   List<Options>? options;
 
   Questions(
