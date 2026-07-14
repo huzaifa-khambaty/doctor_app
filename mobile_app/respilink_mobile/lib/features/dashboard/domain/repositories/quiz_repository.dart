@@ -3,7 +3,9 @@ import 'package:respilink_mobile/features/dashboard/data/model/quiz_correct_answ
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_home_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_list_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_question_answers_model.dart';
+import 'package:respilink_mobile/features/dashboard/data/model/quiz_results_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/requests/submit_quiz_answers_request.dart';
+import 'package:respilink_mobile/features/quiz/domain/models/quiz_leaderboard_model.dart';
 
 abstract class QuizRepository {
   Future<ApiResponse<QuizHomeModel>> getQuizHome();
@@ -26,4 +28,8 @@ abstract class QuizRepository {
   Future<ApiResponse<QuizCorrectAnswersModel>> getQuizCorrectAnswers(
     int quizId,
   );
+
+  Future<ApiResponse<QuizResultsModel>> getQuizResults(int quizId);
+
+  Future<ApiResponse<QuizLeaderboardModel>> getLeaderboard(int quizId);
 }

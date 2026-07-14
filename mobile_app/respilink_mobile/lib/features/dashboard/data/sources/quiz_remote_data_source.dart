@@ -4,7 +4,9 @@ import 'package:respilink_mobile/features/dashboard/data/model/quiz_correct_answ
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_home_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_list_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_question_answers_model.dart';
+import 'package:respilink_mobile/features/dashboard/data/model/quiz_results_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/requests/submit_quiz_answers_request.dart';
+import 'package:respilink_mobile/features/quiz/domain/models/quiz_leaderboard_model.dart';
 
 import '../../../../core/network/models/api_response.dart';
 
@@ -29,6 +31,10 @@ abstract class QuizRemoteDataSource {
   Future<ApiResponse<QuizCorrectAnswersModel>> getQuizCorrectAnswers(
     int quizId,
   );
+
+  Future<ApiResponse<QuizResultsModel>> getQuizResults(int quizId);
+
+  Future<ApiResponse<QuizLeaderboardModel>> getLeaderboard(int quizId);
 }
 
 class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
@@ -90,6 +96,24 @@ class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
       '${ApiEndpoints.quizzes}/$quizId/correct-answers',
       fromJson: (json) =>
           QuizCorrectAnswersModel.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<QuizResultsModel>> getQuizResults(int quizId) async {
+    return _client.get(
+      '${ApiEndpoints.quizzes}/$quizId/result',
+      fromJson: (json) =>
+          QuizResultsModel.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<QuizLeaderboardModel>> getLeaderboard(int quizId) async {
+    return _client.get(
+      '${ApiEndpoints.quizzes}/$quizId/leaderboard',
+      fromJson: (json) =>
+          QuizLeaderboardModel.fromJson(json as Map<String, dynamic>),
     );
   }
 }

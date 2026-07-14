@@ -118,11 +118,13 @@ class RouterConfiguration {
       ),
       GoRoute(
         path: RouterStrings.quizResults,
-        builder: (context, state) => const QuizResultsView(),
+        builder: (context, state) =>
+            QuizResultsView(quizId: state.extra as int),
       ),
       GoRoute(
         path: RouterStrings.leaderboard,
-        builder: (context, state) => const LeaderboardView(),
+        builder: (context, state) =>
+            LeaderboardView(quizId: state.extra as int),
       ),
       GoRoute(
         path: RouterStrings.queryForm,

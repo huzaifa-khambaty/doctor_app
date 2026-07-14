@@ -21,9 +21,8 @@ class DailyChallengeCard extends StatelessWidget {
       child: Stack(
         children: [
           AppNetworkImage(
-            imageUrl: (challenge.banner ?? '').startsWith('http')
-                ? challenge.banner!
-                : "${AppConstants.imagePath}${challenge.banner ?? ''}",
+            //imageUrl: "${AppConstants.imagePath}${challenge.banner ?? ''}",
+            imageUrl: "${AppConstants.imagePath}take_quiz.png",
             width: double.infinity,
             height: 170.h,
             fit: BoxFit.cover,

@@ -3,9 +3,11 @@ import 'package:respilink_mobile/features/dashboard/data/model/quiz_correct_answ
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_home_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_list_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_question_answers_model.dart';
+import 'package:respilink_mobile/features/dashboard/data/model/quiz_results_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/requests/submit_quiz_answers_request.dart';
 import 'package:respilink_mobile/features/dashboard/data/sources/quiz_remote_data_source.dart';
 import 'package:respilink_mobile/features/dashboard/domain/repositories/quiz_repository.dart';
+import 'package:respilink_mobile/features/quiz/domain/models/quiz_leaderboard_model.dart';
 
 class QuizRepositoryImpl implements QuizRepository {
   final QuizRemoteDataSource _remoteDataSource;
@@ -52,5 +54,15 @@ class QuizRepositoryImpl implements QuizRepository {
     int quizId,
   ) {
     return _remoteDataSource.getQuizCorrectAnswers(quizId);
+  }
+
+  @override
+  Future<ApiResponse<QuizResultsModel>> getQuizResults(int quizId) {
+    return _remoteDataSource.getQuizResults(quizId);
+  }
+
+  @override
+  Future<ApiResponse<QuizLeaderboardModel>> getLeaderboard(int quizId) {
+    return _remoteDataSource.getLeaderboard(quizId);
   }
 }

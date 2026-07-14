@@ -77,6 +77,7 @@ class _QuizReviewViewState extends State<QuizReviewView> {
               child: ElevatedButton(
                 onPressed: () => locator<NavigationService>().navigate(
                   RouterStrings.quizResults,
+                  arguments: widget.quizId,
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

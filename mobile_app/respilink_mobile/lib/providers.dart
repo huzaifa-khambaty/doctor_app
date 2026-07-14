@@ -8,7 +8,9 @@ import 'package:respilink_mobile/features/events/presentation/bloc/event_detail_
 import 'package:respilink_mobile/features/events/presentation/bloc/event_register_bloc.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/events_bloc.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_attempt_bloc.dart';
+import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_leaderboard_bloc.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_play_bloc.dart';
+import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_results_bloc.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_review_bloc.dart';
 import 'package:respilink_mobile/shared/bloc/connectivity_cubit.dart';
 
@@ -43,6 +45,12 @@ class Providers {
     BlocProvider<QuizPlayBloc>(create: (context) => QuizPlayBloc(locator())),
     BlocProvider<QuizReviewBloc>(
       create: (context) => QuizReviewBloc(locator()),
+    ),
+    BlocProvider<QuizResultsBloc>(
+      create: (context) => QuizResultsBloc(locator()),
+    ),
+    BlocProvider<QuizLeaderboardBloc>(
+      create: (context) => QuizLeaderboardBloc(locator()),
     ),
   ];
 }
