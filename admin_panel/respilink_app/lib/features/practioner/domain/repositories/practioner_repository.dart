@@ -14,7 +14,7 @@ abstract class PractionerRepository {
   });
   Future<ApiResponse<dynamic>> createPractioner(CreatePractionerRequest request, {PickedImage? photo});
   Future<ApiResponse<dynamic>> verifyPractioner({required int userId});
-  Future<ApiResponse<dynamic>> rejectPractioner({required int userId});
+  Future<ApiResponse<dynamic>> rejectPractioner({required int userId, String? reason});
   Future<ApiResponse<dynamic>> suspendPractioner({required int userId, required SuspendUserRequest request});
   Future<ApiResponse<dynamic>> reinstatePractioner({required int userId});
 }

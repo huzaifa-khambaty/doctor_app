@@ -31,7 +31,8 @@ class VerifyPractionerRequested extends PractionerEvent {
 
 class RejectPractionerRequested extends PractionerEvent {
   final int userId;
-  RejectPractionerRequested(this.userId);
+  final String? reason;
+  RejectPractionerRequested(this.userId, {this.reason});
 }
 
 class SuspendPractionerRequested extends PractionerEvent {

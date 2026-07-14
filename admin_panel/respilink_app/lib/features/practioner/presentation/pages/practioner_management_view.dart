@@ -568,7 +568,7 @@ class _PractitionerDataTable extends StatelessWidget {
                   1: FlexColumnWidth(4.5),
                   2: FlexColumnWidth(3.0),
                   3: FlexColumnWidth(2.0),
-                  4: FlexColumnWidth(2.0),
+                  4: FlexColumnWidth(2.2),
                   5: FlexColumnWidth(3.5),
                 },
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -1025,26 +1025,45 @@ class _PractitionerDataTable extends StatelessWidget {
   }
 
   void _confirmReject(BuildContext context, Practioners p) {
+    final reasonController = TextEditingController();
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Reject Practitioner'),
-        content: Text(
-          'Reject the application of ${p.fullName ?? 'this practitioner'}?',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Reject the application of ${p.fullName ?? 'this practitioner'}?'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Reason for rejection',
+                hintText: 'Enter rejection reason...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              reasonController.dispose();
+              Navigator.pop(dialogContext);
+            },
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.errorRed,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
             onPressed: () {
-              Navigator.pop(context);
+              final reason = reasonController.text.trim();
+              reasonController.dispose();
+              Navigator.pop(dialogContext);
               context.read<PractionerBloc>().add(
-                RejectPractionerRequested(p.id!),
+                RejectPractionerRequested(p.id!, reason: reason.isNotEmpty ? reason : null),
               );
             },
             child: const Text('Reject', style: TextStyle(color: Colors.white)),
