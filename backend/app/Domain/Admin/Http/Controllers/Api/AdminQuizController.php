@@ -17,20 +17,43 @@ class AdminQuizController extends Controller
     public function index()
     {
         Gate::authorize('quizzes.view');
-        return response()->json(Quiz::with('createdBy:id,name')->paginate(15));
+
+        $quizzes = Quiz::query()
+            ->select('quizzes.id', 'quizzes.title', 'quizzes.topic_id', 'quizzes.status', 'quizzes.opens_at', 'quizzes.closes_at', 'quizzes.created_at')
+            ->with('topic:id,name')
+            ->withCount('questions')
+            ->withCount(['attempts as participants_count' => fn ($q) => $q->whereNotNull('submitted_at')])
+            ->with(['attempts' => fn ($q) => $q->whereNotNull('submitted_at')->select('id', 'quiz_id', 'user_id')])
+            ->with('attempts.user:id,full_name')
+            ->paginate(15);
+
+        $quizzes->getCollection()->transform(fn ($quiz) => tap($quiz, function ($q) {
+            $q->participants = $q->attempts->pluck('user')->filter()->values();
+            unset($q->attempts);
+        }));
+
+        return response()->json($quizzes);
     }
 
     public function store(Request $request)
     {
         Gate::authorize('quizzes.create');
 
-        $validated = $request->validate([
+$validated = $request->validate([
             'title' => 'required|string|max:255',
+            'banner' => 'nullable',
+            'topic_id' => 'nullable|exists:topics,id',
             'description' => 'nullable|string',
             'opens_at' => 'nullable|date',
             'closes_at' => 'nullable|date|after:opens_at',
+            'time_limit_minutes' => 'nullable|integer|min:1',
             'tie_breaker' => 'nullable|in:score_only,score_then_time',
         ]);
+
+        unset($validated['banner']);
+        if ($request->hasFile('banner')) {
+            $validated['banner'] = $request->file('banner')->store('quizzes/banners', 'public');
+        }
 
         $quiz = Quiz::create([
             ...$validated,
@@ -56,13 +79,24 @@ class AdminQuizController extends Controller
             return response()->json(['message' => 'Cannot edit a published or closed quiz.'], 422);
         }
 
-        $validated = $request->validate([
+$validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
+            'banner' => 'nullable',
+            'topic_id' => 'nullable|exists:topics,id',
             'description' => 'nullable|string',
             'opens_at' => 'nullable|date',
             'closes_at' => 'nullable|date|after:opens_at',
+            'time_limit_minutes' => 'nullable|integer|min:1',
             'tie_breaker' => 'nullable|in:score_only,score_then_time',
         ]);
+
+        unset($validated['banner']);
+        if ($request->hasFile('banner')) {
+            if ($quiz->banner) {
+                \Storage::disk('public')->delete($quiz->banner);
+            }
+            $validated['banner'] = $request->file('banner')->store('quizzes/banners', 'public');
+        }
 
         $quiz->update($validated);
 
@@ -71,6 +105,7 @@ class AdminQuizController extends Controller
 
     public function storeQuestion(Request $request, Quiz $quiz)
     {
+        //return ($request->all());
         Gate::authorize('quizzes.edit');
 
         if (!in_array($quiz->status, ['draft', 'review'])) {
@@ -80,15 +115,17 @@ class AdminQuizController extends Controller
         $validated = $request->validate([
             'questions' => 'required_without:question_text|array',
             'questions.*.question_text' => 'required_with:questions|string',
-            'questions.*.image_path' => 'nullable|string',
+            'questions.*.image_path' => 'nullable|image|max:2048',
+            'questions.*.is_multiple' => 'nullable|boolean',
             'questions.*.order' => 'nullable|integer',
             'questions.*.options' => 'required_with:questions|array|min:2',
             'questions.*.options.*.option_text' => 'required_with:questions|string',
             'questions.*.options.*.is_correct' => 'required_with:questions|boolean',
             'questions.*.options.*.explanation' => 'nullable|string',
-            
+
             'question_text' => 'required_without:questions|string',
-            'image_path' => 'nullable|string',
+            'image_path' => 'nullable|image|max:2048',
+            'is_multiple' => 'nullable|boolean',
             'order' => 'nullable|integer',
             'options' => 'required_without:questions|array|min:2',
             'options.*.option_text' => 'required_without:questions|string',
@@ -96,19 +133,27 @@ class AdminQuizController extends Controller
             'options.*.explanation' => 'nullable|string',
         ]);
 
-        $questionsToProcess = $request->has('questions') 
-            ? $validated['questions'] 
+        $questionsToProcess = $request->has('questions')
+            ? $validated['questions']
             : [[
                 'question_text' => $validated['question_text'],
-                'image_path' => $validated['image_path'] ?? null,
+                'is_multiple' => $validated['is_multiple'] ?? false,
                 'order' => $validated['order'] ?? null,
                 'options' => $validated['options'] ?? []
             ]];
 
         foreach ($questionsToProcess as $index => $q) {
+            $isMultiple = $q['is_multiple'] ?? false;
             $correctCount = collect($q['options'])->where('is_correct', true)->count();
-            if ($correctCount !== 1) {
-                return response()->json(['message' => 'Exactly one option must be correct for each question.'], 422);
+
+            if ($isMultiple) {
+                if ($correctCount < 1) {
+                    return response()->json(['message' => 'At least one option must be correct for a multiple choice question.'], 422);
+                }
+            } else {
+                if ($correctCount !== 1) {
+                    return response()->json(['message' => 'Exactly one option must be correct for a single choice question.'], 422);
+                }
             }
         }
 
@@ -116,10 +161,22 @@ class AdminQuizController extends Controller
 
         DB::beginTransaction();
         try {
-            foreach ($questionsToProcess as $q) {
+            foreach ($questionsToProcess as $index => $q) {
+                $imagePath = null;
+                $fileKey = $request->has('questions') ? "questions.{$index}.image_path" : 'image_path';
+                if ($request->hasFile($fileKey)) {
+                    $file = $request->file($fileKey);
+                    if ($file->getSize() > 2048 * 1024) {
+                        DB::rollBack();
+                        return response()->json(['message' => 'Image must not exceed 2MB.'], 422);
+                    }
+                    $imagePath = $file->store('quiz-images', 'public');
+                }
+
                 $question = $quiz->questions()->create([
                     'question_text' => $q['question_text'],
-                    'image_path' => $q['image_path'] ?? null,
+                    'image_path' => $imagePath,
+                    'is_multiple' => $q['is_multiple'] ?? false,
                     'order' => $q['order'] ?? 0,
                 ]);
 
@@ -162,7 +219,8 @@ class AdminQuizController extends Controller
             'questions' => 'required_without:question_text|array',
             'questions.*.id' => 'required_with:questions|exists:quiz_questions,id',
             'questions.*.question_text' => 'required_with:questions|string',
-            'questions.*.image_path' => 'nullable|string',
+            'questions.*.image_path' => 'nullable|image|max:2048',
+            'questions.*.is_multiple' => 'nullable|boolean',
             'questions.*.order' => 'nullable|integer',
             'questions.*.options' => 'required_with:questions|array|min:2',
             'questions.*.options.*.id' => 'nullable|exists:quiz_options,id',
@@ -171,7 +229,8 @@ class AdminQuizController extends Controller
             'questions.*.options.*.explanation' => 'nullable|string',
 
             'question_text' => 'required_without:questions|string',
-            'image_path' => 'nullable|string',
+            'image_path' => 'nullable|image|max:2048',
+            'is_multiple' => 'nullable|boolean',
             'order' => 'nullable|integer',
             'options' => 'required_without:questions|array|min:2',
             'options.*.id' => 'nullable|exists:quiz_options,id',
@@ -180,20 +239,28 @@ class AdminQuizController extends Controller
             'options.*.explanation' => 'nullable|string',
         ]);
 
-        $questionsToProcess = $request->has('questions') 
-            ? $validated['questions'] 
+        $questionsToProcess = $request->has('questions')
+            ? $validated['questions']
             : [[
                 'id' => $question->id,
                 'question_text' => $validated['question_text'],
-                'image_path' => $validated['image_path'] ?? null,
+                'is_multiple' => $validated['is_multiple'] ?? false,
                 'order' => $validated['order'] ?? null,
                 'options' => $validated['options'] ?? []
             ]];
 
         foreach ($questionsToProcess as $q) {
+            $isMultiple = $q['is_multiple'] ?? false;
             $correctCount = collect($q['options'])->where('is_correct', true)->count();
-            if ($correctCount !== 1) {
-                return response()->json(['message' => 'Exactly one option must be correct for each question.'], 422);
+
+            if ($isMultiple) {
+                if ($correctCount < 1) {
+                    return response()->json(['message' => 'At least one option must be correct for a multiple choice question.'], 422);
+                }
+            } else {
+                if ($correctCount !== 1) {
+                    return response()->json(['message' => 'Exactly one option must be correct for a single choice question.'], 422);
+                }
             }
         }
 
@@ -201,19 +268,33 @@ class AdminQuizController extends Controller
 
         DB::beginTransaction();
         try {
-            foreach ($questionsToProcess as $q) {
+            foreach ($questionsToProcess as $index => $q) {
                 $qModel = $quiz->questions()->findOrFail($q['id']);
+
+                $imagePath = $qModel->image_path;
+                $fileKey = $request->has('questions') ? "questions.{$index}.image_path" : 'image_path';
+                if ($request->hasFile($fileKey)) {
+                    $file = $request->file($fileKey);
+                    if ($file->getSize() > 2048 * 1024) {
+                        DB::rollBack();
+                        return response()->json(['message' => 'Image must not exceed 2MB.'], 422);
+                    }
+                    if ($qModel->image_path) {
+                        \Storage::disk('public')->delete($qModel->image_path);
+                    }
+                    $imagePath = $file->store('quiz-images', 'public');
+                }
+
                 $qModel->update([
                     'question_text' => $q['question_text'],
-                    'image_path' => $q['image_path'] ?? null,
+                    'image_path' => $imagePath,
+                    'is_multiple' => $q['is_multiple'] ?? false,
                     'order' => $q['order'] ?? 0,
                 ]);
 
-                // Update options
                 $existingOptionIds = $qModel->options()->pluck('id')->toArray();
                 $providedOptionIds = array_filter(array_column($q['options'], 'id'));
 
-                // Delete options that were removed
                 $optionsToDelete = array_diff($existingOptionIds, $providedOptionIds);
                 if (!empty($optionsToDelete)) {
                     $qModel->options()->whereIn('id', $optionsToDelete)->delete();
@@ -329,11 +410,29 @@ class AdminQuizController extends Controller
 
             foreach ($attempts as $attempt) {
                 // Re-evaluate correctness
-                $answers = $attempt->answers()->with('option')->get();
+                $answers = $attempt->answers()->with(['question.options', 'selectedOptions'])->get();
                 $score = 0;
                 
                 foreach ($answers as $answer) {
-                    $isCorrect = $answer->option ? $answer->option->is_correct : false;
+                    $question = $answer->question;
+                    $isCorrect = false;
+                    
+                    if ($question) {
+                        $correctOptionIds = $question->options->where('is_correct', true)->pluck('id')->toArray();
+                        $selectedOptionIds = $answer->selectedOptions->pluck('id')->toArray();
+                        
+                        // Backwards compatibility: if selectedOptions is empty, use quiz_option_id
+                        if (empty($selectedOptionIds) && $answer->quiz_option_id) {
+                            $selectedOptionIds = [$answer->quiz_option_id];
+                        }
+                        
+                        sort($correctOptionIds);
+                        sort($selectedOptionIds);
+                        
+                        if (!empty($selectedOptionIds) && $correctOptionIds === $selectedOptionIds) {
+                            $isCorrect = true;
+                        }
+                    }
                     
                     if ($answer->is_correct !== $isCorrect) {
                         $answer->update(['is_correct' => $isCorrect]);
@@ -359,5 +458,78 @@ class AdminQuizController extends Controller
         }
 
         return response()->json(['message' => 'Leaderboard recalculated successfully.']);
+    }
+
+    public function unpublish(Quiz $quiz)
+    {
+        Gate::authorize('quizzes.publish');
+
+        if ($quiz->status !== 'published') {
+            return response()->json(['message' => 'Quiz is not published.'], 422);
+        }
+
+        $quiz->update(['status' => 'draft']);
+
+        return response()->json(['message' => 'Quiz unpublished successfully.']);
+    }
+
+    public function generalAnalytics()
+    {
+        Gate::authorize('quizzes.view');
+        
+        $totalQuizzes = Quiz::count();
+        $activeQuizzes = Quiz::where('status', 'published')
+            ->where(function ($q) {
+                $q->whereNull('closes_at')
+                  ->orWhere('closes_at', '>=', now());
+            })
+            ->count();
+        
+        $totalAttempts = QuizAttempt::where('status', 'submitted')->count();
+        
+        $startedAttempts = QuizAttempt::count();
+        $completionRate = $startedAttempts > 0 
+            ? round(($totalAttempts / $startedAttempts) * 100, 2) 
+            : 0;
+
+        return response()->json([
+            'total_quizzes' => $totalQuizzes,
+            'active_quizzes' => $activeQuizzes,
+            'total_participants' => $totalAttempts,
+            'completion_rate' => $completionRate,
+        ]);
+    }
+
+    public function quizAnalytics(Quiz $quiz)
+    {
+        Gate::authorize('quizzes.view');
+        
+        $totalStarted = $quiz->attempts()->count();
+        $totalSubmitted = $quiz->attempts()->where('status', 'submitted')->count();
+        
+        $completionRate = $totalStarted > 0 
+            ? round(($totalSubmitted / $totalStarted) * 100, 2) 
+            : 0;
+            
+        $averageScore = $totalSubmitted > 0 
+            ? round($quiz->attempts()->where('status', 'submitted')->avg('score'), 2) 
+            : 0;
+            
+        $scoreDistribution = $quiz->attempts()
+            ->where('status', 'submitted')
+            ->select('score', DB::raw('count(*) as count'))
+            ->groupBy('score')
+            ->get()
+            ->pluck('count', 'score');
+
+        return response()->json([
+            'quiz_id' => $quiz->id,
+            'quiz_title' => $quiz->title,
+            'total_started' => $totalStarted,
+            'total_submitted' => $totalSubmitted,
+            'completion_rate' => $completionRate,
+            'average_score' => $averageScore,
+            'score_distribution' => $scoreDistribution,
+        ]);
     }
 }

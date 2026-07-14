@@ -7,6 +7,7 @@ use App\Domain\Shared\Http\Controllers\Api\SpecialtyController;
 use App\Domain\Doctor\Http\Controllers\Api\EventController;
 use App\Domain\Doctor\Http\Controllers\Api\QuizController;
 use App\Domain\Doctor\Http\Controllers\Api\BadgeController;
+use App\Domain\Doctor\Http\Controllers\Api\QuizHomeController;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -26,24 +27,36 @@ Route::prefix('v1')->group(function () {
     Route::prefix('profile')->middleware(['auth:sanctum', 'ability:doctor'])->group(function () {
         Route::get('verification-status', [ProfileController::class, 'verificationStatus']);
         Route::post('deletion-request', [ProfileController::class, 'requestDeletion']);
+        Route::get('statistics', [ProfileController::class, 'statistics']);
     });
 
     Route::prefix('events')->middleware(['auth:sanctum', 'ability:doctor'])->controller(EventController::class)->group(function () {
         Route::get('mine', 'myEvents');
         Route::get('/', 'index');
+        Route::get('webinars/{event}', 'webinarDetail');
+        Route::get('conferences/{event}', 'conferenceDetail');
+        Route::get('workshops/{event}', 'workshopDetail');
         Route::get('{event}', 'show');
         Route::post('{event}/register', 'register');
         Route::delete('{event}/register', 'cancelRegistration');
     });
 
-    Route::prefix('quizzes')->middleware(['auth:sanctum', 'ability:doctor'])->controller(QuizController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::get('{quiz}', 'show');
-        Route::post('{quiz}/start', 'start');
-        Route::post('{quiz}/answer', 'answer');
-        Route::post('{quiz}/submit', 'submit');
-        Route::get('{quiz}/leaderboard', 'leaderboard');
-        Route::get('{quiz}/result', 'result');
+    Route::prefix('quizzes')->middleware(['auth:sanctum', 'ability:doctor'])->group(function () {
+        Route::get('home', [QuizHomeController::class, 'home']);
+
+        Route::controller(QuizController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::get('{quiz}', 'show');
+            Route::post('{quiz}/start', 'start');
+            Route::post('{quiz}/answer', 'answer');
+            Route::post('{quiz}/submit', 'submit');
+            Route::get('{quiz}/leaderboard', 'leaderboard');
+            Route::get('{quiz}/result', 'result');
+        });
+    });
+
+    Route::middleware(['auth:sanctum', 'ability:doctor'])->group(function () {
+        Route::get('topics/{topic}/quizzes', [QuizHomeController::class, 'topicQuizzes']);
     });
 
     Route::prefix('badges')->middleware(['auth:sanctum', 'ability:doctor'])->controller(BadgeController::class)->group(function () {

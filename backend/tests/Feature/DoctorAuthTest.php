@@ -20,7 +20,7 @@ class DoctorAuthTest extends TestCase
             'full_name' => 'John Doe',
             'email' => 'john@example.com',
             'phone' => '1234567890',
-            'specialty_id' => $specialty->id,
+            'specialties' => [$specialty->id],
             'hospital_affiliation' => 'General Hospital',
             'password' => 'password123',
             'password_confirmation' => 'password123',

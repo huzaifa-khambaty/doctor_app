@@ -3,8 +3,8 @@
 namespace App\Domain\Doctor\Http\Controllers\Api;
 
 use App\Domain\Shared\Models\UserBadge;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 
 class BadgeController extends Controller
 {
@@ -13,8 +13,8 @@ class BadgeController extends Controller
         $badges = UserBadge::where('user_id', $request->user()->id)
             ->with('badge')
             ->orderByDesc('awarded_at')
-            ->get();
+            ->paginate($request->query('per_page', 15));
 
-        return response()->json($badges);
+        return $this->jsonWithPagination($badges);
     }
 }

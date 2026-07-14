@@ -13,4 +13,10 @@ class QuizAttemptAnswer extends Model
     public function attempt() { return $this->belongsTo(QuizAttempt::class, 'quiz_attempt_id'); }
     public function question() { return $this->belongsTo(QuizQuestion::class, 'quiz_question_id'); }
     public function option() { return $this->belongsTo(QuizOption::class, 'quiz_option_id'); }
+    
+    public function selectedOptions()
+    {
+        return $this->belongsToMany(QuizOption::class, 'quiz_attempt_answer_options', 'quiz_attempt_answer_id', 'quiz_option_id')
+                    ->withTimestamps();
+    }
 }

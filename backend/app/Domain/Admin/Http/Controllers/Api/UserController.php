@@ -14,7 +14,7 @@ class UserController extends Controller
     {
         Gate::authorize('users.view');
 
-        $query = User::query();
+        $query = User::with('specialties');
 
         if ($request->has('status')) {
             $query->status($request->status);
@@ -47,13 +47,23 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'required|string|max:20|unique:users',
             'password' => 'required|string|min:8',
+            'photo' => 'nullable|image|max:2048',
             'specialties' => 'required|array',
             'specialties.*' => 'exists:specialties,id',
+            'medical_specialty_id' => 'nullable|exists:specialties,id',
+            'license_number' => 'nullable|string|max:100',
+            'hospital_clinic_affiliation' => 'nullable|string|max:255',
+            'year_of_registration' => 'nullable|integer|min:1900|max:' . date('Y'),
             'hospital_affiliation' => 'nullable|string|max:255',
             'qualifications' => 'nullable|string',
             'location' => 'nullable|string|max:255',
             'status' => 'nullable|in:pending,verified,rejected,suspended',
         ]);
+
+        if ($request->hasFile('photo')) {
+            $validated['photo_path'] = $request->file('photo')->store('users', 'public');
+        }
+        unset($validated['photo']);
 
         $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
         if (!isset($validated['status'])) {
@@ -65,6 +75,7 @@ class UserController extends Controller
 
         $user = User::create($validated);
         $user->specialties()->attach($specialties);
+        $user->load('specialties');
 
         return response()->json([
             'message' => 'User created successfully.',
@@ -81,13 +92,26 @@ class UserController extends Controller
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'sometimes|required|string|max:20|unique:users,phone,' . $user->id,
             'password' => 'nullable|string|min:8',
+            'photo' => 'nullable|image|max:2048',
             'specialties' => 'sometimes|required|array',
             'specialties.*' => 'exists:specialties,id',
+            'medical_specialty_id' => 'nullable|exists:specialties,id',
+            'license_number' => 'nullable|string|max:100',
+            'hospital_clinic_affiliation' => 'nullable|string|max:255',
+            'year_of_registration' => 'nullable|integer|min:1900|max:' . date('Y'),
             'hospital_affiliation' => 'nullable|string|max:255',
             'qualifications' => 'nullable|string',
             'location' => 'nullable|string|max:255',
             'status' => 'sometimes|required|in:pending,verified,rejected,suspended',
         ]);
+
+        if ($request->hasFile('photo')) {
+            if ($user->photo_path) {
+                \Storage::disk('public')->delete($user->photo_path);
+            }
+            $validated['photo_path'] = $request->file('photo')->store('users', 'public');
+        }
+        unset($validated['photo']);
 
         if (!empty($validated['password'])) {
             $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
