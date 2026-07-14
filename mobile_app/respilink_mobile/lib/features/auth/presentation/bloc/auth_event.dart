@@ -79,9 +79,3 @@ class ChangePasswordRequested extends AuthEvent {
 class SpecialitiesRequested extends AuthEvent {
   SpecialitiesRequested();
 }
-
-class ToggleBiometricRequested extends AuthEvent {
-  final bool enabled;
-
-  ToggleBiometricRequested({required this.enabled});
-}

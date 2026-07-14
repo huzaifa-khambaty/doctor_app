@@ -1,4 +1,5 @@
 class RegisterRequest {
+  final String itsNumber;
   final String name;
   final String email;
   final String phone;
@@ -9,6 +10,7 @@ class RegisterRequest {
   final String fcmToken;
 
   RegisterRequest({
+    required this.itsNumber,
     required this.name,
     required this.email,
     required this.phone,
@@ -21,14 +23,15 @@ class RegisterRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      'full_name': name,
+      'its_number': itsNumber,
+      'name': name,
       'email': email,
       'phone': phone,
-      'specialties': specialtyIds,
+      'specialties[]': specialtyIds,
       'hospital_affiliation': hospitalAffiliation,
       'password': password,
       'password_confirmation': passwordConfirmation,
-      //'fcm_token': fcmToken,
+      'fcm_token': fcmToken,
     };
   }
 }

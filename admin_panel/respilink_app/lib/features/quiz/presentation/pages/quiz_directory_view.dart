@@ -872,28 +872,40 @@ class _QuizDirectoryListBlock extends StatelessWidget {
 
   String _formatDate(String raw) {
     try {
-      final dt = DateTime.parse(raw);
-      return '${_mon(dt.month)} ${dt.day}, ${dt.year}';
+      final dt = DateTime.parse(raw).toLocal();
+      final now = DateTime.now();
+      final diff = now.difference(dt);
+
+      if (diff.inSeconds < 60) return 'Just now';
+      if (diff.inMinutes < 60) {
+        final m = diff.inMinutes;
+        return '$m min${m == 1 ? '' : 's'} ago';
+      }
+      if (diff.inHours < 24) {
+        final h = diff.inHours;
+        return '$h hour${h == 1 ? '' : 's'} ago';
+      }
+      if (diff.inDays == 1) return 'Yesterday';
+      if (diff.inDays < 7) return '${diff.inDays} days ago';
+
+      final months = [
+        '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ];
+      final day = dt.day;
+      final suffix = day == 1 || day == 21 || day == 31
+          ? 'st'
+          : day == 2 || day == 22
+              ? 'nd'
+              : day == 3 || day == 23
+                  ? 'rd'
+                  : 'th';
+      final yearPart = dt.year != now.year ? ', ${dt.year}' : '';
+      return '${months[dt.month]} $day$suffix$yearPart';
     } catch (_) {
       return raw;
     }
   }
-
-  String _mon(int m) => const [
-        '',
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec'
-      ][m];
 }
 
 enum _QuizAction { publish, unpublish, edit, delete }

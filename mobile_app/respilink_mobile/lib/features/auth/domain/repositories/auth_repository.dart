@@ -35,6 +35,4 @@ abstract class AuthRepository {
   Future<ApiResponse<void>> resetPassword(ResetPasswordRequest request);
 
   Future<ApiResponse<List<SpecialitiesModel>>> specialities();
-
-  Future<ApiResponse<Doctor>> toggleBiometric(bool enabled);
 }

@@ -59,6 +59,7 @@ class _LoginViewState extends State<LoginView> {
     } else {
       SnackbarUtil.showSnackbar(
         message: 'No saved session on this device. Please log in with your credentials once.',
+        isError: true,
       );
     }
   }
@@ -71,7 +72,7 @@ class _LoginViewState extends State<LoginView> {
           Handlers.onLogin(state.model);
         }
         else if(state is AuthFailed) {
-          SnackbarUtil.showSnackbar(message: state.message);
+          SnackbarUtil.showSnackbar(message: state.message, isError: true);
         }
       },
       builder: (context, state) {

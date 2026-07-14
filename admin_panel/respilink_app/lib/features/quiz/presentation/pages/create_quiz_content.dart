@@ -314,6 +314,7 @@ class _CreateQuizContentState extends State<CreateQuizContent> {
             context,
             message: "Quiz created successfully",
           );
+          context.read<QuizBloc>().add(FetchQuizzesRequested());
           widget.onBackToQuizDirectory();
         } else if (state.error != null) {
           SnackbarUtil.showSnackbar(

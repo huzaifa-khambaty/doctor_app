@@ -7,7 +7,6 @@ class QuizLeaderboardEntryModel {
   final String? location;
   final String? avatarUrl;
   final int points;
-  final String? changeLabel;
   final RankChangeDirection changeDirection;
   final bool isCurrentUser;
   final int? pointsToNextRank;
@@ -19,7 +18,6 @@ class QuizLeaderboardEntryModel {
     this.location,
     this.avatarUrl,
     required this.points,
-    this.changeLabel,
     this.changeDirection = RankChangeDirection.none,
     this.isCurrentUser = false,
     this.pointsToNextRank,

@@ -21,7 +21,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ForgetPasswordRequested>(_forgetPassword);
     on<ResetPasswordRequested>(_resetPassword);
     on<SpecialitiesRequested>(_specialities);
-    on<ToggleBiometricRequested>(_toggleBiometric);
   }
 
   void _isUserLoggedIn(
@@ -57,7 +56,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final res = await _repository.register(event.request);
 
     if (res.success) {
-      emit(RegisterSuccess(model: res.data));
+      emit(AuthSuccess(model: res.data));
     } else {
       emit(AuthFailed(message: res.fullErrorMessage));
     }
@@ -196,24 +195,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(SpecialitiesLoaded(specialities: res.data ?? []));
     } else {
       emit(SpecialitiesFailed(message: res.fullErrorMessage));
-    }
-  }
-
-  void _toggleBiometric(
-    ToggleBiometricRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    final res = await _repository.toggleBiometric(event.enabled);
-
-    if (res.success) {
-      emit(BiometricToggleSuccess(model: res.data));
-    } else {
-      emit(
-        BiometricToggleFailed(
-          message: res.fullErrorMessage,
-          enabled: !event.enabled,
-        ),
-      );
     }
   }
 }

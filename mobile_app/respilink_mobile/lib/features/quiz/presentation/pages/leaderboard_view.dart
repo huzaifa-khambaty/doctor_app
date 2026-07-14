@@ -1,81 +1,31 @@
-import 'package:respilink_mobile/features/quiz/domain/models/quiz_leaderboard_entry_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_leaderboard_bloc.dart';
+import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_leaderboard_event.dart';
+import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_leaderboard_state.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/leaderboard_app_bar.dart';
-import 'package:respilink_mobile/features/quiz/presentation/widgets/leaderboard_tab_selector.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/medical_leaderboard_widget.dart';
-import 'package:respilink_mobile/features/quiz/presentation/widgets/monthly_elite_header.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/ranking_row.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/rankings_section_header.dart';
+import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
 import '../../../../exports.dart';
 
-// TODO: replace with real data from the backend once the leaderboard API is wired up.
-const _rankings = [
-  QuizLeaderboardEntryModel(
-    rank: 4,
-    name: 'Dr. Sarah Chen',
-    specialty: 'Pulmonology',
-    location: 'Beijing',
-    avatarUrl: 'assets/images/doctor.jpg',
-    points: 8240,
-    changeLabel: '+120 Today',
-    changeDirection: RankChangeDirection.up,
-  ),
-  QuizLeaderboardEntryModel(
-    rank: 5,
-    name: 'Dr. Julian Ross',
-    specialty: 'ICU Specialist',
-    location: 'London',
-    avatarUrl: 'assets/images/doctor.jpg',
-    points: 7815,
-    changeLabel: '-4 Ranks',
-    changeDirection: RankChangeDirection.down,
-  ),
-  QuizLeaderboardEntryModel(
-    rank: 6,
-    name: 'Dr. Maria Garcia',
-    specialty: 'General Practice',
-    location: 'Madrid',
-    avatarUrl: 'assets/images/doctor.jpg',
-    points: 7102,
-    changeLabel: '+24 Today',
-    changeDirection: RankChangeDirection.up,
-  ),
-  QuizLeaderboardEntryModel(
-    rank: 7,
-    name: 'Dr. Amir Jafari',
-    specialty: 'Chest Physician',
-    location: 'Dubai',
-    points: 6950,
-  ),
-];
-
-const _currentUser = QuizLeaderboardEntryModel(
-  rank: 42,
-  name: 'Dr. Alex Doe',
-  avatarUrl: 'assets/images/doctor.jpg',
-  points: 4210,
-  pointsToNextRank: 240,
-  isCurrentUser: true,
-);
-
 class LeaderboardView extends StatefulWidget {
-  const LeaderboardView({super.key});
+  final int quizId;
+
+  const LeaderboardView({super.key, required this.quizId});
 
   @override
   State<LeaderboardView> createState() => _LeaderboardViewState();
 }
 
-class _LeaderboardViewState extends State<LeaderboardView>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController = TabController(
-    length: 3,
-    vsync: this,
-  );
-
+class _LeaderboardViewState extends State<LeaderboardView> {
   @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    context.read<QuizLeaderboardBloc>().add(
+      QuizLeaderboardRequested(quizId: widget.quizId),
+    );
   }
 
   @override
@@ -85,42 +35,48 @@ class _LeaderboardViewState extends State<LeaderboardView>
       appBar: const LeaderboardAppBar(),
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const MonthlyEliteHeader(timeRemainingLabel: '12d 4h left'),
+        child: BlocBuilder<QuizLeaderboardBloc, QuizLeaderboardState>(
+          builder: (context, state) {
+            if (state is QuizLeaderboardFailed) {
+              return RequestFailed(message: state.message);
+            }
 
-              SizedBox(height: 16.h),
+            if (state is! QuizLeaderboardLoaded) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              LeaderboardTabSelector(controller: _tabController),
+            return SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MedicalLeaderboardWidget(topThree: state.topThree),
 
-              SizedBox(height: 12.h),
+                  SizedBox(height: 12.h),
 
-              const MedicalLeaderboardWidget(),
+                  RankingsSectionHeader(
+                    onAllSpecialtiesTap: () {
+                      // TODO: wire specialty filtering once it exists.
+                    },
+                  ),
 
-              SizedBox(height: 12.h),
+                  SizedBox(height: 8.h),
 
-              RankingsSectionHeader(
-                onAllSpecialtiesTap: () {
-                  // TODO: wire specialty filtering once it exists.
-                },
+                  for (final entry in state.rankings)
+                    RankingRow(entry: entry),
+
+                  if (state.currentUser != null) ...[
+                    SizedBox(height: 8.h),
+                    RankingRow(
+                      entry: state.currentUser!,
+                      onViewBadgeTap: () => locator<NavigationService>()
+                          .navigate(RouterStrings.badges),
+                    ),
+                  ],
+                ],
               ),
-
-              SizedBox(height: 8.h),
-
-              for (final entry in _rankings) RankingRow(entry: entry),
-
-              SizedBox(height: 8.h),
-
-              RankingRow(
-                entry: _currentUser,
-                onViewBadgeTap: () =>
-                    locator<NavigationService>().navigate(RouterStrings.badges),
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

@@ -38,8 +38,6 @@ abstract class AuthRemoteDataSource {
   Future<ApiResponse<void>> forgetPassword(ForgetPasswordRequest request);
 
   Future<ApiResponse<List<SpecialitiesModel>>> specialities();
-
-  Future<ApiResponse<Doctor>> toggleBiometric(bool enabled);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -60,20 +58,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     return _client.post(
       ApiEndpoints.register,
       data: request.toJson(),
-      fromJson: (json) {
-        final doctorJson = (json as Map<String, dynamic>)['doctor'];
-        if (doctorJson != null) {
-          return Doctor.fromJson(doctorJson as Map<String, dynamic>);
-        }
-        // Register endpoint only returns {message, test_otps} until the
-        // account is verified via OTP, so build a placeholder from the request.
-        return Doctor(
-          fullName: request.name,
-          email: request.email,
-          phone: request.phone,
-          hospitalAffiliation: request.hospitalAffiliation,
-        );
-      },
+      fromJson: (json) =>
+          Doctor.fromJson(json['doctor'] as Map<String, dynamic>),
     );
   }
 
@@ -153,6 +139,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<ApiResponse<void>> resetPassword(ResetPasswordRequest request) async {
+    print("data is ${request.toJson()}");
     return _client.post(
       ApiEndpoints.resetPassword,
       data: request.toJson(),
@@ -167,21 +154,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       fromJson: (json) => (json as List)
           .map((e) => SpecialitiesModel.fromJson(e as Map<String, dynamic>))
           .toList(),
-    );
-  }
-
-  @override
-  Future<ApiResponse<Doctor>> toggleBiometric(bool enabled) async {
-    return _client.post(
-      ApiEndpoints.toggleBiometric,
-      data: {'biometric_enabled': enabled},
-      fromJson: (json) {
-        final map = json as Map<String, dynamic>;
-        final doctorJson = map['doctor'];
-        return Doctor.fromJson(
-          doctorJson != null ? doctorJson as Map<String, dynamic> : map,
-        );
-      },
     );
   }
 }

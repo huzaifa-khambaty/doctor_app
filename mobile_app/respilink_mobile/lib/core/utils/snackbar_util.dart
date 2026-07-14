@@ -14,8 +14,8 @@ class SnackbarUtil {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: isError
-            ? AppColors.primary
-            : AppColors.redBA1A1A,
+            ? AppColors.redBA1A1A
+            : AppColors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.r),

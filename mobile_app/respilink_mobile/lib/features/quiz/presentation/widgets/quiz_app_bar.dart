@@ -4,17 +4,15 @@ import 'package:respilink_mobile/shared/widgets/app_notification_bell.dart';
 import '../../../../exports.dart';
 
 class QuizAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final int timeLimitSeconds;
+  final int? timeLimitSeconds;
   final VoidCallback? onTimeExpired;
 
-  const QuizAppBar({
-    super.key,
-    required this.timeLimitSeconds,
-    this.onTimeExpired,
-  });
+  const QuizAppBar({super.key, this.timeLimitSeconds, this.onTimeExpired});
 
   @override
   Widget build(BuildContext context) {
+    final timeLimit = timeLimitSeconds;
+
     return AppBar(
       backgroundColor: AppColors.white,
       elevation: 0,
@@ -31,8 +29,10 @@ class QuizAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: AppColors.black,
       ),
       actions: [
-        QuizTimerBadge(seconds: timeLimitSeconds, onExpire: onTimeExpired),
-        SizedBox(width: 12.w),
+        if (timeLimit != null && timeLimit > 0) ...[
+          QuizTimerBadge(seconds: timeLimit, onExpire: onTimeExpired),
+          SizedBox(width: 12.w),
+        ],
         Padding(
           padding: EdgeInsets.only(right: 16.w),
           child: AppNotificationBell(color: AppColors.black),

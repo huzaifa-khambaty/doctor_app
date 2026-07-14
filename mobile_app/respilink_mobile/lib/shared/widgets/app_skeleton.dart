@@ -21,10 +21,8 @@ class AppSkeleton extends StatelessWidget {
       borderRadius = null,
       shape = BoxShape.circle;
 
-  const AppSkeleton.textBar({super.key, double? width, double height = 14})
-    : width = width,
-      height = height,
-      borderRadius = 4,
+  const AppSkeleton.textBar({super.key, this.width, double this.height = 14})
+    : borderRadius = 4,
       shape = BoxShape.rectangle;
 
   @override

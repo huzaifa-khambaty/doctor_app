@@ -1,7 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_mobile/features/events/data/model/event_listing_model.dart';
-import 'package:respilink_mobile/features/events/domain/models/conference_detail_model.dart';
-import 'package:respilink_mobile/features/events/domain/models/event_detail_model.dart';
 import 'package:respilink_mobile/features/events/domain/models/event_filter.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/events_bloc.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/events_event.dart';
@@ -11,10 +9,6 @@ import 'package:respilink_mobile/features/events/presentation/widgets/event_filt
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
 import '../../../../exports.dart';
-
-final Map<int, EventDetailModel> _eventDetails = {};
-
-final Map<int, ConferenceDetailModel> _conferenceDetails = {};
 
 class EventsListView extends StatefulWidget {
   const EventsListView({super.key});
@@ -49,26 +43,16 @@ class _EventsListViewState extends State<EventsListView> {
   }
 
   void _openEventDetail(Events event) {
-    final type = event.type?.toLowerCase();
+    final eventId = event.id;
+    if (eventId == null) return;
 
-    if (type == 'conference') {
-      final detail = _conferenceDetails[event.id];
-      if (detail == null) return;
-      locator<NavigationService>().navigate(
-        RouterStrings.conferenceDetail,
-        arguments: detail,
-      );
-      return;
-    }
+    final route = switch (event.type?.toLowerCase()) {
+      'conference' => RouterStrings.conferenceDetail,
+      'workshop' => RouterStrings.workshopDetail,
+      _ => RouterStrings.webinarDetail,
+    };
 
-    final detail = _eventDetails[event.id];
-    if (detail == null) return;
-
-    final route = type == 'webinar'
-        ? RouterStrings.webinarDetail
-        : RouterStrings.workshopDetail;
-
-    locator<NavigationService>().navigate(route, arguments: detail);
+    locator<NavigationService>().navigate(route, arguments: eventId);
   }
 
   @override

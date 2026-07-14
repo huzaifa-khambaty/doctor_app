@@ -37,8 +37,8 @@ class PractionerRepositoryImpl implements PractionerRepository {
       _remoteDataSource.verifyPractioner(userId: userId);
 
   @override
-  Future<ApiResponse<dynamic>> rejectPractioner({required int userId}) =>
-      _remoteDataSource.rejectPractioner(userId: userId);
+  Future<ApiResponse<dynamic>> rejectPractioner({required int userId, String? reason}) =>
+      _remoteDataSource.rejectPractioner(userId: userId, reason: reason);
 
   @override
   Future<ApiResponse<dynamic>> suspendPractioner({

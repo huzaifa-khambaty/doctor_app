@@ -98,6 +98,7 @@ class _EditQuizContentState extends State<EditQuizContent> {
   final _closesAtController = TextEditingController();
   final _timeLimitController = TextEditingController();
   QuizTopicModel? _selectedTopic;
+  int? _pendingTopicId; // saved topicId for matching when topics load late
   final List<_QuestionDraft> _questions = [];
   bool _populated = false;
 
@@ -105,6 +106,7 @@ class _EditQuizContentState extends State<EditQuizContent> {
   void initState() {
     super.initState();
     context.read<QuizBloc>().add(ResetQuizFormRequested());
+    context.read<QuizBloc>().add(FetchTopicsRequested());
     context.read<QuizBloc>().add(FetchQuizDetailRequested(widget.quizId));
   }
 
@@ -124,6 +126,7 @@ class _EditQuizContentState extends State<EditQuizContent> {
   void _populate(QuizDetailModel detail, List<QuizTopicModel> topics) {
     if (_populated) return;
     _populated = true;
+    _pendingTopicId = detail.topicId;
     setState(() {
       _titleController.text = detail.title ?? '';
       _descriptionController.text = detail.description ?? '';
@@ -131,11 +134,7 @@ class _EditQuizContentState extends State<EditQuizContent> {
       _closesAtController.text = detail.closesAt ?? '';
       _timeLimitController.text = detail.timeLimitMinutes?.toString() ?? '';
 
-      if (detail.topicId != null && topics.isNotEmpty) {
-        try {
-          _selectedTopic = topics.firstWhere((t) => t.id == detail.topicId);
-        } catch (_) {}
-      }
+      _tryMatchTopic(topics);
 
       for (final q in _questions) {
         q.dispose();
@@ -149,6 +148,16 @@ class _EditQuizContentState extends State<EditQuizContent> {
         _questions.addAll(qs.map((q) => _QuestionDraft.fromDetail(q)));
       }
     });
+  }
+
+  void _tryMatchTopic(List<QuizTopicModel> topics) {
+    final id = _pendingTopicId ?? _selectedTopic?.id;
+    if (id == null || topics.isEmpty) return;
+    try {
+      _selectedTopic = topics.firstWhere((t) => t.id == id);
+    } catch (_) {
+      _selectedTopic = null;
+    }
   }
 
   // ── Date picker ────────────────────────────────────────────────────────────
@@ -344,11 +353,14 @@ class _EditQuizContentState extends State<EditQuizContent> {
           (prev.submitSuccess != curr.submitSuccess && curr.submitSuccess) ||
           (prev.error != curr.error && curr.error != null),
       listener: (context, state) {
-        if (!_populated && state.quizDetail != null && state.topics.isNotEmpty) {
+        if (!_populated && state.quizDetail != null) {
           _populate(state.quizDetail!, state.topics);
+        } else if (_populated && state.topics.isNotEmpty) {
+          setState(() => _tryMatchTopic(state.topics));
         }
         if (state.submitSuccess) {
           SnackbarUtil.showSnackbar(context, message: 'Quiz updated successfully');
+          context.read<QuizBloc>().add(FetchQuizzesRequested());
           widget.onBackToQuizDirectory();
         } else if (state.error != null) {
           SnackbarUtil.showSnackbar(context, message: state.error!, isError: true);
@@ -359,9 +371,8 @@ class _EditQuizContentState extends State<EditQuizContent> {
         child: SingleChildScrollView(
           child: BlocBuilder<QuizBloc, QuizState>(
             builder: (context, state) {
-              // Safety net: populate from builder if listener hasn't fired yet
-              // (topics + detail both already in state when page opened).
-              if (!_populated && state.quizDetail != null && state.topics.isNotEmpty) {
+              // Safety net: populate if detail is available but listener hasn't fired yet.
+              if (!_populated && state.quizDetail != null) {
                 WidgetsBinding.instance
                     .addPostFrameCallback((_) => _populate(state.quizDetail!, state.topics));
               }
@@ -412,116 +423,7 @@ class _EditQuizContentState extends State<EditQuizContent> {
                     _buildShimmer(wide)
                   else ...[
                     // Metadata row
-                    Flex(
-                      direction: wide ? Axis.horizontal : Axis.vertical,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: wide ? 2 : 0,
-                          child: _SectionCard(
-                            title: 'General Information',
-                            icon: Icons.info_outline_rounded,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _label('QUIZ TITLE'),
-                                const SizedBox(height: 6),
-                                TextField(
-                                    controller: _titleController,
-                                    decoration: _inputDeco('e.g., Advanced Respiratory Diagnostics')),
-                                const SizedBox(height: 16),
-                                _label('DESCRIPTION (OPTIONAL)'),
-                                const SizedBox(height: 6),
-                                TextField(
-                                    controller: _descriptionController,
-                                    maxLines: 3,
-                                    decoration: _inputDeco('Explain what the clinician will learn...')),
-                              ],
-                            ),
-                          ),
-                        ),
-                        wide ? const SizedBox(width: 16) : const SizedBox(height: 16),
-                        Expanded(
-                          flex: wide ? 1 : 0,
-                          child: _SectionCard(
-                            title: 'Configuration',
-                            icon: Icons.tune_rounded,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _label('TOPIC AREA'),
-                                const SizedBox(height: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF5F8FA),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppColors.borderLight),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<QuizTopicModel>(
-                                      value: _selectedTopic,
-                                      isExpanded: true,
-                                      hint: const Text('Select a topic',
-                                          style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
-                                      icon: const Icon(Icons.keyboard_arrow_down, size: 18),
-                                      items: state.topics
-                                          .map((t) => DropdownMenuItem(
-                                              value: t,
-                                              child: Text(t.name ?? '',
-                                                  style: const TextStyle(fontSize: 13))))
-                                          .toList(),
-                                      onChanged: (v) => setState(() => _selectedTopic = v),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                _label('TIME LIMIT (MINUTES)'),
-                                const SizedBox(height: 6),
-                                TextField(
-                                  controller: _timeLimitController,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                  decoration: _inputDeco('e.g., 30'),
-                                ),
-                                const SizedBox(height: 16),
-                                _label('OPEN PERIOD'),
-                                const SizedBox(height: 6),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextField(
-                                        controller: _opensAtController,
-                                        readOnly: true,
-                                        onTap: () => _pickDateTime(_opensAtController),
-                                        decoration: _inputDeco('Start date',
-                                            suffix: const Icon(Icons.calendar_today_outlined,
-                                                size: 14, color: AppColors.textMuted)),
-                                      ),
-                                    ),
-                                    const Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 6),
-                                      child: Text('to',
-                                          style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                                    ),
-                                    Expanded(
-                                      child: TextField(
-                                        controller: _closesAtController,
-                                        readOnly: true,
-                                        onTap: () => _pickDateTime(_closesAtController),
-                                        decoration: _inputDeco('End date',
-                                            suffix: const Icon(Icons.calendar_today_outlined,
-                                                size: 14, color: AppColors.textMuted)),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    _buildMetadataRow(wide, state),
                     const SizedBox(height: 32),
 
                     // Questions header
@@ -639,37 +541,169 @@ class _EditQuizContentState extends State<EditQuizContent> {
     );
   }
 
+  Widget _buildMetadataRow(bool wide, QuizState state) {
+    final generalCard = _SectionCard(
+      title: 'General Information',
+      icon: Icons.info_outline_rounded,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _label('QUIZ TITLE'),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _titleController,
+            decoration: _inputDeco('e.g., Advanced Respiratory Diagnostics'),
+          ),
+          const SizedBox(height: 16),
+          _label('DESCRIPTION (OPTIONAL)'),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _descriptionController,
+            maxLines: 3,
+            decoration: _inputDeco('Explain what the clinician will learn...'),
+          ),
+        ],
+      ),
+    );
+
+    final configCard = _SectionCard(
+      title: 'Configuration',
+      icon: Icons.tune_rounded,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _label('TOPIC AREA'),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F8FA),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<QuizTopicModel>(
+                value: _selectedTopic,
+                isExpanded: true,
+                hint: const Text('Select a topic',
+                    style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+                icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+                items: state.topics
+                    .map((t) => DropdownMenuItem(
+                        value: t,
+                        child: Text(t.name ?? '', style: const TextStyle(fontSize: 13))))
+                    .toList(),
+                onChanged: (v) => setState(() => _selectedTopic = v),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _label('TIME LIMIT (MINUTES)'),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _timeLimitController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: _inputDeco('e.g., 30'),
+          ),
+          const SizedBox(height: 16),
+          _label('OPEN PERIOD'),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _opensAtController,
+                  readOnly: true,
+                  onTap: () => _pickDateTime(_opensAtController),
+                  decoration: _inputDeco('Start date',
+                      suffix: const Icon(Icons.calendar_today_outlined,
+                          size: 14, color: AppColors.textMuted)),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6),
+                child: Text('to', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+              ),
+              Expanded(
+                child: TextField(
+                  controller: _closesAtController,
+                  readOnly: true,
+                  onTap: () => _pickDateTime(_closesAtController),
+                  decoration: _inputDeco('End date',
+                      suffix: const Icon(Icons.calendar_today_outlined,
+                          size: 14, color: AppColors.textMuted)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (wide) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(flex: 2, child: generalCard),
+          const SizedBox(width: 16),
+          Expanded(flex: 1, child: configCard),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        generalCard,
+        const SizedBox(height: 16),
+        configCard,
+      ],
+    );
+  }
+
   Widget _buildShimmer(bool wide) {
+    final box200 = Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+
+    final topRow = wide
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 2, child: box200),
+              const SizedBox(width: 16),
+              Expanded(flex: 1, child: box200),
+            ],
+          )
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              box200,
+              const SizedBox(height: 16),
+              box200,
+            ],
+          );
+
     return Shimmer.fromColors(
       baseColor: const Color(0xFFE2E8F0),
       highlightColor: const Color(0xFFF8FAFC),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Flex(
-            direction: wide ? Axis.horizontal : Axis.vertical,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                  flex: wide ? 2 : 0,
-                  child: Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                          color: Colors.white, borderRadius: BorderRadius.circular(12)))),
-              wide ? const SizedBox(width: 16) : const SizedBox(height: 16),
-              Expanded(
-                  flex: wide ? 1 : 0,
-                  child: Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                          color: Colors.white, borderRadius: BorderRadius.circular(12)))),
-            ],
-          ),
+          topRow,
           const SizedBox(height: 32),
           Container(
-              height: 300,
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(12))),
+            height: 300,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
         ],
       ),
     );
@@ -764,14 +798,13 @@ class _EditQuizContentState extends State<EditQuizContent> {
               ? Stack(children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: hasBytes
-                        ? Image.memory(q.imagePreviewBytes!,
-                            width: double.infinity, height: 120, fit: BoxFit.cover)
-                        : AppNetworkImage(
-                            imageUrl: q.existingImageUrl,
-                            width: double.infinity,
-                            height: 120,
-                            fit: BoxFit.cover),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 120,
+                      child: hasBytes
+                          ? Image.memory(q.imagePreviewBytes!, fit: BoxFit.cover)
+                          : AppNetworkImage(imageUrl: q.existingImageUrl, fit: BoxFit.cover),
+                    ),
                   ),
                   Positioned(
                     top: 6,

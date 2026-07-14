@@ -3,27 +3,22 @@ import 'package:respilink_mobile/exports.dart';
 class AppFormField extends TextFormField {
   AppFormField({
     super.key,
-    required TextEditingController controller,
+    required TextEditingController super.controller,
     String? label,
     String? hint,
-    FormFieldValidator<String>? validator,
+    super.validator,
     TextInputType? keyboardType,
-    bool obscureText = false,
+    super.obscureText,
     Widget? suffixIcon,
     Widget? prefixIcon,
     int? maxLines,
-    int? maxLength,
-    bool readOnly = false,
-    VoidCallback? onTap,
-    ValueChanged<String>? onFieldSubmitted,
+    super.maxLength,
+    super.readOnly,
+    super.onTap,
+    super.onFieldSubmitted,
   }) : super(
-         controller: controller,
          maxLines: maxLines ?? 1,
-         maxLength: maxLength,
          keyboardType: keyboardType ?? TextInputType.text,
-         obscureText: obscureText,
-         readOnly: readOnly,
-         onFieldSubmitted: onFieldSubmitted,
          decoration: InputDecoration(
            labelText: label,
            counterText: "",
@@ -54,8 +49,6 @@ class AppFormField extends TextFormField {
            
          ),
          cursorColor: AppColors.primary,
-         validator: validator,
-         onTap: onTap,
          style: TextStyle(
            fontSize: 14.sp,
            color: AppColors.black,

@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:respilink_mobile/core/utils/duration_utils.dart';
+
 import '../../../../exports.dart';
 
-/// Self-ticking per-question countdown shown as a red circular badge, e.g. "11s".
+/// Self-ticking countdown badge, e.g. "14:22" or "1:04:22" for longer limits.
 class QuizTimerBadge extends StatefulWidget {
   final int seconds;
   final VoidCallback? onExpire;
@@ -40,15 +42,16 @@ class _QuizTimerBadgeState extends State<QuizTimerBadge> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 34.r,
       height: 34.r,
+      constraints: BoxConstraints(minWidth: 34.r),
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(17.r),
         border: Border.all(color: AppColors.error, width: 1.5),
       ),
       child: AppText.small(
-        label: '${_remaining}s',
+        label: DurationUtils.formatSeconds(_remaining),
         color: AppColors.error,
         fontWeight: FontWeight.bold,
         fontSize: 11.sp,

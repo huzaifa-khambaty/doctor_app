@@ -2,10 +2,10 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // Base Url
-  static const String baseUrl = 'http://192.168.18.237:8000/api/admin/v1';
+  static const String baseUrl = 'http://192.168.100.115:8000/api/admin/v1';
 
-  static const String imageUrl = "http://192.168.18.237:8000/storage/";
-  static const String documentUrl = "http://192.168.18.237:8000";
+  static const String imageUrl = "http://192.168.100.115:8000/storage/";
+  static const String documentUrl = "http://192.168.100.115:8000";
   
   /// Auth
   static const String login = '/auth/login';

@@ -94,7 +94,7 @@ class PractionerBloc extends Bloc<PractionerEvent, PractionerState> {
     Emitter<PractionerState> emit,
   ) async {
     emit(state.copyWith(isActionLoading: true, actioningUserId: event.userId));
-    final res = await _repository.rejectPractioner(userId: event.userId);
+    final res = await _repository.rejectPractioner(userId: event.userId, reason: event.reason);
     if (res.success) {
       emit(state.copyWith(isActionLoading: false, clearActioningUserId: true, actionSuccess: true));
       add(FetchPractionersRequested(

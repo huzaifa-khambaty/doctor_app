@@ -18,7 +18,7 @@ abstract class PractionerRemoteDataSource {
   });
   Future<ApiResponse<dynamic>> createPractioner(CreatePractionerRequest request, {PickedImage? photo});
   Future<ApiResponse<dynamic>> verifyPractioner({required int userId});
-  Future<ApiResponse<dynamic>> rejectPractioner({required int userId});
+  Future<ApiResponse<dynamic>> rejectPractioner({required int userId, String? reason});
   Future<ApiResponse<dynamic>> suspendPractioner({required int userId, required SuspendUserRequest request});
   Future<ApiResponse<dynamic>> reinstatePractioner({required int userId});
 }
@@ -86,8 +86,11 @@ class PractionerRemoteDataSourceImpl implements PractionerRemoteDataSource {
   }
 
   @override
-  Future<ApiResponse<dynamic>> rejectPractioner({required int userId}) async {
-    return _client.post('${ApiEndpoints.practioners}/$userId/reject');
+  Future<ApiResponse<dynamic>> rejectPractioner({required int userId, String? reason}) async {
+    return _client.post(
+      '${ApiEndpoints.practioners}/$userId/reject',
+      data: reason != null && reason.isNotEmpty ? {'reason': reason} : {},
+    );
   }
 
   @override

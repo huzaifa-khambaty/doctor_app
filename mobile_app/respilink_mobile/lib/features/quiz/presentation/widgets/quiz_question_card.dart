@@ -2,12 +2,12 @@ import '../../../../exports.dart';
 
 class QuizQuestionCard extends StatelessWidget {
   final String questionText;
-  final String caseContext;
+  final String? caseContext;
 
   const QuizQuestionCard({
     super.key,
     required this.questionText,
-    required this.caseContext,
+    this.caseContext,
   });
 
   @override
@@ -20,13 +20,15 @@ class QuizQuestionCard extends StatelessWidget {
           fontWeight: FontWeight.bold,
           fontSize: 17.sp,
         ),
-        SizedBox(height: 8.h),
-        AppText.small(
-          label: caseContext,
-          color: AppColors.grey,
-          fontSize: 12.sp,
-          height: 1.4,
-        ),
+        if (caseContext != null && caseContext!.isNotEmpty) ...[
+          SizedBox(height: 8.h),
+          AppText.small(
+            label: caseContext!,
+            color: AppColors.grey,
+            fontSize: 12.sp,
+            height: 1.4,
+          ),
+        ],
       ],
     );
   }
