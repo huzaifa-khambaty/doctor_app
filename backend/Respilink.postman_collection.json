@@ -234,7 +234,7 @@
                                             "type": "text"
                                         },
                                         {
-                                            "key": "medical_specialty_id",
+                                            "key": "specialty_id",
                                             "value": "1",
                                             "type": "text"
                                         },
@@ -333,7 +333,7 @@
                                             "type": "text"
                                         },
                                         {
-                                            "key": "medical_specialty_id",
+                                            "key": "specialty_id",
                                             "value": "2",
                                             "type": "text"
                                         },

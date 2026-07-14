@@ -42,7 +42,7 @@ class User extends Authenticatable
         'rejection_reason',
         'verified_at',
         'verified_by',
-        'medical_specialty_id',
+        'specialty_id',
         'license_number',
         'hospital_clinic_affiliation',
         'year_of_registration',
@@ -75,9 +75,9 @@ class User extends Authenticatable
         return $this->belongsToMany(Specialty::class);
     }
 
-    public function medicalSpecialty()
+    public function specialty()
     {
-        return $this->belongsTo(Specialty::class, 'medical_specialty_id');
+        return $this->belongsTo(Specialty::class, 'specialty_id');
     }
 
     public function otps()
@@ -116,7 +116,7 @@ class User extends Authenticatable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['full_name', 'email', 'phone', 'status', 'hospital_affiliation', 'location', 'medical_specialty_id', 'license_number', 'hospital_clinic_affiliation', 'year_of_registration'])
+            ->logOnly(['full_name', 'email', 'phone', 'status', 'hospital_affiliation', 'location', 'specialty_id', 'license_number', 'hospital_clinic_affiliation', 'year_of_registration'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn(string $eventName) => "User profile has been {$eventName}");

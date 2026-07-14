@@ -39,7 +39,7 @@ class AdminQuizController extends Controller
     {
         Gate::authorize('quizzes.create');
 
-$validated = $request->validate([
+            $validated = $request->validate([
             'title' => 'required|string|max:255',
             'banner' => 'nullable',
             'topic_id' => 'nullable|exists:topics,id',
@@ -49,7 +49,10 @@ $validated = $request->validate([
             'time_limit_minutes' => 'nullable|integer|min:1',
             'tie_breaker' => 'nullable|in:score_only,score_then_time',
         ]);
-
+        
+        if (!empty($validated['time_limit_minutes'])) {
+        $validated['time_limit_minutes'] *= 60; // minutes → seconds
+        }
         unset($validated['banner']);
         if ($request->hasFile('banner')) {
             $validated['banner'] = $request->file('banner')->store('quizzes/banners', 'public');

@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             SpecialtySeeder::class,
             BadgeSeeder::class,
+            LeaderboardSeeder::class,
         ]);
     }
 }
