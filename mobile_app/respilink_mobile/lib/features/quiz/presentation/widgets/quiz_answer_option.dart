@@ -1,21 +1,29 @@
-import 'package:respilink_mobile/features/quiz/domain/models/quiz_question_model.dart';
+import 'package:respilink_mobile/features/dashboard/data/model/quiz_question_answers_model.dart';
 
 import '../../../../exports.dart';
 
 class QuizAnswerOptionTile extends StatelessWidget {
-  final QuizAnswerOption option;
+  final Options option;
   final bool isSelected;
+  final bool isMultiSelect;
   final VoidCallback onTap;
 
   const QuizAnswerOptionTile({
     super.key,
     required this.option,
     required this.isSelected,
+    required this.isMultiSelect,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final indicatorIcon = isMultiSelect
+        ? (isSelected ? Icons.check_box : Icons.check_box_outline_blank)
+        : (isSelected
+              ? Icons.radio_button_checked
+              : Icons.radio_button_unchecked);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -32,25 +40,15 @@ class QuizAnswerOptionTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 28.r,
-              height: 28.r,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : AppColors.white,
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: AppText.small(
-                label: option.label,
-                color: isSelected ? AppColors.white : AppColors.grey,
-                fontWeight: FontWeight.bold,
-                fontSize: 12.sp,
-              ),
+            Icon(
+              indicatorIcon,
+              color: isSelected ? AppColors.primary : AppColors.grey,
+              size: 22.sp,
             ),
             SizedBox(width: 12.w),
             Expanded(
               child: AppText.medium(
-                label: option.text,
+                label: option.optionText ?? '',
                 fontSize: 13.sp,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? AppColors.primary : AppColors.black,

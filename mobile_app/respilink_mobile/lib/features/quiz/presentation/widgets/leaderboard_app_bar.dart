@@ -12,7 +12,7 @@ class LeaderboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       leading: IconButton(
         icon: Icon(Icons.arrow_back_ios, size: 18.sp, color: AppColors.black),
-        onPressed: () => locator<NavigationService>().pop(),
+        onPressed: () => locator<NavigationService>().navigateAndRemove(RouterStrings.dashboard),
       ),
       title: AppText.medium(
         label: 'Leaderboard',

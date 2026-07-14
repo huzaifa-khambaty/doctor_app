@@ -1,8 +1,6 @@
 import 'package:respilink_mobile/features/quiz/domain/models/quiz_leaderboard_entry_model.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/leaderboard_app_bar.dart';
-import 'package:respilink_mobile/features/quiz/presentation/widgets/leaderboard_tab_selector.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/medical_leaderboard_widget.dart';
-import 'package:respilink_mobile/features/quiz/presentation/widgets/monthly_elite_header.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/ranking_row.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/rankings_section_header.dart';
 
@@ -17,7 +15,6 @@ const _rankings = [
     location: 'Beijing',
     avatarUrl: 'assets/images/doctor.jpg',
     points: 8240,
-    changeLabel: '+120 Today',
     changeDirection: RankChangeDirection.up,
   ),
   QuizLeaderboardEntryModel(
@@ -27,7 +24,7 @@ const _rankings = [
     location: 'London',
     avatarUrl: 'assets/images/doctor.jpg',
     points: 7815,
-    changeLabel: '-4 Ranks',
+
     changeDirection: RankChangeDirection.down,
   ),
   QuizLeaderboardEntryModel(
@@ -37,7 +34,7 @@ const _rankings = [
     location: 'Madrid',
     avatarUrl: 'assets/images/doctor.jpg',
     points: 7102,
-    changeLabel: '+24 Today',
+
     changeDirection: RankChangeDirection.up,
   ),
   QuizLeaderboardEntryModel(
@@ -65,19 +62,7 @@ class LeaderboardView extends StatefulWidget {
   State<LeaderboardView> createState() => _LeaderboardViewState();
 }
 
-class _LeaderboardViewState extends State<LeaderboardView>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController = TabController(
-    length: 3,
-    vsync: this,
-  );
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
+class _LeaderboardViewState extends State<LeaderboardView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,14 +75,6 @@ class _LeaderboardViewState extends State<LeaderboardView>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const MonthlyEliteHeader(timeRemainingLabel: '12d 4h left'),
-
-              SizedBox(height: 16.h),
-
-              LeaderboardTabSelector(controller: _tabController),
-
-              SizedBox(height: 12.h),
-
               const MedicalLeaderboardWidget(),
 
               SizedBox(height: 12.h),

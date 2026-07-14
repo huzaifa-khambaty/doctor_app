@@ -15,7 +15,7 @@ class NetworkInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
     options.headers['Accept'] = 'application/json';
-    options.headers['Content-Type'] = 'application/json';
+    options.contentType = 'application/json';
 
     handler.next(options);
   }

@@ -5,11 +5,13 @@ import '../../../../exports.dart';
 class DailyChallengeCard extends StatelessWidget {
   final DailyChallengeModel challenge;
   final VoidCallback onStart;
+  final bool isLoading;
 
   const DailyChallengeCard({
     super.key,
     required this.challenge,
     required this.onStart,
+    this.isLoading = false,
   });
 
   @override
@@ -19,7 +21,9 @@ class DailyChallengeCard extends StatelessWidget {
       child: Stack(
         children: [
           AppNetworkImage(
-            imageUrl: "${AppConstants.imagePath}${challenge.image}",
+            imageUrl: (challenge.banner ?? '').startsWith('http')
+                ? challenge.banner!
+                : "${AppConstants.imagePath}${challenge.banner ?? ''}",
             width: double.infinity,
             height: 170.h,
             fit: BoxFit.cover,
@@ -55,7 +59,7 @@ class DailyChallengeCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: AppText.small(
-                    label: '+${challenge.xp} XP',
+                    label: '+${challenge.xp ?? 0} XP',
                     color: AppColors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 10.sp,
@@ -64,14 +68,14 @@ class DailyChallengeCard extends StatelessWidget {
 
                 7.h.addHeight,
                 AppText.large(
-                  label: challenge.title,
+                  label: challenge.title ?? '',
                   color: AppColors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 18.sp,
                 ),
                 SizedBox(height: 4.h),
                 AppText.small(
-                  label: challenge.description,
+                  label: challenge.description ?? '',
                   color: AppColors.white.withValues(alpha: 0.85),
                   fontSize: 12.sp,
                 ),
@@ -81,7 +85,7 @@ class DailyChallengeCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: onStart,
+                    onPressed: isLoading ? null : onStart,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       padding: EdgeInsets.symmetric(vertical: 12.h),
@@ -90,18 +94,31 @@ class DailyChallengeCard extends StatelessWidget {
                       ),
                       elevation: 0,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.bolt, color: AppColors.white, size: 16.sp),
-                        SizedBox(width: 6.w),
-                        AppText.medium(
-                          label: 'START DAILY QUIZ',
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ],
-                    ),
+                    child: isLoading
+                        ? SizedBox(
+                            width: 18.sp,
+                            height: 18.sp,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.white,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.bolt,
+                                color: AppColors.white,
+                                size: 16.sp,
+                              ),
+                              SizedBox(width: 6.w),
+                              AppText.medium(
+                                label: 'START DAILY QUIZ',
+                                color: AppColors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ],
+                          ),
                   ),
                 ),
               ],

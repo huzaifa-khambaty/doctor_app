@@ -10,7 +10,9 @@ class QuizQuestionImage extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.r),
       child: AppNetworkImage(
-        imageUrl: "${AppConstants.imagePath}$image",
+        imageUrl: image.startsWith('http')
+            ? image
+            : "${AppConstants.imagePath}$image",
         width: double.infinity,
         height: 160.h,
         fit: BoxFit.cover,

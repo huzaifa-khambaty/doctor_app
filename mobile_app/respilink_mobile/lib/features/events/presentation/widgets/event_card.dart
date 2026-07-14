@@ -26,24 +26,19 @@ class EventCard extends StatelessWidget {
   }
 
   String get _dateLabel {
-    final start = event.startsAt;
-    if (start == null) return '';
-    try {
-      final startDate = DateTime.parse(start).toLocal();
-      final end = event.endsAt;
-      if (end != null) {
-        final endDate = DateTime.parse(end).toLocal();
-        if (startDate.year == endDate.year &&
-            startDate.month == endDate.month &&
-            startDate.day == endDate.day) {
-          return DateFormat('MMM d, yyyy').format(startDate);
-        }
-        return DateTimeUtils.formatToRange(start, end);
+    final startDate = DateTimeUtils.parseBackendDate(event.startsAt)?.toLocal();
+    if (startDate == null) return '';
+
+    final endDate = DateTimeUtils.parseBackendDate(event.endsAt)?.toLocal();
+    if (endDate != null) {
+      if (startDate.year == endDate.year &&
+          startDate.month == endDate.month &&
+          startDate.day == endDate.day) {
+        return DateFormat('MMM d, yyyy').format(startDate);
       }
-      return DateFormat('MMM d, yyyy').format(startDate);
-    } catch (_) {
-      return '';
+      return DateTimeUtils.formatToRange(event.startsAt, event.endsAt);
     }
+    return DateFormat('MMM d, yyyy').format(startDate);
   }
 
   String get _timeLabel {

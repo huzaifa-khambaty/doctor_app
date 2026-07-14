@@ -5,8 +5,9 @@ import '../../../../exports.dart';
 
 class SpecializedTopicsGrid extends StatelessWidget {
   final List<SpecializedTopicModel> topics;
+  final ValueChanged<SpecializedTopicModel>? onTopicTap;
 
-  const SpecializedTopicsGrid({super.key, required this.topics});
+  const SpecializedTopicsGrid({super.key, required this.topics, this.onTopicTap});
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +21,10 @@ class SpecializedTopicsGrid extends StatelessWidget {
         mainAxisSpacing: 12.h,
         childAspectRatio: 1.15,
       ),
-      itemBuilder: (context, index) =>
-          SpecializedTopicCard(topic: topics[index]),
+      itemBuilder: (context, index) => SpecializedTopicCard(
+        topic: topics[index],
+        onTap: () => onTopicTap?.call(topics[index]),
+      ),
     );
   }
 }

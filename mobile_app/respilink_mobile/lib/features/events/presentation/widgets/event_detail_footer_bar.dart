@@ -4,12 +4,14 @@ class EventDetailFooterBar extends StatelessWidget {
   final String note;
   final String ctaLabel;
   final VoidCallback onCtaTap;
+  final bool isLoading;
 
   const EventDetailFooterBar({
     super.key,
     required this.note,
     required this.ctaLabel,
     required this.onCtaTap,
+    this.isLoading = false,
   });
 
   @override
@@ -40,7 +42,7 @@ class EventDetailFooterBar extends StatelessWidget {
             ),
             SizedBox(width: 12.w),
             ElevatedButton(
-              onPressed: onCtaTap,
+              onPressed: isLoading ? null : onCtaTap,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
@@ -49,18 +51,31 @@ class EventDetailFooterBar extends StatelessWidget {
                 ),
                 elevation: 0,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppText.medium(
-                    label: ctaLabel,
-                    color: AppColors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  SizedBox(width: 6.w),
-                  Icon(Icons.arrow_forward, color: AppColors.white, size: 16.sp),
-                ],
-              ),
+              child: isLoading
+                  ? SizedBox(
+                      width: 16.sp,
+                      height: 16.sp,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppText.medium(
+                          label: ctaLabel,
+                          color: AppColors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        SizedBox(width: 6.w),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: AppColors.white,
+                          size: 16.sp,
+                        ),
+                      ],
+                    ),
             ),
           ],
         ),

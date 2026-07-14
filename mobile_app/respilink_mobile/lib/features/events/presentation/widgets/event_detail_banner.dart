@@ -8,7 +8,9 @@ class EventDetailBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppNetworkImage(
-      imageUrl: "${AppConstants.imagePath}$image",
+      imageUrl: image.startsWith('http')
+          ? image
+          : "${AppConstants.imagePath}$image",
       width: double.infinity,
       height: 190.h,
       fit: BoxFit.cover,

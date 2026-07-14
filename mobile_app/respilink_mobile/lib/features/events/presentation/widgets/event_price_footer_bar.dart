@@ -5,6 +5,7 @@ class EventPriceFooterBar extends StatelessWidget {
   final String priceLabel;
   final String ctaLabel;
   final VoidCallback onCtaTap;
+  final bool isLoading;
 
   const EventPriceFooterBar({
     super.key,
@@ -12,6 +13,7 @@ class EventPriceFooterBar extends StatelessWidget {
     required this.priceLabel,
     required this.ctaLabel,
     required this.onCtaTap,
+    this.isLoading = false,
   });
 
   @override
@@ -52,7 +54,7 @@ class EventPriceFooterBar extends StatelessWidget {
             ),
             SizedBox(width: 12.w),
             ElevatedButton(
-              onPressed: onCtaTap,
+              onPressed: isLoading ? null : onCtaTap,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
@@ -61,18 +63,31 @@ class EventPriceFooterBar extends StatelessWidget {
                 ),
                 elevation: 0,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppText.medium(
-                    label: ctaLabel,
-                    color: AppColors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  SizedBox(width: 6.w),
-                  Icon(Icons.arrow_forward, color: AppColors.white, size: 16.sp),
-                ],
-              ),
+              child: isLoading
+                  ? SizedBox(
+                      width: 16.sp,
+                      height: 16.sp,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppText.medium(
+                          label: ctaLabel,
+                          color: AppColors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        SizedBox(width: 6.w),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: AppColors.white,
+                          size: 16.sp,
+                        ),
+                      ],
+                    ),
             ),
           ],
         ),

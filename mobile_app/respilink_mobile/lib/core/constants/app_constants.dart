@@ -12,17 +12,4 @@ class AppConstants {
 
   static String fontFamily = "Sora";
   static String firebaseToken = "";
-
-  static const List<String> medicalSpecialties = [
-    "Pulmonology",
-    "Cardiology",
-    "Internal Medicine",
-    "General Surgery",
-    "Pediatrics",
-    "Family Medicine",
-    "Emergency Medicine",
-    "Anesthesiology",
-    "Radiology",
-    "Other",
-  ];
 }

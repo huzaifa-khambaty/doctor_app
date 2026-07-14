@@ -42,9 +42,9 @@ class DashboardView extends StatelessWidget {
             _quizTabIndex ||
             _eventsTabIndex => const RespiLinkAppBar(showBackButton: false),
             _libraryTabIndex => const RespiLinkAppBar(
-                showBackButton: false,
-                showSearchAction: true,
-              ),
+              showBackButton: false,
+              showSearchAction: true,
+            ),
             _ => null,
           },
           body: _tabContent(state.currentTabIndex),

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 class SpecializedTopicModel {
+  final int id;
   final String title;
   final String subtitle;
   final IconData icon;
@@ -10,6 +11,7 @@ class SpecializedTopicModel {
   final double progress;
 
   const SpecializedTopicModel({
+    required this.id,
     required this.title,
     required this.subtitle,
     required this.icon,

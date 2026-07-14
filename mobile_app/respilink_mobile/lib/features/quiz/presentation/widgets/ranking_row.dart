@@ -8,15 +8,6 @@ class RankingRow extends StatelessWidget {
 
   const RankingRow({super.key, required this.entry, this.onViewBadgeTap});
 
-  Color get _changeColor => switch (entry.changeDirection) {
-    RankChangeDirection.up => AppColors.success,
-    RankChangeDirection.down => AppColors.error,
-    RankChangeDirection.none => AppColors.grey,
-  };
-
-  String get _changeText =>
-      entry.changeLabel?.toUpperCase() ?? 'STEADY';
-
   static String _initialsFor(String name) {
     final words = name
         .replaceAll('Dr.', '')
@@ -74,7 +65,10 @@ class RankingRow extends StatelessWidget {
                   top: -6.h,
                   left: -6.w,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 2.h,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(10.r),
@@ -109,10 +103,14 @@ class RankingRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppText.medium(
-                  label: entry.isCurrentUser ? 'You (${entry.name})' : entry.name,
+                  label: entry.isCurrentUser
+                      ? 'You (${entry.name})'
+                      : entry.name,
                   fontWeight: FontWeight.bold,
                   fontSize: 13.sp,
-                  color: entry.isCurrentUser ? AppColors.primary : AppColors.black,
+                  color: entry.isCurrentUser
+                      ? AppColors.primary
+                      : AppColors.black,
                 ),
                 if (entry.isCurrentUser) ...[
                   SizedBox(height: 2.h),
@@ -165,15 +163,6 @@ class RankingRow extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: 13.sp,
                     ),
-              if (!entry.isCurrentUser) ...[
-                SizedBox(height: 2.h),
-                AppText.small(
-                  label: _changeText,
-                  color: _changeColor,
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ],
             ],
           ),
         ],

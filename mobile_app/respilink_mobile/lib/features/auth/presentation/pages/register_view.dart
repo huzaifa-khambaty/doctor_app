@@ -20,6 +20,7 @@ class RegisterView extends StatefulWidget {
 class _RegisterViewState extends State<RegisterView> {
   final _formKey = GlobalKey<FormState>();
 
+  final _itsCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
@@ -41,6 +42,7 @@ class _RegisterViewState extends State<RegisterView> {
 
   @override
   void dispose() {
+    _itsCtrl.dispose();
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
@@ -54,7 +56,7 @@ class _RegisterViewState extends State<RegisterView> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is RegisterSuccess) {
+        if (state is AuthSuccess) {
           Handlers.onRegister(state.model);
         }
         else if(state is AuthFailed) {
@@ -410,6 +412,7 @@ class _RegisterViewState extends State<RegisterView> {
                                     }
                                     if (_formKey.currentState!.validate()) {
                                       final request = RegisterRequest(
+                                        itsNumber: _itsCtrl.text,
                                         name: _nameCtrl.text,
                                         email: _emailCtrl.text,
                                         phone: _phoneCtrl.text,

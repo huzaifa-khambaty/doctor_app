@@ -16,6 +16,8 @@ class RouterStrings {
   static String settings = '/settings';
   static String badges = '/badges';
   static String quizPlay = '/quizPlay';
+  static String topicQuizList = '/topicQuizList';
+  static String quizReview = '/quizReview';
   static String quizResults = '/quizResults';
   static String leaderboard = '/leaderboard';
   static String queryForm = '/queryForm';

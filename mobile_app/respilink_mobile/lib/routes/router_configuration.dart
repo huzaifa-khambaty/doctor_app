@@ -8,9 +8,9 @@ import 'package:respilink_mobile/features/auth/presentation/pages/reset_password
 import 'package:respilink_mobile/features/auth/presentation/pages/settings_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/splash_view.dart';
 import 'package:respilink_mobile/features/content_library/presentation/pages/article_reader_view.dart';
+import 'package:respilink_mobile/features/dashboard/domain/models/specialized_topic_model.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/pages/dashboard_view.dart';
-import 'package:respilink_mobile/features/events/domain/models/conference_detail_model.dart';
-import 'package:respilink_mobile/features/events/domain/models/event_detail_model.dart';
+import 'package:respilink_mobile/features/dashboard/presentation/pages/topic_quiz_list_view.dart';
 import 'package:respilink_mobile/features/events/presentation/pages/conference_detail_view.dart';
 import 'package:respilink_mobile/features/events/presentation/pages/webinar_detail_view.dart';
 import 'package:respilink_mobile/features/events/presentation/pages/workshop_detail_view.dart';
@@ -18,6 +18,7 @@ import 'package:respilink_mobile/features/onboarding/presentation/pages/onboardi
 import 'package:respilink_mobile/features/quiz/presentation/pages/leaderboard_view.dart';
 import 'package:respilink_mobile/features/quiz/presentation/pages/quiz_play_view.dart';
 import 'package:respilink_mobile/features/quiz/presentation/pages/quiz_results_view.dart';
+import 'package:respilink_mobile/features/quiz/presentation/pages/quiz_review_view.dart';
 import 'package:respilink_mobile/features/query_form/presentation/pages/query_form_view.dart';
 
 import '../exports.dart';
@@ -80,17 +81,17 @@ class RouterConfiguration {
       GoRoute(
         path: RouterStrings.webinarDetail,
         builder: (context, state) =>
-            WebinarDetailView(detail: state.extra as EventDetailModel),
+            WebinarDetailView(eventId: state.extra as int),
       ),
       GoRoute(
         path: RouterStrings.workshopDetail,
         builder: (context, state) =>
-            WorkshopDetailView(detail: state.extra as EventDetailModel),
+            WorkshopDetailView(eventId: state.extra as int),
       ),
       GoRoute(
         path: RouterStrings.conferenceDetail,
         builder: (context, state) =>
-            ConferenceDetailView(detail: state.extra as ConferenceDetailModel),
+            ConferenceDetailView(eventId: state.extra as int),
       ),
       GoRoute(
         path: RouterStrings.settings,
@@ -102,7 +103,18 @@ class RouterConfiguration {
       ),
       GoRoute(
         path: RouterStrings.quizPlay,
-        builder: (context, state) => const QuizPlayView(),
+        builder: (context, state) =>
+            QuizPlayView(quizId: state.extra as int),
+      ),
+      GoRoute(
+        path: RouterStrings.topicQuizList,
+        builder: (context, state) =>
+            TopicQuizListView(topic: state.extra as SpecializedTopicModel),
+      ),
+      GoRoute(
+        path: RouterStrings.quizReview,
+        builder: (context, state) =>
+            QuizReviewView(quizId: state.extra as int),
       ),
       GoRoute(
         path: RouterStrings.quizResults,
