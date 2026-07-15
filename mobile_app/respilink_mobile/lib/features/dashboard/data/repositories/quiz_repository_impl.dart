@@ -1,4 +1,5 @@
 import 'package:respilink_mobile/core/network/models/api_response.dart';
+import 'package:respilink_mobile/features/dashboard/data/model/badge_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_correct_answers_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_home_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_list_model.dart';
@@ -64,5 +65,10 @@ class QuizRepositoryImpl implements QuizRepository {
   @override
   Future<ApiResponse<QuizLeaderboardModel>> getLeaderboard(int quizId) {
     return _remoteDataSource.getLeaderboard(quizId);
+  }
+
+  @override
+  Future<ApiResponse<BadgeModel>> getBadgesOverview() {
+    return _remoteDataSource.getBadgesOverview();
   }
 }

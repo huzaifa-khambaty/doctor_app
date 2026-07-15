@@ -10,15 +10,25 @@ import 'package:respilink_app/features/dashboard/data/model/engagement_data.dart
 import 'package:respilink_app/features/dashboard/presentation/widgets/engagement_chart.dart';
 import 'package:respilink_app/routes/router_strings.dart';
 import 'package:respilink_app/shared/model/admin_mode.dart';
+import 'package:respilink_app/features/practioner/data/model/practioner_model.dart';
+import 'package:respilink_app/features/practioner/presentation/bloc/practioner_bloc.dart';
+import 'package:respilink_app/features/practioner/presentation/bloc/practioner_event.dart';
+import 'package:respilink_app/features/practioner/presentation/bloc/practioner_state.dart';
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
+import 'package:respilink_app/shared/widgets/app_popup_menu_button.dart';
+import 'package:shimmer/shimmer.dart';
 
 class DesktopDashboardMainContent extends StatelessWidget {
   const DesktopDashboardMainContent({
     super.key,
     required this.onNotificationTapped,
+    required this.onPractitionerTapped,
+    required this.onViewAllPractitionersTapped,
   });
 
   final VoidCallback onNotificationTapped;
+  final void Function(Practioners) onPractitionerTapped;
+  final VoidCallback onViewAllPractitionersTapped;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +52,10 @@ class DesktopDashboardMainContent extends StatelessWidget {
               const SizedBox(height: 24),
               const _MiddleRowSection(),
               const SizedBox(height: 24),
-              const VerificationQueueSection(),
+              VerificationQueueSection(
+                onPractitionerTapped: onPractitionerTapped,
+                onViewAllTapped: onViewAllPractitionersTapped,
+              ),
             ],
           ),
         ),
@@ -56,10 +69,7 @@ class DesktopDashboardMainContent extends StatelessWidget {
 // ==========================================
 
 class HeaderBar extends StatelessWidget {
-    const HeaderBar({
-    super.key,
-    required this.onNotificationTapped,
-  });
+  const HeaderBar({super.key, required this.onNotificationTapped});
 
   final VoidCallback onNotificationTapped;
 
@@ -135,7 +145,11 @@ class HeaderBar extends StatelessWidget {
                   value: 'logout',
                   child: Row(
                     children: const [
-                      Icon(Icons.logout_rounded, size: 15, color: Colors.redAccent),
+                      Icon(
+                        Icons.logout_rounded,
+                        size: 15,
+                        color: Colors.redAccent,
+                      ),
                       SizedBox(width: 10),
                       Text(
                         'Logout',
@@ -150,12 +164,21 @@ class HeaderBar extends StatelessWidget {
                 ),
               ],
               child: Row(
-                children:  [
+                children: [
                   AppNetworkImage(
-                    imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150',
-                    isCircle: true,
-                    height: 30,
+                    imageUrl: "",
                     width: 30,
+                    height: 30,
+                    isCircle: true,
+                    errorWidget: CircleAvatar(
+                      backgroundColor: AppColors.white,
+                      radius: 16,
+                      child: Icon(
+                        Icons.person,
+                        size: 22,
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ),
                   SizedBox(width: 8),
                   Text(
@@ -174,7 +197,7 @@ class HeaderBar extends StatelessWidget {
                 ],
               ),
             );
-          }
+          },
         ),
       ],
     );
@@ -607,8 +630,124 @@ class HealthRowItem extends StatelessWidget {
   }
 }
 
-class VerificationQueueSection extends StatelessWidget {
-  const VerificationQueueSection({super.key});
+class VerificationQueueSection extends StatefulWidget {
+  const VerificationQueueSection({
+    super.key,
+    required this.onPractitionerTapped,
+    required this.onViewAllTapped,
+  });
+
+  final void Function(Practioners) onPractitionerTapped;
+  final VoidCallback onViewAllTapped;
+
+  @override
+  State<VerificationQueueSection> createState() =>
+      _VerificationQueueSectionState();
+}
+
+class _VerificationQueueSectionState extends State<VerificationQueueSection> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<PractionerBloc>().add(
+          FetchPractionersRequested(page: 1, status: 'pending'),
+        );
+      }
+    });
+  }
+
+  void _confirmApprove(BuildContext context, Practioners p) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Approve Practitioner'),
+        content: Text(
+          'Verify and approve ${p.fullName ?? 'this practitioner'}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.successGreen,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<PractionerBloc>().add(
+                VerifyPractionerRequested(p.id!),
+              );
+            },
+            child: const Text('Approve', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmReject(BuildContext context, Practioners p) {
+    final reasonController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Reject Practitioner'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Reject the application of ${p.fullName ?? 'this practitioner'}?',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Reason for rejection',
+                hintText: 'Enter rejection reason...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              reasonController.dispose();
+              Navigator.pop(dialogContext);
+            },
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.errorRed,
+            ),
+            onPressed: () {
+              final reason = reasonController.text.trim();
+              reasonController.dispose();
+              Navigator.pop(dialogContext);
+              context.read<PractionerBloc>().add(
+                RejectPractionerRequested(
+                  p.id!,
+                  reason: reason.isNotEmpty ? reason : null,
+                ),
+              );
+            },
+            child: const Text('Reject', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -644,7 +783,7 @@ class VerificationQueueSection extends StatelessWidget {
                 ],
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: widget.onViewAllTapped,
                 child: Row(
                   children: const [
                     Text(
@@ -667,211 +806,420 @@ class VerificationQueueSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Table(
-            columnWidths: const {
-              0: FlexColumnWidth(2.5),
-              1: FlexColumnWidth(1.5),
-              2: FlexColumnWidth(1.5),
-              3: FlexColumnWidth(1.2),
-              4: FlexColumnWidth(1.0),
+          BlocBuilder<PractionerBloc, PractionerState>(
+            builder: (context, state) {
+              final pending = (state.practioners?.data ?? [])
+                  .where((p) => (p.status ?? '').toLowerCase() == 'pending')
+                  .take(5)
+                  .toList();
+              final isLoading = state.isLoadingPractioners;
+
+              return Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(3.5),
+                  1: FlexColumnWidth(4.5),
+                  2: FlexColumnWidth(3.0),
+                  3: FlexColumnWidth(2.1),
+                  4: FlexColumnWidth(2.2),
+                  5: FlexColumnWidth(3.5),
+                },
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                children: [
+                  _buildHeaderRow(),
+                  if (isLoading)
+                    ..._buildSkeletonRows()
+                  else if (pending.isEmpty)
+                    _buildEmptyRow()
+                  else
+                    ...pending.map((p) => _buildDataRow(context, p, state)),
+                ],
+              );
             },
-            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-            children: [
-              _buildTableHeaderRow(),
-              _buildTableRow(
-                name: 'Dr. Michael Ross',
-                subText: 'NPF 9821034421',
-                specialty: 'Pulmonology',
-                date: 'Oct 24, 2023',
-                status: 'Pending',
-              ),
-              _buildTableRow(
-                name: 'Dr. Elena Rodriguez',
-                subText: 'NPF 2391090009',
-                specialty: 'Critical Care',
-                date: 'Oct 23, 2023',
-                status: 'Pending',
-              ),
-            ],
           ),
         ],
       ),
     );
   }
 
-  TableRow _buildTableHeaderRow() {
-    return TableRow(
+  TableRow _buildHeaderRow() {
+    const style = TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.bold,
+      color: AppColors.textMuted,
+    );
+    return const TableRow(
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderLight, width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
       ),
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'PRACTITIONER',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-          ),
+          padding: EdgeInsets.all(16),
+          child: Text('PRACTITIONER', style: style),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'SPECIALTY',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-          ),
+          padding: EdgeInsets.all(16),
+          child: Text('SPECIALTY', style: style),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'APPLIED DATE',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-          ),
+          padding: EdgeInsets.all(16),
+          child: Text('HOSPITAL / FACILITY', style: style),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'STATUS',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-          ),
+          padding: EdgeInsets.all(16),
+          child: Text('REG. DATE', style: style),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'ACTION',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-            textAlign: .right,
-          ),
+          padding: EdgeInsets.all(16),
+          child: Text('STATUS', style: style),
+        ),
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('ACTIONS', style: style, textAlign: TextAlign.right),
         ),
       ],
     );
   }
 
-  TableRow _buildTableRow({
-    required String name,
-    required String subText,
-    required String specialty,
-    required String date,
-    required String status,
-  }) {
+  static final _shBox = BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(4),
+  );
+
+  List<TableRow> _buildSkeletonRows() {
+    return List.generate(
+      3,
+      (_) => TableRow(
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                _QueueShimmer(
+                  child: const CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _QueueShimmer(
+                        child: Container(
+                          height: 12,
+                          width: 120,
+                          decoration: _shBox,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      _QueueShimmer(
+                        child: Container(
+                          height: 10,
+                          width: 70,
+                          decoration: _shBox,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: _QueueShimmer(
+              child: Container(
+                height: 22,
+                width: 80,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: _QueueShimmer(
+              child: Container(height: 12, width: 110, decoration: _shBox),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: _QueueShimmer(
+              child: Container(height: 12, width: 70, decoration: _shBox),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: _QueueShimmer(
+              child: Container(
+                height: 22,
+                width: 72,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _QueueShimmer(
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                _QueueShimmer(
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  TableRow _buildEmptyRow() {
+    return const TableRow(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+          child: Text(
+            'No pending verifications.',
+            style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+          ),
+        ),
+        SizedBox(),
+        SizedBox(),
+        SizedBox(),
+        SizedBox(),
+        SizedBox(),
+      ],
+    );
+  }
+
+  TableRow _buildDataRow(
+    BuildContext context,
+    Practioners p,
+    PractionerState state,
+  ) {
+    final regDate = p.createdAt != null ? p.createdAt!.substring(0, 10) : '—';
+    final status = (p.status ?? 'pending').toLowerCase();
+    final statusColor = switch (status) {
+      'verified' => AppColors.successGreen,
+      'rejected' => AppColors.errorRed,
+      _ => AppColors.warningOrange,
+    };
+    final photoUrl = p.photoUrl ?? p.photoPath;
+    final isActioning = state.isActionLoading && state.actioningUserId == p.id;
+    final specialties =
+        p.specialties?.where((e) => e.name != null).toList() ?? [];
+
     return TableRow(
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderLight, width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
       ),
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              const CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.scaffoldBg,
-                child: Icon(Icons.person, size: 16, color: AppColors.textMuted),
+              AppNetworkImage(
+                height: 25,
+                width: 25,
+                imageUrl: '$photoUrl',
+                isCircle: true,
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      p.fullName ?? '—',
+                      maxLines: 2,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
                     ),
-                  ),
-                  Text(
-                    subText,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textMuted,
+                    Text(
+                      'ID: ${p.uuid?.substring(0, 8) ?? p.id?.toString() ?? '—'}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textMuted,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: specialties.isEmpty
+              ? const Text(
+                  '—',
+                  style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                )
+              : Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: specialties.map((s) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        s.name!,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16),
           child: Text(
-            specialty,
+            p.hospitalAffiliation ?? '—',
             style: const TextStyle(fontSize: 13, color: AppColors.textDark),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.all(16),
           child: Text(
-            date,
+            regDate,
             style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.all(16),
           child: UnconstrainedBox(
             alignment: Alignment.centerLeft,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.warningOrange.withValues(alpha: 0.12),
+                color: statusColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
-                'Pending',
-                style: TextStyle(
-                  color: AppColors.warningOrange,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.fiber_manual_record, color: statusColor, size: 8),
+                  const SizedBox(width: 4),
+                  Text(
+                    status.toUpperCase(),
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(50, 30),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: const Text(
-                'Verify',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (isActioning)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                )
+              else ...[
+                IconButton(
+                  icon: const Icon(
+                    Icons.visibility_outlined,
+                    size: 18,
+                    color: AppColors.textMuted,
+                  ),
+                  onPressed: () => widget.onPractitionerTapped(p),
+                  tooltip: 'View Details',
                 ),
-              ),
-            ),
+                AppPopupMenuButton(
+                  onSelected: (value) {
+                    if (value == 'approve') _confirmApprove(context, p);
+                    if (value == 'reject') _confirmReject(context, p);
+                  },
+                  items: const [
+                    AppPopupMenuItem(
+                      value: 'approve',
+                      icon: Icons.check_circle_outline,
+                      label: 'Approve',
+                      color: AppColors.successGreen,
+                      hasDividerAfter: true,
+                    ),
+                    AppPopupMenuItem(
+                      value: 'reject',
+                      icon: Icons.cancel_outlined,
+                      label: 'Reject',
+                      color: AppColors.errorRed,
+                    ),
+                  ],
+                ),
+              ],
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _QueueShimmer extends StatelessWidget {
+  final Widget child;
+  const _QueueShimmer({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: child,
     );
   }
 }

@@ -13,10 +13,6 @@ class AuthLoading extends AuthState {
   AuthLoading();
 }
 
-class AuthProfileImageLoading extends AuthState {
-  AuthProfileImageLoading();
-}
-
 class AuthSuccess extends AuthState {
   final Doctor? model;
 

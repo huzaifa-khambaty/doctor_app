@@ -51,7 +51,7 @@ class PodiumItemWidget extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(100),
-                  child: AppNetworkImage(imageUrl: imageUrl), // Your custom image widget
+                  child: AppNetworkImage(imageUrl: imageUrl, errorWidget: Icon(Icons.person, color: AppColors.grey, size: 32.sp),), // Your custom image widget
                 ),
               ),
               

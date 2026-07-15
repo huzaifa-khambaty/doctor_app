@@ -13,7 +13,6 @@ class ApiEndpoints {
   static const String logout = '/auth/logout';
   static const String resendOtp = '/auth/otp/send';
   static const String otpVerify = '/auth/otp/verify';
-  static const String profilePicture = '/profile/photo';
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
 
@@ -31,4 +30,5 @@ class ApiEndpoints {
   static const String quizHome = '/quizzes/home';
   static const String categoryQuiz = '/topics';
   static const String quizzes = '/quizzes';
+  static const String badges = '/badges/overview';
 }

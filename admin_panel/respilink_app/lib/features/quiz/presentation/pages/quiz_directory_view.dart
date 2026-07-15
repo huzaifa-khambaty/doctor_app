@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
@@ -6,9 +8,12 @@ import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_bloc.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_event.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_state.dart';
+import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
-class QuizDirectoryContent extends StatelessWidget {
+enum _SortMode { newest, oldest, alpha }
+
+class QuizDirectoryContent extends StatefulWidget {
   const QuizDirectoryContent({
     super.key,
     required this.onCreateQuizClicked,
@@ -17,6 +22,29 @@ class QuizDirectoryContent extends StatelessWidget {
 
   final VoidCallback onCreateQuizClicked;
   final void Function(int quizId) onEditQuizClicked;
+
+  @override
+  State<QuizDirectoryContent> createState() => _QuizDirectoryContentState();
+}
+
+class _QuizDirectoryContentState extends State<QuizDirectoryContent> {
+  String _searchQuery = '';
+  _SortMode _sortMode = _SortMode.newest;
+  int? _topicFilterId;
+  Timer? _debounce;
+
+  void _onSearch(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (mounted) setState(() => _searchQuery = value.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,15 +69,25 @@ class QuizDirectoryContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _QuizSearchBarHeader(),
+              _QuizSearchBarHeader(onSearch: _onSearch),
               const SizedBox(height: 24),
-              _QuizTitleActionRow(onCreateQuizClicked: onCreateQuizClicked),
+              _QuizTitleActionRow(onCreateQuizClicked: widget.onCreateQuizClicked),
               const SizedBox(height: 24),
               const _QuizMetricsGridSection(),
               const SizedBox(height: 28),
-              const _QuizUtilityControlRow(),
+              _QuizUtilityControlRow(
+                sortMode: _sortMode,
+                topicFilterId: _topicFilterId,
+                onSortChanged: (m) => setState(() => _sortMode = m),
+                onTopicFilterChanged: (id) => setState(() => _topicFilterId = id),
+              ),
               const SizedBox(height: 16),
-              _QuizDirectoryListBlock(onEditQuizClicked: onEditQuizClicked),
+              _QuizDirectoryListBlock(
+                onEditQuizClicked: widget.onEditQuizClicked,
+                searchQuery: _searchQuery,
+                sortMode: _sortMode,
+                topicFilterId: _topicFilterId,
+              ),
             ],
           ),
         ),
@@ -63,6 +101,10 @@ class QuizDirectoryContent extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _QuizSearchBarHeader extends StatelessWidget {
+  const _QuizSearchBarHeader({required this.onSearch});
+
+  final ValueChanged<String> onSearch;
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -71,6 +113,7 @@ class _QuizSearchBarHeader extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 450),
             child: TextField(
+              onChanged: onSearch,
               decoration: InputDecoration(
                 hintText: 'Search quizzes or topics...',
                 hintStyle:
@@ -195,64 +238,139 @@ class _QuizTitleActionRow extends StatelessWidget {
 }
 
 class _QuizUtilityControlRow extends StatelessWidget {
-  const _QuizUtilityControlRow();
+  const _QuizUtilityControlRow({
+    required this.sortMode,
+    required this.topicFilterId,
+    required this.onSortChanged,
+    required this.onTopicFilterChanged,
+  });
+
+  final _SortMode sortMode;
+  final int? topicFilterId;
+  final ValueChanged<_SortMode> onSortChanged;
+  final ValueChanged<int?> onTopicFilterChanged;
+
+  String get _sortLabel => switch (sortMode) {
+        _SortMode.newest => 'Sort: Newest',
+        _SortMode.oldest => 'Sort: Oldest',
+        _SortMode.alpha => 'Sort: A–Z',
+      };
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<QuizBloc, QuizState>(
-      buildWhen: (p, c) => p.totalQuizzes != c.totalQuizzes,
+      buildWhen: (p, c) =>
+          p.totalQuizzes != c.totalQuizzes || p.topics != c.topics,
       builder: (context, state) {
+        final hasFilter = topicFilterId != null;
+        final topicName = hasFilter
+            ? state.topics
+                .where((t) => t.id == topicFilterId)
+                .map((t) => t.name)
+                .firstOrNull
+            : null;
+        final filterLabel =
+            hasFilter ? 'Topic: ${topicName ?? '…'}' : 'Filter';
+
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               children: [
-                OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.filter_list_rounded,
-                    size: 14,
-                    color: AppColors.textDark,
-                  ),
-                  label: const Text(
-                    'Filter',
-                    style: TextStyle(
-                      color: AppColors.textDark,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side:
-                        const BorderSide(color: AppColors.borderLight),
-                    shape: RoundedRectangleBorder(
+                // Topic filter
+                PopupMenuButton<int>(
+                  onSelected: (id) =>
+                      onTopicFilterChanged(id == -1 ? null : id),
+                  itemBuilder: (_) => [
+                    const PopupMenuItem<int>(
+                        value: -1, child: Text('All Topics')),
+                    ...state.topics.map((t) => PopupMenuItem<int>(
+                          value: t.id ?? -1,
+                          child: Text(t.name ?? ''),
+                        )),
+                  ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: hasFilter
+                          ? AppColors.primary.withValues(alpha: 0.08)
+                          : Colors.white,
+                      border: Border.all(
+                        color: hasFilter
+                            ? AppColors.primary
+                            : AppColors.borderLight,
+                      ),
                       borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.filter_list_rounded,
+                            size: 14,
+                            color: hasFilter
+                                ? AppColors.primary
+                                : AppColors.textDark),
+                        const SizedBox(width: 6),
+                        Text(
+                          filterLabel,
+                          style: TextStyle(
+                            color: hasFilter
+                                ? AppColors.primary
+                                : AppColors.textDark,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (hasFilter) ...[
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () => onTopicFilterChanged(null),
+                            child: const Icon(Icons.close,
+                                size: 12, color: AppColors.primary),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.sort_rounded,
-                    size: 14,
-                    color: AppColors.textDark,
-                  ),
-                  label: const Text(
-                    'Sort: Newest',
-                    style: TextStyle(
-                      color: AppColors.textDark,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side:
-                        const BorderSide(color: AppColors.borderLight),
-                    shape: RoundedRectangleBorder(
+                // Sort
+                PopupMenuButton<_SortMode>(
+                  onSelected: onSortChanged,
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(
+                        value: _SortMode.newest,
+                        child: Text('Newest First')),
+                    PopupMenuItem(
+                        value: _SortMode.oldest,
+                        child: Text('Oldest First')),
+                    PopupMenuItem(
+                        value: _SortMode.alpha, child: Text('A–Z')),
+                  ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: AppColors.borderLight),
                       borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.sort_rounded,
+                            size: 14, color: AppColors.textDark),
+                        const SizedBox(width: 6),
+                        Text(
+                          _sortLabel,
+                          style: const TextStyle(
+                            color: AppColors.textDark,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -412,14 +530,48 @@ class _QuizStatCard extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _QuizDirectoryListBlock extends StatelessWidget {
-  const _QuizDirectoryListBlock({required this.onEditQuizClicked});
+  const _QuizDirectoryListBlock({
+    required this.onEditQuizClicked,
+    required this.searchQuery,
+    required this.sortMode,
+    required this.topicFilterId,
+  });
 
   final void Function(int quizId) onEditQuizClicked;
+  final String searchQuery;
+  final _SortMode sortMode;
+  final int? topicFilterId;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<QuizBloc, QuizState>(
       builder: (context, state) {
+        var quizzes = state.quizzes;
+        if (!state.isLoadingQuizzes) {
+          if (searchQuery.isNotEmpty) {
+            quizzes = quizzes.where((q) {
+              return (q.title ?? '').toLowerCase().contains(searchQuery) ||
+                  (q.topic?.name ?? '').toLowerCase().contains(searchQuery);
+            }).toList();
+          }
+          if (topicFilterId != null) {
+            quizzes = quizzes
+                .where((q) => q.topicId == topicFilterId)
+                .toList();
+          }
+          quizzes = switch (sortMode) {
+            _SortMode.newest => (List.of(quizzes)
+              ..sort((a, b) =>
+                  (b.createdAt ?? '').compareTo(a.createdAt ?? ''))),
+            _SortMode.oldest => (List.of(quizzes)
+              ..sort((a, b) =>
+                  (a.createdAt ?? '').compareTo(b.createdAt ?? ''))),
+            _SortMode.alpha => (List.of(quizzes)
+              ..sort(
+                  (a, b) => (a.title ?? '').compareTo(b.title ?? ''))),
+          };
+        }
+
         return Container(
           decoration: BoxDecoration(
             color: AppColors.cardBg,
@@ -442,10 +594,10 @@ class _QuizDirectoryListBlock extends StatelessWidget {
                   _headerRow(),
                   if (state.isLoadingQuizzes)
                     ..._shimmerRows()
-                  else if (state.quizzes.isEmpty)
+                  else if (quizzes.isEmpty)
                     _emptyRow()
                   else
-                    ...state.quizzes.map(
+                    ...quizzes.map(
                       (q) => _dataRow(
                         context,
                         q,
@@ -888,20 +1040,10 @@ class _QuizDirectoryListBlock extends StatelessWidget {
       if (diff.inDays == 1) return 'Yesterday';
       if (diff.inDays < 7) return '${diff.inDays} days ago';
 
-      final months = [
-        '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-      ];
-      final day = dt.day;
-      final suffix = day == 1 || day == 21 || day == 31
-          ? 'st'
-          : day == 2 || day == 22
-              ? 'nd'
-              : day == 3 || day == 23
-                  ? 'rd'
-                  : 'th';
-      final yearPart = dt.year != now.year ? ', ${dt.year}' : '';
-      return '${months[dt.month]} $day$suffix$yearPart';
+      final fmt = dt.year == now.year
+          ? DateFormat('MMM d')
+          : DateFormat('MMM d, yyyy');
+      return fmt.format(dt);
     } catch (_) {
       return raw;
     }

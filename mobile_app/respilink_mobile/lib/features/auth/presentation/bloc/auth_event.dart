@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:respilink_mobile/features/auth/data/models/requests/change_password_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/edit_profile_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/forget_password_request.dart';
@@ -52,12 +51,6 @@ class ResetPasswordRequested extends AuthEvent {
 
 class LogoutRequested extends AuthEvent {
   LogoutRequested();
-}
-
-class UpdateProfilePictureEvent extends AuthEvent {
-  final File file;
-
-  UpdateProfilePictureEvent({required this.file});
 }
 
 class UpdateProfileEvent extends AuthEvent {

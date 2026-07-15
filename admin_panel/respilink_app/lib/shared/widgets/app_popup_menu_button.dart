@@ -27,52 +27,70 @@ class AppPopupMenuButton extends StatelessWidget {
     required this.onSelected,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textMuted),
+  Future<void> _show(BuildContext context) async {
+    final button = context.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    if (button == null || overlay == null) return;
+
+    final position = RelativeRect.fromRect(
+      button.localToGlobal(Offset.zero, ancestor: overlay) & button.size,
+      Offset.zero & overlay.size,
+    );
+
+    final entries = <PopupMenuEntry<String>>[];
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      entries.add(PopupMenuItem<String>(
+        value: item.value,
+        padding: EdgeInsets.zero,
+        child: SizedBox(
+          width: 160,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(item.icon, color: item.color, size: 20),
+                const SizedBox(width: 14),
+                Text(
+                  item.label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: item.color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ));
+      if (item.hasDividerAfter && i < items.length - 1) {
+        entries.add(const PopupMenuDivider(height: 0.5));
+      }
+    }
+
+    final selected = await showMenu<String>(
+      context: context,
+      position: position,
+      items: entries,
       color: Colors.white,
       elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.borderLight),
       ),
-      offset: const Offset(0, 40),
-      onSelected: onSelected,
-      itemBuilder: (_) {
-        final result = <PopupMenuEntry<String>>[];
-        for (int i = 0; i < items.length; i++) {
-          final item = items[i];
-          result.add(PopupMenuItem<String>(
-            value: item.value,
-            padding: EdgeInsets.zero,
-            child: SizedBox(
-              width: 160,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Icon(item.icon, color: item.color, size: 20),
-                    const SizedBox(width: 14),
-                    Text(
-                      item.label,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: item.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ));
-          if (item.hasDividerAfter && i < items.length - 1) {
-            result.add(const PopupMenuDivider(height: 0.5));
-          }
-        }
-        return result;
-      },
+    );
+
+    if (selected != null) onSelected(selected);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    return IconButton(
+      icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textMuted),
+      onPressed: () => _show(context),
     );
   }
 }

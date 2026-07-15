@@ -14,6 +14,7 @@ class RouterStrings {
   static String workshopDetail = '/events/workshop';
   static String conferenceDetail = '/events/conference';
   static String settings = '/settings';
+  static String editProfile = '/editProfile';
   static String badges = '/badges';
   static String quizPlay = '/quizPlay';
   static String topicQuizList = '/topicQuizList';

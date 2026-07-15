@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_mobile/exports.dart';
 import 'package:respilink_mobile/features/auth/presentation/bloc/auth_event.dart';
+import 'package:respilink_mobile/features/auth/presentation/bloc/badges_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_home_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_list_bloc.dart';
@@ -52,5 +53,6 @@ class Providers {
     BlocProvider<QuizLeaderboardBloc>(
       create: (context) => QuizLeaderboardBloc(locator()),
     ),
+    BlocProvider<BadgesBloc>(create: (context) => BadgesBloc(locator())),
   ];
 }

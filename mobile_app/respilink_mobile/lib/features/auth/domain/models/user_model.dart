@@ -37,6 +37,9 @@ class Doctor {
   String? emailVerifiedAt;
   String? phoneVerifiedAt;
   String? lastActiveAt;
+  int? quizCount;
+  int? rank;
+  int? badgeCount;
 
   Doctor({
     this.id,
@@ -54,6 +57,9 @@ class Doctor {
     this.emailVerifiedAt,
     this.phoneVerifiedAt,
     this.lastActiveAt,
+    this.quizCount,
+    this.rank,
+    this.badgeCount,
   });
 
   factory Doctor.fromCachedJson(String source) =>
@@ -75,6 +81,9 @@ class Doctor {
     String? emailVerifiedAt,
     String? phoneVerifiedAt,
     String? lastActiveAt,
+    int? quizCount,
+    int? rank,
+    int? badgeCount,
   }) {
     return Doctor(
       id: id ?? this.id,
@@ -92,6 +101,9 @@ class Doctor {
       emailVerifiedAt: emailVerifiedAt ?? this.emailVerifiedAt,
       phoneVerifiedAt: phoneVerifiedAt ?? this.phoneVerifiedAt,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
+      quizCount: quizCount ?? this.quizCount,
+      badgeCount: badgeCount ?? this.badgeCount,
+      rank: rank ?? this.rank,
     );
   }
 
@@ -101,9 +113,9 @@ class Doctor {
     fullName = json['full_name'];
     email = json['email'];
     phone = json['phone'];
-    if (json['specialties'] != null) {
+    if (json['specialty_ids'] != null) {
       specialties = <Specialties>[];
-      json['specialties'].forEach((v) {
+      json['specialty_ids'].forEach((v) {
         specialties!.add(Specialties.fromJson(v));
       });
     }
@@ -116,6 +128,9 @@ class Doctor {
     emailVerifiedAt = json['email_verified_at'];
     phoneVerifiedAt = json['phone_verified_at'];
     lastActiveAt = json['last_active_at'];
+    quizCount = json['quiz_count'];
+    rank = json['rank'];
+    badgeCount = json['badge_count'];
   }
 
   Map<String, dynamic> toJson() {
@@ -137,6 +152,9 @@ class Doctor {
     data['email_verified_at'] = emailVerifiedAt;
     data['phone_verified_at'] = phoneVerifiedAt;
     data['last_active_at'] = lastActiveAt;
+    data['quiz_count'] = quizCount;
+    data['rank'] = rank;
+    data['badge_count'] = badgeCount;
     return data;
   }
 }
@@ -144,21 +162,18 @@ class Doctor {
 class Specialties {
   int? id;
   String? name;
-  String? slug;
 
-  Specialties({this.id, this.name, this.slug});
+  Specialties({this.id, this.name});
 
   Specialties.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
-    slug = json['slug'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['name'] = name;
-    data['slug'] = slug;
     return data;
   }
 }

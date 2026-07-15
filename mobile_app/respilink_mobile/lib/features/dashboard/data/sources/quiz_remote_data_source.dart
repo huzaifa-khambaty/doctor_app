@@ -1,5 +1,6 @@
 import 'package:respilink_mobile/core/network/api_endpoints.dart';
 import 'package:respilink_mobile/core/network/dio_client.dart';
+import 'package:respilink_mobile/features/dashboard/data/model/badge_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_correct_answers_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_home_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_list_model.dart';
@@ -35,6 +36,8 @@ abstract class QuizRemoteDataSource {
   Future<ApiResponse<QuizResultsModel>> getQuizResults(int quizId);
 
   Future<ApiResponse<QuizLeaderboardModel>> getLeaderboard(int quizId);
+
+  Future<ApiResponse<BadgeModel>> getBadgesOverview();
 }
 
 class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
@@ -114,6 +117,14 @@ class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
       '${ApiEndpoints.quizzes}/$quizId/leaderboard',
       fromJson: (json) =>
           QuizLeaderboardModel.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<BadgeModel>> getBadgesOverview() async {
+    return _client.get(
+      ApiEndpoints.badges,
+      fromJson: (json) => BadgeModel.fromJson(json as Map<String, dynamic>),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:respilink_mobile/features/auth/presentation/pages/badges_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/change_password_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/edit_profile_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/forgot_password_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/login_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/otp_verification_view.dart';
@@ -96,6 +97,10 @@ class RouterConfiguration {
       GoRoute(
         path: RouterStrings.settings,
         builder: (context, state) => const SettingsView(),
+      ),
+      GoRoute(
+        path: RouterStrings.editProfile,
+        builder: (context, state) => const EditProfileView(),
       ),
       GoRoute(
         path: RouterStrings.badges,
