@@ -116,9 +116,11 @@ class QuizHomeController extends Controller
             return null;
         }
 
-        $remainingTime = null;
+        $remainingSeconds = null;
+        $expiresAt = null;
         if ($quiz->closes_at && $quiz->closes_at->isFuture()) {
-            $remainingTime = now()->diff($quiz->closes_at)->format('%H:%I:%S');
+            $remainingSeconds = (int) now()->diffInSeconds($quiz->closes_at);
+            $expiresAt = $quiz->closes_at->toISOString();
         }
 
         return [
@@ -126,7 +128,8 @@ class QuizHomeController extends Controller
             'title' => $quiz->title,
             'description' => $quiz->description,
             'xp' => $quiz->questions_count * 100,
-            'remaining_time' => $remainingTime,
+            'remaining_seconds' => $remainingSeconds,
+            'expires_at' => $expiresAt,
             'banner' => $quiz->banner ? asset('storage/' . $quiz->banner) : null,
             'quiz_id' => $quiz->id,
         ];
@@ -160,7 +163,7 @@ class QuizHomeController extends Controller
                 'total_quizzes' => $total,
                 'progress' => $total > 0 ? round(($completed / $total) * 100) : 0,
             ];
-        });
+        })->filter(fn ($topic) => $topic['total_quizzes'] > 1)->values();
     }
 
     protected function getLeaderboard()

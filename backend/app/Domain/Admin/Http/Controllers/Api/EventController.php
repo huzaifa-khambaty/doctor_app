@@ -83,6 +83,7 @@ class EventController extends Controller
 
     public function update(Request $request, Event $event)
     {
+       
         Gate::authorize('update', $event);
 
         $validated = $request->validate([

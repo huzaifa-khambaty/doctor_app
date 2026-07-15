@@ -36,6 +36,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'hospital_affiliation' => $request->hospital_affiliation,
+            'specialty_id' => $request->specialty_id,
             'password' => Hash::make($request->password),
             'status' => 'pending',
         ]);

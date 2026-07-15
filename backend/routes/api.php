@@ -47,6 +47,8 @@ Route::prefix('v1')->group(function () {
         Route::controller(QuizController::class)->group(function () {
             Route::get('/', 'index');
             Route::get('{quiz}', 'show');
+            Route::get('{quiz}/questions', 'questions');
+            Route::get('{quiz}/correct-answers', 'correctAnswers');
             Route::post('{quiz}/start', 'start');
             Route::post('{quiz}/answer', 'answer');
             Route::post('{quiz}/submit', 'submit');
