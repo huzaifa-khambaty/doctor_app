@@ -25,6 +25,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::prefix('profile')->middleware(['auth:sanctum', 'ability:doctor'])->group(function () {
+        Route::put('/', [ProfileController::class, 'update']);
         Route::get('verification-status', [ProfileController::class, 'verificationStatus']);
         Route::post('deletion-request', [ProfileController::class, 'requestDeletion']);
         Route::get('statistics', [ProfileController::class, 'statistics']);
@@ -63,6 +64,7 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('badges')->middleware(['auth:sanctum', 'ability:doctor'])->controller(BadgeController::class)->group(function () {
         Route::get('mine', 'index');
+        Route::get('overview', 'overview');
     });
 
     Route::get('specialties', [SpecialtyController::class, 'index']);
