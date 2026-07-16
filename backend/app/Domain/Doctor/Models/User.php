@@ -106,6 +106,18 @@ class User extends Authenticatable
                     ->withPivot('awarded_at');
     }
 
+    // Count of submitted quizzes
+    public function submittedQuizzes()
+    {
+        return $this->quizAttempts()->where('status', 'submitted');
+    }
+
+    // Badge count
+    public function userBadges()
+    {
+        return $this->belongsToMany(\App\Domain\Shared\Models\Badge::class, 'user_badges', 'user_id', 'badge_id');
+    }
+
     protected function photoUrl(): Attribute
     {
         return Attribute::make(

@@ -6,12 +6,14 @@ use App\Domain\Shared\Models\QuizAttempt;
 use App\Domain\Shared\Models\Quiz;
 use App\Domain\Shared\Models\Badge;
 use App\Domain\Shared\Models\UserBadge;
+use App\Domain\Doctor\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class BadgeAwardService
 {
     /**
-     * Evaluate badges for a submitted attempt.
+     * Evaluate all active badges for a submitted attempt.
      */
     public function evaluate(QuizAttempt $attempt)
     {
@@ -19,19 +21,57 @@ class BadgeAwardService
             return;
         }
 
-        $user = $attempt->user;
-        $quiz = $attempt->quiz;
+        $badges = Badge::where('is_active', true)
+            ->whereNotNull('criteria_type')
+            ->get();
 
-        // 1. "first_quiz"
-        $this->evaluateFirstQuiz($attempt);
-
-        // 2. "perfect_score"
-        $this->evaluatePerfectScore($attempt);
-
-        // 3. "streak_5"
-        $this->evaluateStreak($attempt);
+        foreach ($badges as $badge) {
+            $this->evaluateBadge($badge, $attempt);
+        }
     }
 
+    /**
+     * Evaluate a single badge against an attempt.
+     */
+    protected function evaluateBadge(Badge $badge, QuizAttempt $attempt)
+    {
+        $earned = match($badge->criteria_type) {
+            'quiz_completed' => $this->checkQuizCompleted($attempt, $badge->criteria_value),
+            'perfect_score' => $this->checkPerfectScore($attempt),
+            'quiz_streak' => $this->checkQuizStreak($attempt, $badge->criteria_value),
+            'fast_learner' => $this->checkFastLearner($attempt),
+            'expert' => $this->checkExpert($attempt->user),
+            default => false,
+        };
+
+        if ($earned) {
+            $this->awardBadge($attempt->user_id, $badge->code);
+        }
+    }
+
+    /**
+     * Evaluate top_3 badge separately (called from leaderboard recalculation).
+     */
+    public function evaluateTop3(Quiz $quiz)
+    {
+        $badge = Badge::where('code', 'top_3')->where('is_active', true)->first();
+        if (!$badge) {
+            return;
+        }
+
+        $leaderboardService = new LeaderboardService();
+        $ranked = $leaderboardService->rank($quiz, 3);
+
+        foreach ($ranked as $r) {
+            if ($r['is_podium']) {
+                $this->awardBadge($r['user_id'], $badge->code);
+            }
+        }
+    }
+
+    /**
+     * Award a badge to a user (idempotent).
+     */
     protected function awardBadge(int $userId, string $badgeCode)
     {
         $badge = Badge::where('code', $badgeCode)->first();
@@ -49,46 +89,50 @@ class BadgeAwardService
         ]);
     }
 
-    protected function evaluateFirstQuiz(QuizAttempt $attempt)
+    // ─── Criteria Check Methods ───────────────────────────────────────
+
+    /**
+     * quiz_completed: user has submitted >= $value quizzes.
+     */
+    protected function checkQuizCompleted(QuizAttempt $attempt, int $value): bool
     {
         $submittedCount = QuizAttempt::where('user_id', $attempt->user_id)
             ->where('status', 'submitted')
             ->count();
 
-        if ($submittedCount === 1) {
-            $this->awardBadge($attempt->user_id, 'first_quiz');
-        }
+        return $submittedCount >= $value;
     }
 
-    protected function evaluatePerfectScore(QuizAttempt $attempt)
+    /**
+     * perfect_score: score equals total questions.
+     */
+    protected function checkPerfectScore(QuizAttempt $attempt): bool
     {
         $totalQuestions = $attempt->quiz->questions()->count();
 
-        if ($totalQuestions > 0 && $attempt->score === $totalQuestions) {
-            $this->awardBadge($attempt->user_id, 'perfect_score');
-        }
+        return $totalQuestions > 0 && $attempt->score === $totalQuestions;
     }
 
-    protected function evaluateStreak(QuizAttempt $attempt)
+    /**
+     * quiz_streak: participated in $value consecutive published/closed quizzes.
+     */
+    protected function checkQuizStreak(QuizAttempt $attempt, int $value): bool
     {
-        // "streak_5" — participated in 5 consecutive quizzes
-        // Quizzes ordered by opens_at, no gap in participation for the last 5 published+closed quizzes.
-        
-        $last5Quizzes = Quiz::whereIn('status', ['published', 'closed'])
+        $lastQuizzes = Quiz::whereIn('status', ['published', 'closed'])
             ->whereNotNull('opens_at')
             ->where('opens_at', '<=', now())
             ->orderByDesc('opens_at')
-            ->limit(5)
+            ->limit($value)
             ->get();
 
-        if ($last5Quizzes->count() < 5) {
-            return;
+        if ($lastQuizzes->count() < $value) {
+            return false;
         }
 
         $participatedCount = 0;
 
-        foreach ($last5Quizzes as $q) {
-            $hasAttempted = QuizAttempt::where('quiz_id', $q->id)
+        foreach ($lastQuizzes as $quiz) {
+            $hasAttempted = QuizAttempt::where('quiz_id', $quiz->id)
                 ->where('user_id', $attempt->user_id)
                 ->where('status', 'submitted')
                 ->exists();
@@ -96,25 +140,65 @@ class BadgeAwardService
             if ($hasAttempted) {
                 $participatedCount++;
             } else {
-                break; // Break streak
+                break;
             }
         }
 
-        if ($participatedCount === 5) {
-            $this->awardBadge($attempt->user_id, 'streak_5');
-        }
+        return $participatedCount === $value;
     }
 
-    public function evaluateTop3(Quiz $quiz)
+    /**
+     * fast_learner: score >= 80% AND finished within quiz time limit.
+     */
+    protected function checkFastLearner(QuizAttempt $attempt): bool
     {
-        // Find the top 3 submitted attempts
-        $leaderboardService = new LeaderboardService();
-        $ranked = $leaderboardService->rank($quiz, 3);
-
-        foreach ($ranked as $r) {
-            if ($r['is_podium']) {
-                $this->awardBadge($r['user_id'], 'top_3');
-            }
+        $totalQuestions = $attempt->quiz->questions()->count();
+        if ($totalQuestions === 0) {
+            return false;
         }
+
+        $scorePercentage = ($attempt->score / $totalQuestions) * 100;
+        $withinTime = $attempt->quiz->time_limit_minutes
+            && $attempt->duration_seconds <= ($attempt->quiz->time_limit_minutes * 60);
+
+        return $scorePercentage >= 80 && $withinTime;
+    }
+
+    /**
+     * expert: average score >= 90% over >= 20 submitted quizzes.
+     */
+    protected function checkExpert(User $user): bool
+    {
+        $stats = QuizAttempt::where('user_id', $user->id)
+            ->where('status', 'submitted')
+            ->selectRaw('COUNT(*) as total, AVG(score) as avg_score')
+            ->first();
+
+        if ($stats->total < 20) {
+            return false;
+        }
+
+        // Get average score as percentage across all quizzes
+        $totalPossible = DB::table('quiz_attempt_answers')
+            ->join('quiz_questions', 'quiz_attempt_answers.quiz_question_id', '=', 'quiz_questions.id')
+            ->join('quiz_attempts', 'quiz_attempt_answers.quiz_attempt_id', '=', 'quiz_attempts.id')
+            ->where('quiz_attempts.user_id', $user->id)
+            ->where('quiz_attempts.status', 'submitted')
+            ->count();
+
+        $totalCorrect = DB::table('quiz_attempt_answers')
+            ->join('quiz_attempts', 'quiz_attempt_answers.quiz_attempt_id', '=', 'quiz_attempts.id')
+            ->where('quiz_attempts.user_id', $user->id)
+            ->where('quiz_attempts.status', 'submitted')
+            ->where('quiz_attempt_answers.is_correct', true)
+            ->count();
+
+        if ($totalPossible === 0) {
+            return false;
+        }
+
+        $avgPercentage = ($totalCorrect / $totalPossible) * 100;
+
+        return $avgPercentage >= 90;
     }
 }

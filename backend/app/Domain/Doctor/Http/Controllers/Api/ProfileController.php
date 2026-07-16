@@ -7,9 +7,55 @@ use App\Domain\Shared\Models\Quiz;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
+    public function update(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'full_name' => 'sometimes|required|string|max:255',
+            'phone_number' => 'sometimes|required|string|max:20|unique:users,phone,' . $user->id,
+            'hospital_affiliation' => 'nullable|string|max:255',
+            'profile_picture' => 'nullable|image|max:2048',
+        ]);
+
+        if ($request->hasFile('profile_picture')) {
+            if ($user->photo_path) {
+                Storage::disk('public')->delete($user->photo_path);
+            }
+            $validated['photo_path'] = $request->file('profile_picture')->store('users', 'public');
+        }
+        unset($validated['profile_picture']);
+
+        if (isset($validated['phone_number'])) {
+            $validated['phone'] = $validated['phone_number'];
+            unset($validated['phone_number']);
+        }
+
+        $user->update($validated);
+        $user->load('specialties');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully.',
+            'data' => [
+                'id' => $user->id,
+                'profile_picture' => $user->photo_url,
+                'full_name' => $user->full_name,
+                'phone_number' => $user->phone,
+                'email' => $user->email,
+                'hospital_affiliation' => $user->hospital_affiliation,
+                'specialties' => $user->specialties->map(fn($s) => [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                ]),
+            ],
+        ]);
+    }
+
     public function verificationStatus(Request $request)
     {
         $user = $request->user();

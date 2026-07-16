@@ -16,11 +16,10 @@ class DoctorResource extends JsonResource
             'full_name' => $this->full_name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'specialty' => $this->specialty ? [
-                'id' => $this->specialty->id,
-                'name' => $this->specialty->name,
-                'slug' => $this->specialty->slug,
-            ] : null,
+            'specialty_ids' => $this->specialties->map(fn($s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+            ])->toArray(),
             'hospital_affiliation' => $this->hospital_affiliation,
             'photo_path' => $this->photo_path,
             'qualifications' => $this->qualifications,
@@ -30,6 +29,9 @@ class DoctorResource extends JsonResource
             'email_verified_at' => $modelData['email_verified_at'] ?? null,
             'phone_verified_at' => $modelData['phone_verified_at'] ?? null,
             'last_active_at' => $modelData['last_active_at'] ?? null,
+            'quiz_count' => $this->submitted_quizzes_count ?? 0,
+            'rank' => $this->rank_position ?? 0,
+            'badge_count' => $this->user_badges_count ?? 0,
         ];
     }
 }
