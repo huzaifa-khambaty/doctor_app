@@ -15,7 +15,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<VerifyOtpRequested>(_verifyOtp);
     on<ResendOtpRequested>(_resendOtp);
     on<LogoutRequested>(_logout);
-    on<UpdateProfilePictureEvent>(_updateProfilePicture);
     on<UpdateProfileEvent>(_updateProfile);
     on<ChangePasswordRequested>(_changePassword);
     on<ForgetPasswordRequested>(_forgetPassword);
@@ -105,21 +104,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     if (res.success) {
       emit(AuthLogoutSuccess());
-    } else {
-      emit(AuthFailed(message: res.fullErrorMessage));
-    }
-  }
-
-  void _updateProfilePicture(
-    UpdateProfilePictureEvent event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthProfileImageLoading());
-
-    final res = await _repository.updateProfilePicture(event.file);
-
-    if (res.success) {
-      emit(AuthSuccess(model: res.data));
     } else {
       emit(AuthFailed(message: res.fullErrorMessage));
     }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:respilink_mobile/core/network/models/api_response.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/change_password_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/edit_profile_request.dart';
@@ -92,39 +91,6 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<ApiResponse<void>> logout() async {
     await _localManager.clearAuthData();
     return _remoteDataSource.logout();
-  }
-
-  @override
-  Future<ApiResponse<Doctor>> updateProfilePicture(File file) async {
-    final response = await _remoteDataSource.updateProfilePicture(file);
-
-    if (response.success && response.data != null) {
-      Doctor? model = await _localManager.getCachedUser();
-
-      if (model != null) {
-        // 1. Create a new model instance with the updated photo
-        final updatedUser = model.copyWith(
-          profilePhotoPath: response.data!.profilePhoto,
-        );
-
-        // 2. Save the updated version locally
-        await _localManager.saveUser(updatedUser);
-
-        // 3. Return the response with the full UserModel instead of just the photo object
-        return ApiResponse.success(
-          statusCode: response.statusCode,
-          message: response.message,
-          data: updatedUser,
-        );
-      }
-    }
-
-    // Handle the case where the update failed or user wasn't cached
-    return ApiResponse.failure(
-      statusCode: response.statusCode,
-      message: response.message,
-      errors: response.errors,
-    );
   }
 
   @override

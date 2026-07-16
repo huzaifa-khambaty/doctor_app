@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
@@ -10,7 +12,7 @@ import 'package:respilink_app/shared/widgets/app_network_image.dart';
 import 'package:respilink_app/shared/widgets/app_popup_menu_button.dart';
 import 'package:shimmer/shimmer.dart';
 
-class PractitionerManagementContent extends StatelessWidget {
+class PractitionerManagementContent extends StatefulWidget {
   const PractitionerManagementContent({
     super.key,
     required this.onManualEnrollmentClicked,
@@ -19,6 +21,39 @@ class PractitionerManagementContent extends StatelessWidget {
 
   final VoidCallback onManualEnrollmentClicked;
   final Function(Practioners) onUserTapped;
+
+  @override
+  State<PractitionerManagementContent> createState() =>
+      _PractitionerManagementContentState();
+}
+
+class _PractitionerManagementContentState
+    extends State<PractitionerManagementContent> {
+  String _searchQuery = '';
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<PractionerBloc>().add(FetchPractionersRequested());
+      }
+    });
+  }
+
+  void _onSearch(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (mounted) setState(() => _searchQuery = value.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,17 +81,20 @@ class PractitionerManagementContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _PractitionerHeader(),
+              _PractitionerHeader(onSearch: _onSearch),
               const SizedBox(height: 32),
               _PipelineTitleSection(
-                onManualEnrollmentClicked: onManualEnrollmentClicked,
+                onManualEnrollmentClicked: widget.onManualEnrollmentClicked,
               ),
               const SizedBox(height: 24),
               const _PipelineMetricsGrid(),
               const SizedBox(height: 24),
               const _FilterControlsBar(),
               const SizedBox(height: 20),
-              _PractitionerDataTable(onUserTapped: onUserTapped),
+              _PractitionerDataTable(
+                onUserTapped: widget.onUserTapped,
+                searchQuery: _searchQuery,
+              ),
             ],
           ),
         ),
@@ -70,7 +108,9 @@ class PractitionerManagementContent extends StatelessWidget {
 // =========================================================================
 
 class _PractitionerHeader extends StatelessWidget {
-  const _PractitionerHeader();
+  const _PractitionerHeader({required this.onSearch});
+
+  final ValueChanged<String> onSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +120,7 @@ class _PractitionerHeader extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: TextField(
+              onChanged: onSearch,
               decoration: InputDecoration(
                 hintText: 'Search practitioners by name or ID...',
                 hintStyle: const TextStyle(
@@ -543,15 +584,26 @@ class _StatusFilterChip extends StatelessWidget {
 // =========================================================================
 
 class _PractitionerDataTable extends StatelessWidget {
-  const _PractitionerDataTable({required this.onUserTapped});
+  const _PractitionerDataTable({
+    required this.onUserTapped,
+    required this.searchQuery,
+  });
 
   final Function(Practioners) onUserTapped;
+  final String searchQuery;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PractionerBloc, PractionerState>(
       builder: (context, state) {
-        final practitioners = state.practioners?.data ?? [];
+        final all = state.practioners?.data ?? [];
+        final practitioners = searchQuery.isEmpty
+            ? all
+            : all.where((p) {
+                final name = (p.fullName ?? '').toLowerCase();
+                final id = (p.uuid ?? p.id?.toString() ?? '').toLowerCase();
+                return name.contains(searchQuery) || id.contains(searchQuery);
+              }).toList();
         final isLoading = state.isLoadingPractioners;
 
         return Container(
@@ -564,7 +616,7 @@ class _PractitionerDataTable extends StatelessWidget {
             children: [
               Table(
                 columnWidths: const {
-                  0: FlexColumnWidth(3.0),
+                  0: FlexColumnWidth(3.5),
                   1: FlexColumnWidth(4.5),
                   2: FlexColumnWidth(3.0),
                   3: FlexColumnWidth(2.0),
@@ -864,25 +916,28 @@ class _PractitionerDataTable extends StatelessWidget {
                 isCircle: true,
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    p.fullName ?? '—',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      p.fullName ?? '—',
+                      maxLines: 2,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'ID: ${p.uuid?.substring(0, 8) ?? p.id?.toString() ?? '—'}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textMuted,
+                    Text(
+                      'ID: ${p.uuid?.substring(0, 8) ?? p.id?.toString() ?? '—'}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textMuted,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

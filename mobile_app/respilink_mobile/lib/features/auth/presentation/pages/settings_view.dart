@@ -165,9 +165,9 @@ class _SettingsViewState extends State<SettingsView> {
                       _SettingsRow(
                         icon: Icons.person_outline,
                         label: 'Personal Information',
-                        onTap: () {
-                          // TODO: navigate to the edit-profile screen once it exists.
-                        },
+                        onTap: () => locator<NavigationService>().navigate(
+                          RouterStrings.editProfile,
+                        ),
                       ),
                       _SettingsRow(
                         icon: Icons.mail_outline,

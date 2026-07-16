@@ -82,15 +82,23 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   Widget _getContentBody(int index) {
     switch (index) {
       case 0:
-        if (_showNotificationHistory) {
-          return NotificationHistoryView(
-            onBackToUsers: () =>
-                setState(() => _showNotificationHistory = false),
-          );
-        }
-        return DesktopDashboardMainContent(
-          onNotificationTapped: () =>
-              setState(() => _showNotificationHistory = true),
+        return BlocProvider<PractionerBloc>.value(
+          value: _practionerBloc,
+          child: _showNotificationHistory
+              ? NotificationHistoryView(
+                  onBackToUsers: () =>
+                      setState(() => _showNotificationHistory = false),
+                )
+              : DesktopDashboardMainContent(
+                  onNotificationTapped: () =>
+                      setState(() => _showNotificationHistory = true),
+                  onPractitionerTapped: (p) => setState(() {
+                    _currentNavigationIndex = 1;
+                    _selectedPractioner = p;
+                  }),
+                  onViewAllPractitionersTapped: () =>
+                      setState(() => _currentNavigationIndex = 1),
+                ),
         );
       case 1:
         return BlocProvider<PractionerBloc>.value(
@@ -167,9 +175,18 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       case 9:
         return UserAccountContent();
       default:
-        return DesktopDashboardMainContent(
-          onNotificationTapped: () =>
-              setState(() => _showNotificationHistory = true),
+        return BlocProvider<PractionerBloc>.value(
+          value: _practionerBloc,
+          child: DesktopDashboardMainContent(
+            onNotificationTapped: () =>
+                setState(() => _showNotificationHistory = true),
+            onPractitionerTapped: (p) => setState(() {
+              _currentNavigationIndex = 1;
+              _selectedPractioner = p;
+            }),
+            onViewAllPractitionersTapped: () =>
+                setState(() => _currentNavigationIndex = 1),
+          ),
         );
     }
   }

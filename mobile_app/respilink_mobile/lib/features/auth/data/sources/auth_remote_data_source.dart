@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:respilink_mobile/core/network/api_endpoints.dart';
 import 'package:respilink_mobile/core/network/dio_client.dart';
-import 'package:respilink_mobile/features/auth/data/models/profile_photo_update.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/change_password_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/edit_profile_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/forget_password_request.dart';
@@ -26,8 +24,6 @@ abstract class AuthRemoteDataSource {
   Future<ApiResponse<void>> logout();
 
   Future<ApiResponse<void>> resendOtp(ResendOtpRequest request);
-
-  Future<ApiResponse<ProfilePhotoUpdate>> updateProfilePicture(File file);
 
   Future<ApiResponse<Doctor>> updateProfile(EditProfileRequest request);
 
@@ -93,25 +89,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<ApiResponse<Doctor>> updateProfile(EditProfileRequest request) async {
+    final formData = FormData.fromMap({
+      ...request.toFields(),
+      if (request.profilePicture != null)
+        'profile_picture': await MultipartFile.fromFile(
+          request.profilePicture!.path,
+        ),
+    });
     return _client.put(
       ApiEndpoints.editProfile,
-      data: request.toJson(),
+      data: formData,
       fromJson: (json) => Doctor.fromJson(json as Map<String, dynamic>),
-    );
-  }
-
-  @override
-  Future<ApiResponse<ProfilePhotoUpdate>> updateProfilePicture(
-    File file,
-  ) async {
-    final formData = FormData.fromMap({
-      'photo': await MultipartFile.fromFile(file.path),
-    });
-    return _client.upload(
-      ApiEndpoints.profilePicture,
-      formData: formData,
-      fromJson: (json) =>
-          ProfilePhotoUpdate.fromJson(json as Map<String, dynamic>),
     );
   }
 
@@ -151,9 +139,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<ApiResponse<List<SpecialitiesModel>>> specialities() async {
     return _client.get(
       ApiEndpoints.specialties,
-      fromJson: (json) => (json as List)
-          .map((e) => SpecialitiesModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      fromJson: (json) {
+        // Laravel resource collections wrap arrays as {"data": [...]},
+        // but some endpoints in this API return a bare array — handle both.
+        final list = json is List
+            ? json
+            : (json as Map<String, dynamic>)['data'] as List;
+        return list
+            .map((e) => SpecialitiesModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      },
     );
   }
 }

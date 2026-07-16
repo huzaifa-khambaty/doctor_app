@@ -20,10 +20,10 @@ class _Badge {
 }
 
 // TODO: replace with real data from the backend once the profile/stats API is wired up.
-const _stats = [
-  ('42', 'QUIZZES', AppColors.primary),
-  ('12', 'RANK', AppColors.yellow),
-  ('08', 'BADGES', AppColors.purpleAccent),
+List<(int, String, Color)> _stats = [
+  (GlobalNotifiers.userNotifier.value?.quizCount ?? 0, 'QUIZZES', AppColors.primary),
+  (GlobalNotifiers.userNotifier.value?.rank ?? 0, 'RANK', AppColors.yellow),
+  (GlobalNotifiers.userNotifier.value?.badgeCount ?? 0, 'BADGES', AppColors.purpleAccent),
 ];
 
 final _badges = [
@@ -242,13 +242,6 @@ class _ProfileCard extends StatelessWidget {
             fontSize: 18.sp,
           ),
           SizedBox(height: 4.h),
-          ...user?.specialties?.map((item) {
-                return AppText.small(
-                  label: item.name ?? '',
-                  color: AppColors.white.withValues(alpha: 0.85),
-                );
-              }).toList() ??
-              [],
           AppText.small(
             label:
                 user?.specialties
@@ -283,7 +276,7 @@ class _ProfileCard extends StatelessWidget {
 }
 
 class _StatsRow extends StatelessWidget {
-  final List<(String, String, Color)> stats;
+  final List<(int, String, Color)> stats;
 
   const _StatsRow({required this.stats});
 
@@ -302,7 +295,7 @@ class _StatsRow extends StatelessWidget {
                 child: Column(
                   children: [
                     AppText.large(
-                      label: stat.$1,
+                      label: "${stat.$1}",
                       color: stat.$3,
                       fontWeight: FontWeight.bold,
                       fontSize: 18.sp,

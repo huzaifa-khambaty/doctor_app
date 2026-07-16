@@ -1,65 +1,27 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/network/api_endpoints.dart';
+import 'package:respilink_mobile/features/auth/presentation/bloc/badges_bloc.dart';
+import 'package:respilink_mobile/features/auth/presentation/bloc/badges_event.dart';
+import 'package:respilink_mobile/features/auth/presentation/bloc/badges_state.dart';
+import 'package:respilink_mobile/features/dashboard/data/model/badge_model.dart';
 import 'package:respilink_mobile/shared/widgets/app_notification_bell.dart';
+import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
 import '../../../../exports.dart';
 
-class _BadgeItem {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final bool earned;
-
-  const _BadgeItem({
-    required this.icon,
-    required this.label,
-    required this.color,
-    this.earned = true,
-  });
-}
-
-class _BadgeCategory {
-  final String title;
-  final List<_BadgeItem> badges;
-
-  const _BadgeCategory({required this.title, required this.badges});
-
-  int get earnedCount => badges.where((b) => b.earned).length;
-  int get totalCount => badges.length;
-}
-
-// TODO: replace with real data from the backend once the badges API is wired up.
-const _totalEarned = 8;
-const _totalBadges = 20;
-const _nextMilestone = 'Master Clinician';
-const _nextMilestoneProgress = 0.4;
-
-final _categories = [
-  _BadgeCategory(
-    title: 'Engagement',
-    badges: [
-      const _BadgeItem(icon: Icons.workspace_premium, label: 'Top Contributor', color: AppColors.yellow),
-      const _BadgeItem(icon: Icons.local_fire_department, label: 'Daily Streak', color: AppColors.primary),
-      _BadgeItem(icon: Icons.groups, label: 'Community Leader', color: AppColors.grey, earned: false),
-    ],
-  ),
-  _BadgeCategory(
-    title: 'Learning',
-    badges: [
-      const _BadgeItem(icon: Icons.menu_book, label: 'Librarian', color: AppColors.primary),
-      _BadgeItem(icon: Icons.psychology, label: 'Research Guru', color: AppColors.grey, earned: false),
-    ],
-  ),
-  _BadgeCategory(
-    title: 'Quiz Mastery',
-    badges: [
-      const _BadgeItem(icon: Icons.star, label: 'Perfect Score', color: AppColors.purpleAccent),
-      const _BadgeItem(icon: Icons.bolt, label: 'Fast Learner', color: AppColors.purpleAccent),
-      _BadgeItem(icon: Icons.emoji_events, label: 'Expert', color: AppColors.grey, earned: false),
-    ],
-  ),
-];
-
-class BadgesView extends StatelessWidget {
+class BadgesView extends StatefulWidget {
   const BadgesView({super.key});
+
+  @override
+  State<BadgesView> createState() => _BadgesViewState();
+}
+
+class _BadgesViewState extends State<BadgesView> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<BadgesBloc>().add(BadgesRequested());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,25 +51,61 @@ class BadgesView extends StatelessWidget {
       ),
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _MilestonesCard(
-                totalEarned: _totalEarned,
-                totalBadges: _totalBadges,
-                nextMilestone: _nextMilestone,
-                progress: _nextMilestoneProgress,
-              ),
-              SizedBox(height: 24.h),
-              for (final category in _categories) ...[
-                _CategorySection(category: category),
-                SizedBox(height: 22.h),
-              ],
-            ],
-          ),
+        child: BlocBuilder<BadgesBloc, BadgesState>(
+          builder: (context, state) {
+            if (state is BadgesFailed) {
+              return RequestFailed(message: state.message);
+            }
+
+            if (state is! BadgesLoaded) {
+              return AppSkeleton.cardList();
+            }
+
+            return _BadgesBody(badges: state.badges);
+          },
         ),
+      ),
+    );
+  }
+}
+
+class _BadgesBody extends StatelessWidget {
+  final BadgeModel badges;
+
+  const _BadgesBody({required this.badges});
+
+  @override
+  Widget build(BuildContext context) {
+    final categories = badges.categories ?? [];
+    final totalEarned = badges.earnedBadges ?? 0;
+    final totalBadges = badges.totalAvailable ?? 0;
+
+    // No explicit "next milestone" field from the API — the next unearned
+    // badge (in category order) is the closest equivalent.
+    final nextMilestone = categories
+        .expand((c) => c.badges ?? const [])
+        .firstWhere(
+          (b) => b.earned != true,
+          orElse: () => Badges(),
+        )
+        .name;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _MilestonesCard(
+            totalEarned: totalEarned,
+            totalBadges: totalBadges,
+            nextMilestone: nextMilestone,
+          ),
+          SizedBox(height: 24.h),
+          for (final category in categories) ...[
+            _CategorySection(category: category),
+            SizedBox(height: 22.h),
+          ],
+        ],
       ),
     );
   }
@@ -116,18 +114,20 @@ class BadgesView extends StatelessWidget {
 class _MilestonesCard extends StatelessWidget {
   final int totalEarned;
   final int totalBadges;
-  final String nextMilestone;
-  final double progress;
+  final String? nextMilestone;
 
   const _MilestonesCard({
     required this.totalEarned,
     required this.totalBadges,
-    required this.nextMilestone,
-    required this.progress,
+    this.nextMilestone,
   });
 
   @override
   Widget build(BuildContext context) {
+    final progress = totalBadges == 0
+        ? 0.0
+        : (totalEarned / totalBadges).clamp(0.0, 1.0);
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(18.w),
@@ -169,11 +169,15 @@ class _MilestonesCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText.small(
-                label: 'Next: $nextMilestone',
-                color: AppColors.white.withValues(alpha: 0.85),
-                fontSize: 11.sp,
-              ),
+              if (nextMilestone != null && nextMilestone!.isNotEmpty)
+                Expanded(
+                  child: AppText.small(
+                    label: 'Next: $nextMilestone',
+                    color: AppColors.white.withValues(alpha: 0.85),
+                    fontSize: 11.sp,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               AppText.small(
                 label: '${(progress * 100).round()}% Complete',
                 color: AppColors.white.withValues(alpha: 0.85),
@@ -189,12 +193,16 @@ class _MilestonesCard extends StatelessWidget {
 }
 
 class _CategorySection extends StatelessWidget {
-  final _BadgeCategory category;
+  final Categories category;
 
   const _CategorySection({required this.category});
 
   @override
   Widget build(BuildContext context) {
+    final items = category.badges ?? [];
+    final earned = category.earned ?? items.where((b) => b.earned == true).length;
+    final total = category.total ?? items.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -202,12 +210,12 @@ class _CategorySection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             AppText.medium(
-              label: category.title,
+              label: category.name ?? '',
               fontWeight: FontWeight.bold,
               fontSize: 15.sp,
             ),
             AppText.small(
-              label: '${category.earnedCount}/${category.totalCount} Earned',
+              label: '$earned/$total Earned',
               color: AppColors.grey,
               fontSize: 11.sp,
             ),
@@ -217,15 +225,14 @@ class _CategorySection extends StatelessWidget {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: category.badges.length,
+          itemCount: items.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 12.w,
             mainAxisSpacing: 12.h,
             childAspectRatio: 1.4,
           ),
-          itemBuilder: (context, index) =>
-              _BadgeTile(badge: category.badges[index]),
+          itemBuilder: (context, index) => _BadgeTile(badge: items[index]),
         ),
       ],
     );
@@ -233,19 +240,21 @@ class _CategorySection extends StatelessWidget {
 }
 
 class _BadgeTile extends StatelessWidget {
-  final _BadgeItem badge;
+  final Badges badge;
 
   const _BadgeTile({required this.badge});
 
   @override
   Widget build(BuildContext context) {
+    final earned = badge.earned ?? false;
+
     return Container(
       padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 10.w),
       decoration: BoxDecoration(
-        color: badge.earned ? AppColors.white : AppColors.fieldColor,
+        color: earned ? AppColors.white : AppColors.fieldColor,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
-          color: badge.earned ? AppColors.fieldColor : Colors.transparent,
+          color: earned ? AppColors.fieldColor : Colors.transparent,
           width: 1,
         ),
       ),
@@ -259,18 +268,27 @@ class _BadgeTile extends StatelessWidget {
                 width: 44.r,
                 height: 44.r,
                 decoration: BoxDecoration(
-                  color: badge.earned
-                      ? badge.color.withValues(alpha: 0.12)
-                      : AppColors.grey.withValues(alpha: 0.15),
+                  color: AppColors.grey.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  badge.icon,
-                  color: badge.earned ? badge.color : AppColors.grey,
-                  size: 20.sp,
+                child: Opacity(
+                  opacity: earned ? 1 : 0.4,
+                  child: ClipOval(
+                    child: AppNetworkImage(
+                      imageUrl: "${ApiEndpoints.imageUrl}/${badge.icon}",
+                      width: 44.r,
+                      height: 44.r,
+                      fit: BoxFit.cover,
+                      errorWidget: Icon(
+                        Icons.military_tech,
+                        color: AppColors.grey,
+                        size: 20.sp,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              if (!badge.earned)
+              if (!earned)
                 Positioned(
                   right: -2,
                   bottom: -2,
@@ -292,11 +310,11 @@ class _BadgeTile extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           AppText.small(
-            label: badge.label,
+            label: badge.name ?? '',
             fontSize: 11.sp,
             fontWeight: FontWeight.w600,
             textAlign: TextAlign.center,
-            color: badge.earned ? AppColors.black : AppColors.grey,
+            color: earned ? AppColors.black : AppColors.grey,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

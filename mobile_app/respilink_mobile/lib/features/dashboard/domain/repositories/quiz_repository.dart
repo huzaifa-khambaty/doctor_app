@@ -1,4 +1,5 @@
 import 'package:respilink_mobile/core/network/models/api_response.dart';
+import 'package:respilink_mobile/features/dashboard/data/model/badge_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_correct_answers_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_home_model.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_list_model.dart';
@@ -32,4 +33,6 @@ abstract class QuizRepository {
   Future<ApiResponse<QuizResultsModel>> getQuizResults(int quizId);
 
   Future<ApiResponse<QuizLeaderboardModel>> getLeaderboard(int quizId);
+
+  Future<ApiResponse<BadgeModel>> getBadgesOverview();
 }

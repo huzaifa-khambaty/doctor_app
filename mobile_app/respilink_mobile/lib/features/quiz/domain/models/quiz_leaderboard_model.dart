@@ -55,7 +55,7 @@ class TopThree {
   String? name;
   String? speciality;
   String? location;
-  Null? avatar;
+  String? avatar;
   String? initials;
   int? points;
   int? score;
@@ -168,7 +168,7 @@ class CurrentUser {
   int? userId;
   String? name;
   String? avatar;
-  Null? initials;
+  String? initials;
   int? points;
   int? nextRankPoints;
   String? badgeUrl;

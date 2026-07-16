@@ -205,6 +205,27 @@ class _RegisterViewState extends State<RegisterView> {
                     SizedBox(height: 6.h),
                     if (state is SpecialitiesLoading && _specialities.isEmpty)
                       AppLoader()
+                    else if (state is SpecialitiesFailed &&
+                        _specialities.isEmpty)
+                      GestureDetector(
+                        onTap: () => context.read<AuthBloc>().add(
+                          SpecialitiesRequested(),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.refresh,
+                              size: 16.sp,
+                              color: AppColors.error,
+                            ),
+                            SizedBox(width: 6.w),
+                            AppText.small(
+                              label: 'Failed to load specialties. Tap to retry.',
+                              color: AppColors.error,
+                            ),
+                          ],
+                        ),
+                      )
                     else
                       Wrap(
                         spacing: 8.w,

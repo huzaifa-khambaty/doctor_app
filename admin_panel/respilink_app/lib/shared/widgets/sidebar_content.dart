@@ -246,11 +246,18 @@ class _UserProfileFooter extends StatelessWidget {
                   : MainAxisAlignment.start,
               children: [
                 AppNetworkImage(
-                  imageUrl:
-                      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150',",
+                  imageUrl: "",
                   width: 36,
                   height: 36,
                   isCircle: true,
+                  errorWidget: CircleAvatar(
+                    backgroundColor: AppColors.white,
+                    child: Icon(
+                      Icons.person,
+                      size: 32,
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
                 if (!isCollapsed) ...[
                   const SizedBox(width: 12),

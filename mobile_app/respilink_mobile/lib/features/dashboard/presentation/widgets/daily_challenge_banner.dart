@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:respilink_mobile/features/dashboard/domain/models/daily_challenge_summary_model.dart';
 
 import '../../../../exports.dart';
@@ -75,6 +76,7 @@ class DailyChallengeBanner extends StatelessWidget {
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
+                          recognizer: TapGestureRecognizer()..onTap = () => locator<NavigationService>().navigate(RouterStrings.leaderboard, arguments: 2),
                         ),
                       ],
                     ),

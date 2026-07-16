@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,7 +12,7 @@ import 'package:respilink_app/features/events/presentation/bloc/events_bloc.dart
 import 'package:respilink_app/features/events/presentation/bloc/events_event.dart';
 import 'package:respilink_app/features/events/presentation/bloc/events_state.dart';
 
-class EventManagementContent extends StatelessWidget {
+class EventManagementContent extends StatefulWidget {
   const EventManagementContent({
     super.key,
     required this.onCreateEventClicked,
@@ -19,6 +21,27 @@ class EventManagementContent extends StatelessWidget {
 
   final VoidCallback onCreateEventClicked;
   final void Function(Events) onEventTapped;
+
+  @override
+  State<EventManagementContent> createState() => _EventManagementContentState();
+}
+
+class _EventManagementContentState extends State<EventManagementContent> {
+  String _searchQuery = '';
+  Timer? _debounce;
+
+  void _onSearch(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (mounted) setState(() => _searchQuery = value.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,15 +58,21 @@ class EventManagementContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _EventSearchBarHeader(onCreateEventClicked: onCreateEventClicked),
+              _EventSearchBarHeader(
+                onCreateEventClicked: widget.onCreateEventClicked,
+                onSearch: _onSearch,
+              ),
               const SizedBox(height: 32),
-              _EventTitleRowSection(onCreateEventClicked: onCreateEventClicked),
+              _EventTitleRowSection(onCreateEventClicked: widget.onCreateEventClicked),
               const SizedBox(height: 24),
               const _EventMetricsSection(),
               const SizedBox(height: 24),
               const _EventTypeFiltersRow(),
               const SizedBox(height: 20),
-              _EventDataTable(onEventTapped: onEventTapped),
+              _EventDataTable(
+                onEventTapped: widget.onEventTapped,
+                searchQuery: _searchQuery,
+              ),
             ],
           ),
         ),
@@ -57,9 +86,13 @@ class EventManagementContent extends StatelessWidget {
 // =========================================================================
 
 class _EventSearchBarHeader extends StatelessWidget {
-  const _EventSearchBarHeader({required this.onCreateEventClicked});
+  const _EventSearchBarHeader({
+    required this.onCreateEventClicked,
+    required this.onSearch,
+  });
 
   final VoidCallback onCreateEventClicked;
+  final ValueChanged<String> onSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +102,7 @@ class _EventSearchBarHeader extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: TextField(
+              onChanged: onSearch,
               decoration: InputDecoration(
                 hintText: 'Search events by title or type...',
                 hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
@@ -418,18 +452,18 @@ class _EventTypeFiltersRowState extends State<_EventTypeFiltersRow> {
             ],
           ),
         ),
-        const Spacer(),
-        OutlinedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.tune_rounded, size: 16, color: AppColors.textDark),
-          label: const Text('Filters', style: TextStyle(color: AppColors.textDark, fontSize: 13)),
-          style: OutlinedButton.styleFrom(
-            backgroundColor: Colors.white,
-            side: const BorderSide(color: AppColors.borderLight),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
+        // const Spacer(),
+        // OutlinedButton.icon(
+        //   onPressed: () {},
+        //   icon: const Icon(Icons.tune_rounded, size: 16, color: AppColors.textDark),
+        //   label: const Text('Filters', style: TextStyle(color: AppColors.textDark, fontSize: 13)),
+        //   style: OutlinedButton.styleFrom(
+        //     backgroundColor: Colors.white,
+        //     side: const BorderSide(color: AppColors.borderLight),
+        //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        //   ),
+        // ),
       ],
     );
   }
@@ -471,14 +505,26 @@ class _FilterChip extends StatelessWidget {
 
 class _EventDataTable extends StatelessWidget {
   final void Function(Events) onEventTapped;
+  final String searchQuery;
 
-  const _EventDataTable({required this.onEventTapped});
+  const _EventDataTable({
+    required this.onEventTapped,
+    required this.searchQuery,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EventsBloc, EventsState>(
       builder: (context, state) {
-        final events = state.events?.data ?? [];
+        final all = state.events?.data ?? [];
+        final events = searchQuery.isEmpty
+            ? all
+            : all.where((e) {
+                final title = (e.title ?? '').toLowerCase();
+                final location = (e.location ?? '').toLowerCase();
+                return title.contains(searchQuery) ||
+                    location.contains(searchQuery);
+              }).toList();
         final isLoading = state.isLoading;
 
         return Container(
