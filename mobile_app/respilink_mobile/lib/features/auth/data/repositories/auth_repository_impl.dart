@@ -101,6 +101,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     if (response.success && response.data != null) {
       await _localManager.saveUser(response.data);
+      GlobalNotifiers.userNotifier.value = response.data;
     }
     return response;
   }

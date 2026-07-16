@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:respilink_mobile/core/network/api_endpoints.dart';
+
 class UserModel {
   String? token;
   Doctor? doctor;
@@ -112,15 +114,20 @@ class Doctor {
     uuid = json['uuid'];
     fullName = json['full_name'];
     email = json['email'];
-    phone = json['phone'];
-    if (json['specialty_ids'] != null) {
+    // Different endpoints name this field differently (login/register vs
+    // profile update), so accept either.
+    phone = json['phone'] ?? json['phone_number'];
+    final specialtiesJson = json['specialties'] ?? json['specialty_ids'];
+    if (specialtiesJson != null) {
       specialties = <Specialties>[];
-      json['specialty_ids'].forEach((v) {
+      specialtiesJson.forEach((v) {
         specialties!.add(Specialties.fromJson(v));
       });
     }
     hospitalAffiliation = json['hospital_affiliation'];
-    profilePhotoPath = json['photo_path'];
+    profilePhotoPath = _normalizePhotoPath(
+      json['photo_path'] ?? json['profile_picture'],
+    );
     qualifications = json['qualifications'];
     location = json['location'];
     status = json['status'];
@@ -131,6 +138,17 @@ class Doctor {
     quizCount = json['quiz_count'];
     rank = json['rank'];
     badgeCount = json['badge_count'];
+  }
+
+  /// Some endpoints (e.g. profile update) return a full URL for the photo
+  /// while others return a path relative to [ApiEndpoints.imageUrl]. Keeping
+  /// this always relative means every display site's
+  /// `"${ApiEndpoints.imageUrl}/$profilePhotoPath"` concatenation stays valid.
+  static String? _normalizePhotoPath(String? value) {
+    if (value == null) return null;
+    return value.startsWith(ApiEndpoints.imageUrl)
+        ? value.substring(ApiEndpoints.imageUrl.length)
+        : value;
   }
 
   Map<String, dynamic> toJson() {

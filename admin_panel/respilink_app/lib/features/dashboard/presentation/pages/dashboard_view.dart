@@ -29,6 +29,7 @@ import 'package:respilink_app/features/quiz/presentation/bloc/quiz_event.dart';
 import 'package:respilink_app/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:respilink_app/features/settings/presentation/bloc/settings_event.dart';
 import 'package:respilink_app/features/settings/presentation/pages/setttings_view.dart';
+import 'package:respilink_app/features/settings/presentation/pages/admin_user_management_view.dart';
 import 'package:respilink_app/features/settings/presentation/pages/user_permission_content_view.dart';
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
 import 'package:respilink_app/shared/widgets/responsive_layout.dart';
@@ -64,7 +65,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
 
   late final SettingsBloc _settingsBloc = locator<SettingsBloc>()
     ..add(FetchRolesRequested())
-    ..add(FetchPermissionsRequested());
+    ..add(FetchPermissionsRequested())
+    ..add(FetchAdminsRequested());
 
   late final QuizBloc _quizBloc = locator<QuizBloc>()
     ..add(FetchTopicsRequested())
@@ -168,11 +170,16 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       case 7:
         return BlocProvider<SettingsBloc>.value(
           value: _settingsBloc,
-          child: const UserPermissionsContent(),
+          child: const AdminUserManagementContent(),
         );
       case 8:
-        return SettingsContent();
+        return BlocProvider<SettingsBloc>.value(
+          value: _settingsBloc,
+          child: const UserPermissionsContent(),
+        );
       case 9:
+        return SettingsContent();
+      case 10:
         return UserAccountContent();
       default:
         return BlocProvider<PractionerBloc>.value(

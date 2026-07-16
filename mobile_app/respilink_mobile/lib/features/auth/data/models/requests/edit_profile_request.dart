@@ -18,6 +18,7 @@ class EditProfileRequest {
       'full_name': ?fullName,
       'phone_number': ?phoneNumber,
       'hospital_affiliation': ?hospitalAffiliation,
+      '_method': 'PUT'
     };
   }
 }

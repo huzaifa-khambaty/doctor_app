@@ -84,10 +84,7 @@ class _BadgesBody extends StatelessWidget {
     // badge (in category order) is the closest equivalent.
     final nextMilestone = categories
         .expand((c) => c.badges ?? const [])
-        .firstWhere(
-          (b) => b.earned != true,
-          orElse: () => Badges(),
-        )
+        .firstWhere((b) => b.earned != true, orElse: () => Badges())
         .name;
 
     return SingleChildScrollView(
@@ -200,7 +197,8 @@ class _CategorySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = category.badges ?? [];
-    final earned = category.earned ?? items.where((b) => b.earned == true).length;
+    final earned =
+        category.earned ?? items.where((b) => b.earned == true).length;
     final total = category.total ?? items.length;
 
     return Column(
@@ -232,7 +230,9 @@ class _CategorySection extends StatelessWidget {
             mainAxisSpacing: 12.h,
             childAspectRatio: 1.4,
           ),
-          itemBuilder: (context, index) => _BadgeTile(badge: items[index]),
+          itemBuilder: (context, index) {
+            return _BadgeTile(badge: items[index]);
+          },
         ),
       ],
     );
@@ -247,6 +247,7 @@ class _BadgeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final earned = badge.earned ?? false;
+    print("${ApiEndpoints.imageUrl}${badge.icon}");
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 10.w),
@@ -275,7 +276,7 @@ class _BadgeTile extends StatelessWidget {
                   opacity: earned ? 1 : 0.4,
                   child: ClipOval(
                     child: AppNetworkImage(
-                      imageUrl: "${ApiEndpoints.imageUrl}/${badge.icon}",
+                      imageUrl: "${ApiEndpoints.imageUrl}${badge.icon}",
                       width: 44.r,
                       height: 44.r,
                       fit: BoxFit.cover,

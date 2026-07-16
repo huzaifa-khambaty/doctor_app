@@ -29,3 +29,43 @@ class DeleteRoleRequested extends SettingsEvent {
   final int roleId;
   DeleteRoleRequested(this.roleId);
 }
+
+// Admin user management events
+class FetchAdminsRequested extends SettingsEvent {}
+
+class CreateAdminRequested extends SettingsEvent {
+  final String name;
+  final String email;
+  final String password;
+  final String passwordConfirmation;
+  final List<String> roles;
+  CreateAdminRequested({
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.passwordConfirmation,
+    required this.roles,
+  });
+}
+
+class UpdateAdminRequested extends SettingsEvent {
+  final int adminId;
+  final String? name;
+  final String? email;
+  final String? password;
+  final String? passwordConfirmation;
+  final List<String>? roles;
+  UpdateAdminRequested({
+    required this.adminId,
+    this.name,
+    this.email,
+    this.password,
+    this.passwordConfirmation,
+    this.roles,
+  });
+}
+
+class DeleteAdminRequested extends SettingsEvent {
+  final int adminId;
+  DeleteAdminRequested(this.adminId);
+}

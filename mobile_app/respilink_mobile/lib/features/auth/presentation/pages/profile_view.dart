@@ -219,7 +219,7 @@ class _ProfileCard extends StatelessWidget {
             child: user?.profilePhotoPath != null
                 ? AppNetworkImage(
                     imageUrl:
-                        "${ApiEndpoints.imageUrl}/${user!.profilePhotoPath}",
+                        "${ApiEndpoints.imageUrl}${user!.profilePhotoPath}",
                     width: 76.r,
                     height: 76.r,
                     isCircle: true,

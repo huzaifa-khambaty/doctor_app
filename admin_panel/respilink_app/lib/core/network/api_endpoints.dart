@@ -28,6 +28,10 @@ class ApiEndpoints {
   static const String roles = '/roles';
   static const String permissions = '/permissions';
 
+  ///User Management
+  static const String admins = '/admins'; //same endpoint for create and listing. For update and delete (pass /adminId)
+
+
   ///Quiz
   static const String topics = '/topics';
   static const String quizzes = '/quizzes';

@@ -25,7 +25,6 @@ class MySidebarContent extends StatelessWidget {
             ? CrossAxisAlignment.center
             : CrossAxisAlignment.start,
         children: [
-          // App Title branding from image_bd8279.png
           if (!isCollapsed) ...[
             const Text(
               'RespiLink Admin',
@@ -42,13 +41,11 @@ class MySidebarContent extends StatelessWidget {
               style: TextStyle(color: Colors.white60, fontSize: 12),
             ),
           ] else ...[
-            // Small logo alternative when sidebar collapses for tablet view
             Icon(Icons.medical_information, color: Colors.white, size: 28),
           ],
 
           const SizedBox(height: 32),
 
-          // Main Navigation Links Section
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -58,7 +55,7 @@ class MySidebarContent extends StatelessWidget {
                   title: 'Dashboard',
                   isActive: selectedIndex == 0,
                   isCollapsed: isCollapsed,
-                  onTap: (value) => onDestinationSelected?.call(value),
+                  onTap: (v) => onDestinationSelected?.call(v),
                   index: 0,
                 ),
                 _SidebarItem(
@@ -66,7 +63,7 @@ class MySidebarContent extends StatelessWidget {
                   title: 'Users',
                   isCollapsed: isCollapsed,
                   isActive: selectedIndex == 1,
-                  onTap: (value) => onDestinationSelected?.call(value),
+                  onTap: (v) => onDestinationSelected?.call(v),
                   index: 1,
                 ),
                 _SidebarItem(
@@ -74,7 +71,7 @@ class MySidebarContent extends StatelessWidget {
                   title: 'Content',
                   isCollapsed: isCollapsed,
                   isActive: selectedIndex == 2,
-                  onTap: (value) => onDestinationSelected?.call(value),
+                  onTap: (v) => onDestinationSelected?.call(v),
                   index: 2,
                 ),
                 _SidebarItem(
@@ -82,7 +79,7 @@ class MySidebarContent extends StatelessWidget {
                   title: 'Quizzes',
                   isCollapsed: isCollapsed,
                   isActive: selectedIndex == 3,
-                  onTap: (value) => onDestinationSelected?.call(value),
+                  onTap: (v) => onDestinationSelected?.call(v),
                   index: 3,
                 ),
                 _SidebarItem(
@@ -90,7 +87,7 @@ class MySidebarContent extends StatelessWidget {
                   title: 'Events',
                   isCollapsed: isCollapsed,
                   isActive: selectedIndex == 4,
-                  onTap: (value) => onDestinationSelected?.call(value),
+                  onTap: (v) => onDestinationSelected?.call(v),
                   index: 4,
                 ),
                 _SidebarItem(
@@ -98,7 +95,7 @@ class MySidebarContent extends StatelessWidget {
                   title: 'Queries',
                   isCollapsed: isCollapsed,
                   isActive: selectedIndex == 5,
-                  onTap: (value) => onDestinationSelected?.call(value),
+                  onTap: (v) => onDestinationSelected?.call(v),
                   index: 5,
                 ),
                 _SidebarItem(
@@ -106,36 +103,45 @@ class MySidebarContent extends StatelessWidget {
                   title: 'Analytics',
                   isCollapsed: isCollapsed,
                   isActive: selectedIndex == 6,
-                  onTap: (value) => onDestinationSelected?.call(value),
+                  onTap: (v) => onDestinationSelected?.call(v),
                   index: 6,
                 ),
-                _SidebarItem(
-                  icon: Icons.security_outlined,
-                  title: 'Permissions',
+                // Admin Management expandable group
+                _ExpandableSidebarGroup(
+                  icon: Icons.admin_panel_settings_outlined,
+                  title: 'Admin Management',
                   isCollapsed: isCollapsed,
-                  isActive: selectedIndex == 7,
-                  onTap: (value) => onDestinationSelected?.call(value),
-                  index: 7,
+                  isGroupActive: selectedIndex == 7 || selectedIndex == 8,
+                  children: [
+                    _SidebarSubItem(
+                      title: 'User Management',
+                      isActive: selectedIndex == 7,
+                      onTap: () => onDestinationSelected?.call(7),
+                    ),
+                    _SidebarSubItem(
+                      title: 'Permissions',
+                      isActive: selectedIndex == 8,
+                      onTap: () => onDestinationSelected?.call(8),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
 
-          // Bottom Settings & Profile Block
           const Divider(color: Colors.white12, height: 32),
           _SidebarItem(
             icon: Icons.settings_outlined,
             title: 'Settings',
             isCollapsed: isCollapsed,
-            isActive: selectedIndex == 8,
-            onTap: (value) => onDestinationSelected?.call(value),
-            index: 8,
+            isActive: selectedIndex == 9,
+            onTap: (v) => onDestinationSelected?.call(v),
+            index: 9,
           ),
           const SizedBox(height: 16),
 
-          // User Profile Area
           InkWell(
-            onTap: () => onDestinationSelected?.call(9),
+            onTap: () => onDestinationSelected?.call(10),
             child: _UserProfileFooter(isCollapsed: isCollapsed),
           ),
         ],
@@ -143,6 +149,190 @@ class MySidebarContent extends StatelessWidget {
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ExpandableSidebarGroup extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final bool isCollapsed;
+  final bool isGroupActive;
+  final List<Widget> children;
+
+  const _ExpandableSidebarGroup({
+    required this.icon,
+    required this.title,
+    required this.isCollapsed,
+    required this.isGroupActive,
+    required this.children,
+  });
+
+  @override
+  State<_ExpandableSidebarGroup> createState() =>
+      _ExpandableSidebarGroupState();
+}
+
+class _ExpandableSidebarGroupState extends State<_ExpandableSidebarGroup> {
+  late bool _isExpanded;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.isGroupActive;
+  }
+
+  @override
+  void didUpdateWidget(_ExpandableSidebarGroup old) {
+    super.didUpdateWidget(old);
+    if (!old.isGroupActive && widget.isGroupActive) {
+      _isExpanded = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.isCollapsed) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Icon(widget.icon, color: widget.isGroupActive ? Colors.white : Colors.white60, size: 22),
+      );
+    }
+
+    final bool useHighlight = widget.isGroupActive || _isHovered;
+    final Color itemBgColor =
+        useHighlight ? Colors.white.withValues(alpha: 0.12) : Colors.transparent;
+    final Color contentColor =
+        widget.isGroupActive ? Colors.white : (_isHovered ? Colors.white : Colors.white60);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: InkWell(
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            onHover: (h) => setState(() => _isHovered = h),
+            borderRadius: BorderRadius.circular(8),
+            splashColor: Colors.white10,
+            highlightColor: Colors.transparent,
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: itemBgColor,
+                borderRadius: BorderRadius.circular(8),
+                border: widget.isGroupActive
+                    ? Border.all(color: Colors.white24, width: 1)
+                    : null,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Icon(widget.icon, color: contentColor, size: 22),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: TextStyle(
+                        color: contentColor,
+                        fontSize: 14,
+                        fontWeight: widget.isGroupActive
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                    color: contentColor,
+                    size: 18,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (_isExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Column(children: widget.children),
+          ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SidebarSubItem extends StatefulWidget {
+  final String title;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _SidebarSubItem({
+    required this.title,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  State<_SidebarSubItem> createState() => _SidebarSubItemState();
+}
+
+class _SidebarSubItemState extends State<_SidebarSubItem> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color contentColor =
+        widget.isActive ? Colors.white : (_isHovered ? Colors.white : Colors.white54);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: InkWell(
+        onTap: widget.onTap,
+        onHover: (h) => setState(() => _isHovered = h),
+        borderRadius: BorderRadius.circular(8),
+        splashColor: Colors.white10,
+        highlightColor: Colors.transparent,
+        child: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: widget.isActive || _isHovered
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 4,
+                margin: const EdgeInsets.only(right: 10),
+                decoration: BoxDecoration(
+                  color: widget.isActive ? Colors.white : Colors.white38,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              Text(
+                widget.title,
+                style: TextStyle(
+                  color: contentColor,
+                  fontSize: 13,
+                  fontWeight:
+                      widget.isActive ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _SidebarItem extends StatefulWidget {
   final IconData icon;
@@ -170,7 +360,6 @@ class _SidebarItemState extends State<_SidebarItem> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine dynamic background and text colors based on active or hover states
     final bool useHighlight = widget.isActive || _isHovered;
     final Color itemBgColor = useHighlight
         ? Colors.white.withValues(alpha: 0.12)
@@ -227,6 +416,8 @@ class _SidebarItemState extends State<_SidebarItem> {
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _UserProfileFooter extends StatelessWidget {
   final bool isCollapsed;

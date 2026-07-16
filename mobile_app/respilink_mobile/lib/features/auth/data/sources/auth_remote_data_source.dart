@@ -96,7 +96,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           request.profilePicture!.path,
         ),
     });
-    return _client.put(
+    return _client.post(
       ApiEndpoints.editProfile,
       data: formData,
       fromJson: (json) => Doctor.fromJson(json as Map<String, dynamic>),
