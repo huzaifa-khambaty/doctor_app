@@ -83,9 +83,14 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
         image: model.banner ?? '',
         isLive: false,
       ),
-      hostName: model.speaker?.name ?? '',
-      hostTitle: model.speaker?.designation ?? '',
-      hostAvatar: model.speaker?.image,
+      hosts: [
+        if (model.speaker != null)
+          EventHostModel(
+            name: model.speaker!.name ?? '',
+            title: model.speaker!.designation ?? '',
+            avatarUrl: model.speaker!.image,
+          ),
+      ],
       infoTiles: [
         EventInfoTile(
           icon: Icons.calendar_today_outlined,
@@ -110,6 +115,12 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
         ),
       ],
       description: model.description ?? model.syllabus ?? '',
+      // Only show the expand link when the syllabus adds something beyond
+      // what's already shown as the main description.
+      expandedContent:
+          (model.syllabus != null && model.syllabus != model.description)
+              ? model.syllabus
+              : null,
       listTitle: 'Learning Objectives',
       listItems: model.learningObjectives ?? const [],
       registrationNote: fee > 0 ? 'Fee: $fee' : 'Free for Members',
@@ -132,9 +143,18 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
         image: model.banner ?? '',
         isLive: false,
       ),
-      hostName: model.trainer?.name ?? '',
-      hostTitle: model.trainer?.designation ?? '',
-      hostAvatar: model.trainer?.image,
+      hosts: [
+        for (final trainer in model.trainers ?? const <Trainer>[])
+          EventHostModel(
+            name: trainer.name ?? '',
+            title: trainer.designation ?? '',
+            avatarUrl: trainer.image,
+            specialties: [
+              for (final specialty in trainer.specialties ?? const <WorkshopSpecialty>[])
+                if (specialty.name != null) specialty.name!,
+            ],
+          ),
+      ],
       infoTiles: [
         EventInfoTile(
           icon: Icons.calendar_today_outlined,

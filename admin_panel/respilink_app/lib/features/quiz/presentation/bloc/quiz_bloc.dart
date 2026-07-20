@@ -18,6 +18,7 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
           isSubmitting: false,
           submitSuccess: false,
         )));
+    on<FetchQuizAnalyticsRequested>(_fetchQuizAnalytics);
   }
 
   Future<void> _fetchTopics(
@@ -163,6 +164,31 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     } else {
       emit(state.copyWith(
         actioningQuizId: null,
+        error: res.fullErrorMessage,
+      ));
+    }
+  }
+
+  Future<void> _fetchQuizAnalytics(
+    FetchQuizAnalyticsRequested event,
+    Emitter<QuizState> emit,
+  ) async {
+    emit(state.copyWith(
+      isLoadingAnalytics: true,
+      loadingAnalyticsForQuizId: event.quizId,
+    ));
+    final res = await _repository.quizAnalytics(event.quizId);
+    if (res.success && res.data != null) {
+      emit(state.copyWith(
+        isLoadingAnalytics: false,
+        analyticsData: res.data,
+        loadingAnalyticsForQuizId: null,
+        analyticsJustFetched: true,
+      ));
+    } else {
+      emit(state.copyWith(
+        isLoadingAnalytics: false,
+        loadingAnalyticsForQuizId: null,
         error: res.fullErrorMessage,
       ));
     }

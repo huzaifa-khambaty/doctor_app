@@ -15,16 +15,15 @@ class UserPermissionsContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<SettingsBloc, SettingsState>(
       listenWhen: (prev, curr) =>
-          (prev.saveSuccess != curr.saveSuccess && curr.saveSuccess) ||
-          (prev.createRoleSuccess != curr.createRoleSuccess &&
-              curr.createRoleSuccess) ||
           (prev.updateRoleSuccess != curr.updateRoleSuccess &&
               curr.updateRoleSuccess) ||
+          (prev.createRoleSuccess != curr.createRoleSuccess &&
+              curr.createRoleSuccess) ||
           (prev.deleteRoleSuccess != curr.deleteRoleSuccess &&
               curr.deleteRoleSuccess) ||
           (prev.error != curr.error && curr.error != null),
       listener: (context, state) {
-        if (state.saveSuccess) {
+        if (state.updateRoleSuccess) {
           SnackbarUtil.showSnackbar(
             context,
             message: 'Permissions updated successfully',
@@ -33,11 +32,6 @@ class UserPermissionsContent extends StatelessWidget {
           SnackbarUtil.showSnackbar(
             context,
             message: 'Role created successfully',
-          );
-        } else if (state.updateRoleSuccess) {
-          SnackbarUtil.showSnackbar(
-            context,
-            message: 'Role updated successfully',
           );
         } else if (state.deleteRoleSuccess) {
           SnackbarUtil.showSnackbar(
@@ -77,18 +71,12 @@ class _PermissionsBodyState extends State<_PermissionsBody> {
   void _onRoleSelected(RolesModel role) {
     setState(() {
       _selectedRole = role;
-      _activePermissionIds = _permIdsFrom(role);
+      _activePermissionIds = {};
     });
+    if (role.id != null) {
+      context.read<SettingsBloc>().add(FetchRolePermissionsRequested(role.id!));
+    }
   }
-
-  void _resetToOriginal() {
-    if (_selectedRole == null) return;
-    setState(() => _activePermissionIds = _permIdsFrom(_selectedRole!));
-  }
-
-  Set<int> _permIdsFrom(RolesModel role) => Set<int>.from(
-        role.permissions?.map((p) => p.id).whereType<int>() ?? [],
-      );
 
   // ── Permission toggles ──────────────────────────────────────────────────
 
@@ -104,10 +92,16 @@ class _PermissionsBodyState extends State<_PermissionsBody> {
 
   void _save() {
     if (_selectedRole?.id == null) return;
+    final allPerms = context.read<SettingsBloc>().state.permissions;
+    final permissionNames = allPerms
+        .where((p) => p.id != null && _activePermissionIds.contains(p.id))
+        .map((p) => p.name!)
+        .toList();
     context.read<SettingsBloc>().add(
-          AssignPermissionsRequested(
+          UpdateRoleRequested(
             roleId: _selectedRole!.id!,
-            permissionIds: _activePermissionIds.toList(),
+            name: _selectedRole!.name ?? '',
+            permissions: permissionNames,
           ),
         );
   }
@@ -221,7 +215,16 @@ class _PermissionsBodyState extends State<_PermissionsBody> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SettingsBloc, SettingsState>(
+    return BlocConsumer<SettingsBloc, SettingsState>(
+      listenWhen: (prev, curr) =>
+          prev.isLoadingRolePermissions && !curr.isLoadingRolePermissions,
+      listener: (context, state) {
+        setState(() {
+          _activePermissionIds = Set<int>.from(
+            state.rolePermissions.map((p) => p.id).whereType<int>(),
+          );
+        });
+      },
       builder: (context, state) {
         // Auto-select first role when roles first load
         if (_selectedRole == null && state.roles.isNotEmpty) {
@@ -250,21 +253,9 @@ class _PermissionsBodyState extends State<_PermissionsBody> {
               }
             });
           } else if (!identical(refreshed, _selectedRole)) {
-            // Always update the reference so the DropdownButton value stays
-            // in sync with the items list (avoids crash after list refresh).
-            // Only reset _activePermissionIds if permissions actually changed
-            // (e.g. after a successful save), not on create/update/delete.
+            // Update the reference so the DropdownButton value stays in sync.
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                setState(() {
-                  final permsChanged =
-                      refreshed.permissions != _selectedRole!.permissions;
-                  _selectedRole = refreshed;
-                  if (permsChanged) {
-                    _activePermissionIds = _permIdsFrom(refreshed);
-                  }
-                });
-              }
+              if (mounted) setState(() => _selectedRole = refreshed);
             });
           }
         }
@@ -275,8 +266,9 @@ class _PermissionsBodyState extends State<_PermissionsBody> {
           byCategory.putIfAbsent(_categoryFor(p), () => []).add(p);
         }
 
-        final isLoading =
-            state.isLoadingRoles || state.isLoadingPermissions;
+        final isLoading = state.isLoadingRoles ||
+            state.isLoadingPermissions ||
+            state.isLoadingRolePermissions;
 
         return Padding(
           padding: const EdgeInsets.all(32.0),
@@ -401,28 +393,9 @@ class _PermissionsBodyState extends State<_PermissionsBody> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    OutlinedButton(
-                      onPressed: _resetToOriginal,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 16),
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Reset Matrix',
-                        style: TextStyle(
-                          color: Color(0xFF64748B),
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
+                    
                     ElevatedButton(
-                      onPressed: state.isSaving || _selectedRole == null
+                      onPressed: state.isUpdatingRole || _selectedRole == null
                           ? null
                           : _save,
                       style: ElevatedButton.styleFrom(
@@ -434,7 +407,7 @@ class _PermissionsBodyState extends State<_PermissionsBody> {
                         ),
                         elevation: 0,
                       ),
-                      child: state.isSaving
+                      child: state.isUpdatingRole
                           ? const SizedBox(
                               width: 16,
                               height: 16,

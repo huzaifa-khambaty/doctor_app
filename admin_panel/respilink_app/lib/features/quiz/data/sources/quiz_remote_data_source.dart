@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/network/dio_client.dart';
 import 'package:respilink_app/core/network/models/api_response.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_analytics_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_detail_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_topic_model.dart';
@@ -19,6 +20,7 @@ abstract class QuizRemoteDataSource {
   Future<ApiResponse<dynamic>> publishQuiz(int quizId);
   Future<ApiResponse<dynamic>> unpublishQuiz(int quizId);
   Future<ApiResponse<dynamic>> deleteQuiz(int quizId);
+  Future<ApiResponse<QuizAnalyticsModel>> quizAnalytics(int quizId);
 }
 
 class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
@@ -184,5 +186,18 @@ class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
       }
     }
     return formData;
+  }
+
+    @override
+  Future<ApiResponse<QuizAnalyticsModel>> quizAnalytics(int quizId) async {
+    return _client.get(
+      '${ApiEndpoints.quizzes}/$quizId/analytics',
+      fromJson: (json) {
+        final map = json as Map<String, dynamic>;
+        if (map.containsKey('quiz_id')) return QuizAnalyticsModel.fromJson(map);
+        final nested = map['data'] ?? map;
+        return QuizAnalyticsModel.fromJson(nested as Map<String, dynamic>);
+      },
+    );
   }
 }

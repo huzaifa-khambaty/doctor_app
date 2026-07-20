@@ -5,6 +5,7 @@ import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_results_bl
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_results_event.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_results_state.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_results_app_bar.dart';
+import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_skeletons.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_stat_card.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/reinforce_knowledge_section.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/score_gauge.dart';
@@ -60,7 +61,7 @@ class _QuizResultsViewState extends State<QuizResultsView> {
             }
 
             if (state is! QuizResultsLoaded) {
-              return const Center(child: CircularProgressIndicator());
+              return const QuizResultsSkeleton();
             }
 
             return _QuizResultsBody(quizId: widget.quizId, result: state.result);

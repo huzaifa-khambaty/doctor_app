@@ -8,9 +8,11 @@ import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/events/data/model/event_listing_model.dart';
 import 'package:respilink_app/features/events/data/model/event_model.dart';
+import 'package:respilink_app/features/events/data/model/event_participants_model.dart';
 import 'package:respilink_app/features/events/presentation/bloc/events_bloc.dart';
 import 'package:respilink_app/features/events/presentation/bloc/events_event.dart';
 import 'package:respilink_app/features/events/presentation/bloc/events_state.dart';
+import 'package:respilink_app/shared/widgets/app_network_image.dart';
 
 class EventManagementContent extends StatefulWidget {
   const EventManagementContent({
@@ -43,13 +45,172 @@ class _EventManagementContentState extends State<EventManagementContent> {
     super.dispose();
   }
 
+  void _showParticipantsDialog(
+    BuildContext context,
+    EventParticipantsModel data,
+    String? eventTitle,
+  ) {
+    final participants = data.data ?? [];
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560, maxHeight: 620),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.group, color: AppColors.primary, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Registrations',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                          ),
+                          if (eventTitle != null)
+                            Text(
+                              eventTitle,
+                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${data.total ?? participants.length} total',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Divider(color: AppColors.borderLight),
+                const SizedBox(height: 8),
+                // List
+                if (participants.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40),
+                    child: Center(
+                      child: Text('No registrations yet.', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                    ),
+                  )
+                else
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: participants.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1, color: AppColors.borderLight),
+                      itemBuilder: (_, i) {
+                        final reg = participants[i];
+                        final user = reg.user;
+                        final name = user?.fullName ?? 'Unknown';
+                        final email = user?.email ?? '—';
+                        final regStatus = reg.status ?? 'registered';
+
+                        final (statusColor, statusBg) = switch (regStatus.toLowerCase()) {
+                          'attended' => (AppColors.successGreen, const Color(0xFFECFDF5)),
+                          'cancelled' => (AppColors.errorRed, const Color(0xFFFFF5F5)),
+                          _ => (AppColors.primary, const Color(0xFFE6F4F4)),
+                        };
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                          child: Row(
+                            children: [
+                              AppNetworkImage(
+                                height: 32,
+                                width: 32,
+                                isCircle: true,
+                                imageUrl: reg.user?.photoUrl,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                                    Text(email, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
+                                child: Text(
+                                  regStatus[0].toUpperCase() + regStatus.substring(1),
+                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                      foregroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    ),
+                    child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<EventsBloc, EventsState>(
-      listenWhen: (prev, curr) => prev.error != curr.error && curr.error != null,
+      listenWhen: (prev, curr) =>
+          prev.error != curr.error && curr.error != null ||
+          (prev.participantsJustFetched != curr.participantsJustFetched && curr.participantsJustFetched),
       listener: (context, state) {
-        if (state.error != null) {
-          SnackbarUtil.showSnackbar(context, message: state.error!, isError: true);
+        if (state.participantsJustFetched && state.participantsData != null) {
+          _showParticipantsDialog(context, state.participantsData!, state.participantsEventTitle);
+        } else if (state.error != null) {
+          SnackbarUtil.showSnackbar(
+            context,
+            message: state.error!,
+            isError: true,
+          );
         }
       },
       child: Padding(
@@ -63,7 +224,9 @@ class _EventManagementContentState extends State<EventManagementContent> {
                 onSearch: _onSearch,
               ),
               const SizedBox(height: 32),
-              _EventTitleRowSection(onCreateEventClicked: widget.onCreateEventClicked),
+              _EventTitleRowSection(
+                onCreateEventClicked: widget.onCreateEventClicked,
+              ),
               const SizedBox(height: 24),
               const _EventMetricsSection(),
               const SizedBox(height: 24),
@@ -105,8 +268,15 @@ class _EventSearchBarHeader extends StatelessWidget {
               onChanged: onSearch,
               decoration: InputDecoration(
                 hintText: 'Search events by title or type...',
-                hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 18),
+                hintStyle: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 13,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppColors.textMuted,
+                  size: 18,
+                ),
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
@@ -124,7 +294,10 @@ class _EventSearchBarHeader extends StatelessWidget {
         ),
         const Spacer(),
         IconButton(
-          icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textDark),
+          icon: const Icon(
+            Icons.notifications_none_outlined,
+            color: AppColors.textDark,
+          ),
           onPressed: () {},
         ),
       ],
@@ -149,37 +322,72 @@ class _EventTitleRowSection extends StatelessWidget {
         const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('EVENT MANAGEMENT',
-                style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary, letterSpacing: 1.0)),
+            Text(
+              'EVENT MANAGEMENT',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+                letterSpacing: 1.0,
+              ),
+            ),
             SizedBox(height: 4),
-            Text('Events & Webinars',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+            Text(
+              'Events & Webinars',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
           ],
         ),
         Row(
           children: [
             OutlinedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.file_download_outlined, size: 16, color: AppColors.textDark),
-              label: const Text('Export', style: TextStyle(color: AppColors.textDark, fontSize: 13)),
+              icon: const Icon(
+                Icons.file_download_outlined,
+                size: 16,
+                color: AppColors.textDark,
+              ),
+              label: const Text(
+                'Export',
+                style: TextStyle(color: AppColors.textDark, fontSize: 13),
+              ),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: AppColors.borderLight),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
             const SizedBox(width: 12),
             ElevatedButton.icon(
               onPressed: onCreateEventClicked,
               icon: const Icon(Icons.add, size: 16, color: Colors.white),
-              label: const Text('Schedule New Event',
-                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+              label: const Text(
+                'Schedule New Event',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ],
@@ -226,7 +434,10 @@ class _EventMetricsSection extends StatelessWidget {
                       ),
                       _MetricCard(
                         title: 'UPCOMING',
-                        value: events.where((e) => e.isUpcoming).length.toString(),
+                        value: events
+                            .where((e) => e.isUpcoming)
+                            .length
+                            .toString(),
                         subtitle: 'Scheduled',
                         subColor: AppColors.primary,
                         icon: Icons.schedule_outlined,
@@ -234,9 +445,12 @@ class _EventMetricsSection extends StatelessWidget {
                       _MetricCard(
                         title: 'LIVE NOW',
                         value: events.where((e) => e.isLive).length.toString(),
-                        subtitle: events.any((e) => e.isLive) ? 'In Progress' : 'None Active',
-                        subColor:
-                            events.any((e) => e.isLive) ? AppColors.errorRed : AppColors.textMuted,
+                        subtitle: events.any((e) => e.isLive)
+                            ? 'In Progress'
+                            : 'None Active',
+                        subColor: events.any((e) => e.isLive)
+                            ? AppColors.errorRed
+                            : AppColors.textMuted,
                         icon: Icons.live_tv_outlined,
                       ),
                     ],
@@ -255,8 +469,13 @@ class _EventMetricsSection extends StatelessWidget {
                             border: Border.all(color: AppColors.borderLight),
                           ),
                           child: const Center(
-                            child: Text('No upcoming events',
-                                style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+                            child: Text(
+                              'No upcoming events',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
                           ),
                         ),
                 ),
@@ -307,20 +526,40 @@ class _MetricCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textMuted,
-                      letterSpacing: 0.5)),
-              Icon(icon, color: AppColors.textMuted.withValues(alpha: 0.6), size: 16),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textMuted,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Icon(
+                icon,
+                color: AppColors.textMuted.withValues(alpha: 0.6),
+                size: 16,
+              ),
             ],
           ),
           const SizedBox(height: 10),
-          Text(value,
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(subtitle, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: subColor)),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: subColor,
+            ),
+          ),
         ],
       ),
     );
@@ -336,8 +575,9 @@ class _NextEventPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLive = event.isLive;
     final startDt = event.startDateTime;
-    final dateStr =
-        startDt != null ? DateFormat('MMM d, yyyy • h:mm a').format(startDt) : '—';
+    final dateStr = startDt != null
+        ? DateFormat('MMM d, yyyy • h:mm a').format(startDt)
+        : '—';
 
     return Container(
       width: double.infinity,
@@ -360,29 +600,53 @@ class _NextEventPanel extends StatelessWidget {
               if (isLive) ...[
                 _LiveDot(),
                 const SizedBox(width: 6),
-                const Text('LIVE NOW',
-                    style: TextStyle(
-                        fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1)),
+                const Text(
+                  'LIVE NOW',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1,
+                  ),
+                ),
               ] else
-                const Text('NEXT EVENT',
-                    style: TextStyle(
-                        fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 1)),
+                const Text(
+                  'NEXT EVENT',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white70,
+                    letterSpacing: 1,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(event.title ?? '—',
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis),
+          Text(
+            event.title ?? '—',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 11, color: Colors.white70),
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 11,
+                color: Colors.white70,
+              ),
               const SizedBox(width: 4),
               Expanded(
-                child: Text(dateStr,
-                    style: const TextStyle(fontSize: 11, color: Colors.white70),
-                    overflow: TextOverflow.ellipsis),
+                child: Text(
+                  dateStr,
+                  style: const TextStyle(fontSize: 11, color: Colors.white70),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -390,12 +654,18 @@ class _NextEventPanel extends StatelessWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.location_on_outlined, size: 11, color: Colors.white70),
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: 11,
+                  color: Colors.white70,
+                ),
                 const SizedBox(width: 4),
                 Expanded(
-                  child: Text(event.location!,
-                      style: const TextStyle(fontSize: 11, color: Colors.white70),
-                      overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    event.location!,
+                    style: const TextStyle(fontSize: 11, color: Colors.white70),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -438,17 +708,26 @@ class _EventTypeFiltersRowState extends State<_EventTypeFiltersRow> {
           ),
           child: Row(
             children: [
-              _FilterChip(label: 'All Events', isActive: _activeType == null, onTap: () => _dispatch(null)),
               _FilterChip(
-                  label: 'Webinars', isActive: _activeType == 'webinar', onTap: () => _dispatch('webinar')),
+                label: 'All Events',
+                isActive: _activeType == null,
+                onTap: () => _dispatch(null),
+              ),
               _FilterChip(
-                  label: 'Conferences',
-                  isActive: _activeType == 'conference',
-                  onTap: () => _dispatch('conference')),
+                label: 'Webinars',
+                isActive: _activeType == 'webinar',
+                onTap: () => _dispatch('webinar'),
+              ),
               _FilterChip(
-                  label: 'Workshops',
-                  isActive: _activeType == 'workshop',
-                  onTap: () => _dispatch('workshop')),
+                label: 'Conferences',
+                isActive: _activeType == 'conference',
+                onTap: () => _dispatch('conference'),
+              ),
+              _FilterChip(
+                label: 'Workshops',
+                isActive: _activeType == 'workshop',
+                onTap: () => _dispatch('workshop'),
+              ),
             ],
           ),
         ),
@@ -474,7 +753,11 @@ class _FilterChip extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _FilterChip({required this.label, required this.isActive, required this.onTap});
+  const _FilterChip({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -551,10 +834,15 @@ class _EventDataTable extends StatelessWidget {
                   else if (events.isEmpty)
                     _buildEmptyRow()
                   else
-                    ...events.map((e) => _buildEventRow(context, e, state, onEventTapped)),
+                    ...events.map(
+                      (e) => _buildEventRow(context, e, state, onEventTapped),
+                    ),
                 ],
               ),
-              _PaginationFooter(model: state.events, activeType: state.activeType),
+              _PaginationFooter(
+                model: state.events,
+                activeType: state.activeType,
+              ),
             ],
           ),
         );
@@ -563,26 +851,51 @@ class _EventDataTable extends StatelessWidget {
   }
 
   TableRow _buildHeaderRow() {
-    const style =
-        TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textMuted);
+    const style = TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.bold,
+      color: AppColors.textMuted,
+    );
     return const TableRow(
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.borderLight))),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+      ),
       children: [
-        Padding(padding: EdgeInsets.all(16), child: Text('EVENT', style: style)),
-        Padding(padding: EdgeInsets.all(16), child: Text('TYPE', style: style)),
-        Padding(padding: EdgeInsets.all(16), child: Text('DATE & TIME', style: style)),
-        Padding(padding: EdgeInsets.all(16), child: Text('STATUS', style: style)),
         Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('ACTIONS', style: style, textAlign: TextAlign.right)),
+          padding: EdgeInsets.all(16),
+          child: Text('EVENT', style: style),
+        ),
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('TYPE', style: style),
+        ),
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('DATE & TIME', style: style),
+        ),
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('STATUS', style: style),
+        ),
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('ACTIONS', style: style, textAlign: TextAlign.right),
+        ),
       ],
     );
   }
 
-  TableRow _buildEventRow(BuildContext context, Events e, EventsState state, void Function(Events) onTap) {
+  TableRow _buildEventRow(
+    BuildContext context,
+    Events e,
+    EventsState state,
+    void Function(Events) onTap,
+  ) {
     final status = e.computedStatus;
     final startDt = e.startDateTime;
-    final dateStr = startDt != null ? DateFormat('MMM d, yyyy • h:mm a').format(startDt) : '—';
+    final dateStr = startDt != null
+        ? DateFormat('MMM d, yyyy • h:mm a').format(startDt)
+        : '—';
 
     final typeColor = switch (e.type?.toLowerCase()) {
       'conference' => const Color(0xFF553C9A),
@@ -594,35 +907,54 @@ class _EventDataTable extends StatelessWidget {
       'live' => (AppColors.errorRed, const Color(0xFFFFF5F5), 'LIVE'),
       'upcoming' => (AppColors.primary, const Color(0xFFE6F4F4), 'UPCOMING'),
       'ended' => (AppColors.textMuted, const Color(0xFFF7FAFC), 'ENDED'),
-      _ => (AppColors.warningOrange, const Color(0xFFFFFAF0), status.toUpperCase()),
+      _ => (
+        AppColors.warningOrange,
+        const Color(0xFFFFFAF0),
+        status.toUpperCase(),
+      ),
     };
 
     final joinLink = e.externalJoinLink ?? e.recordingLink;
 
     return TableRow(
       decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.borderLight))),
+        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+      ),
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(e.title ?? '—',
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis),
+              Text(
+                e.title ?? '—',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
               if (e.location != null && e.location!.isNotEmpty) ...[
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 10, color: AppColors.textMuted),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 10,
+                      color: AppColors.textMuted,
+                    ),
                     const SizedBox(width: 2),
                     Expanded(
-                      child: Text(e.location!,
-                          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                          overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        e.location!,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textMuted,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -642,17 +974,25 @@ class _EventDataTable extends StatelessWidget {
               ),
               child: Text(
                 (e.type ?? 'event').toUpperCase(),
-                style:
-                    TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: typeColor),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: typeColor,
+                ),
               ),
             ),
           ),
         ),
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(dateStr,
-              style: const TextStyle(
-                  fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w500)),
+          child: Text(
+            dateStr,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textDark,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
         Padding(
           padding: const EdgeInsets.all(16),
@@ -660,19 +1000,30 @@ class _EventDataTable extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration:
-                  BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                color: statusBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (status == 'live')
                     _LiveDot()
                   else
-                    Icon(Icons.fiber_manual_record, color: statusColor, size: 8),
+                    Icon(
+                      Icons.fiber_manual_record,
+                      color: statusColor,
+                      size: 8,
+                    ),
                   const SizedBox(width: 4),
-                  Text(statusLabel,
-                      style: TextStyle(
-                          color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                  Text(
+                    statusLabel,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -687,13 +1038,53 @@ class _EventDataTable extends StatelessWidget {
                 Tooltip(
                   message: joinLink,
                   child: IconButton(
-                    icon: const Icon(Icons.videocam_outlined, size: 18, color: AppColors.errorRed),
-                    onPressed: () => Clipboard.setData(ClipboardData(text: joinLink)),
+                    icon: const Icon(
+                      Icons.videocam_outlined,
+                      size: 18,
+                      color: AppColors.errorRed,
+                    ),
+                    onPressed: () =>
+                        Clipboard.setData(ClipboardData(text: joinLink)),
                     tooltip: 'Copy join link',
                   ),
                 ),
+              state.loadingParticipantsForEventId == e.id
+                  ? const SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: Center(
+                        child: SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    )
+                  : IconButton(
+                      icon: const Icon(
+                        Icons.group,
+                        size: 18,
+                        color: AppColors.textMuted,
+                      ),
+                      onPressed: e.id != null
+                          ? () => context.read<EventsBloc>().add(
+                                FetchEventParticipantsRequested(
+                                  e.id!,
+                                  eventTitle: e.title,
+                                ),
+                              )
+                          : null,
+                      tooltip: 'Participants',
+                    ),
               IconButton(
-                icon: const Icon(Icons.visibility_outlined, size: 18, color: AppColors.textMuted),
+                icon: const Icon(
+                  Icons.visibility_outlined,
+                  size: 18,
+                  color: AppColors.textMuted,
+                ),
                 onPressed: () => onTap(e),
                 tooltip: 'View details',
               ),
@@ -706,41 +1097,54 @@ class _EventDataTable extends StatelessWidget {
   }
 
   List<TableRow> _buildSkeletonRows() {
-    final shBox =
-        BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(4));
+    final shBox = BoxDecoration(
+      color: Colors.grey.shade200,
+      borderRadius: BorderRadius.circular(4),
+    );
     return List.generate(
       5,
       (_) => TableRow(
         decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppColors.borderLight))),
+          border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+        ),
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Container(height: 12, width: 160, decoration: shBox),
-              const SizedBox(height: 6),
-              Container(height: 10, width: 90, decoration: shBox),
-            ]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 12, width: 160, decoration: shBox),
+                const SizedBox(height: 6),
+                Container(height: 10, width: 90, decoration: shBox),
+              ],
+            ),
           ),
-          Padding(
-              padding: const EdgeInsets.all(16),
-              child: Container(height: 22, width: 70, decoration: shBox)),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Container(height: 12, width: 80, decoration: shBox),
-              const SizedBox(height: 6),
-              Container(height: 10, width: 50, decoration: shBox),
-            ]),
+            child: Container(height: 22, width: 70, decoration: shBox),
           ),
           Padding(
-              padding: const EdgeInsets.all(16),
-              child: Container(
-                  height: 22,
-                  width: 72,
-                  decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12)))),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 12, width: 80, decoration: shBox),
+                const SizedBox(height: 6),
+                Container(height: 10, width: 50, decoration: shBox),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              height: 22,
+              width: 72,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
           const SizedBox(),
         ],
       ),
@@ -752,7 +1156,10 @@ class _EventDataTable extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.symmetric(vertical: 40, horizontal: 16),
-          child: Text('No events found.', style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+          child: Text(
+            'No events found.',
+            style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+          ),
         ),
         SizedBox(),
         SizedBox(),
@@ -782,9 +1189,16 @@ class _EventRowMenu extends StatelessWidget {
     return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            title: const Text('Delete Event',
-                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            title: const Text(
+              'Delete Event',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
             content: Text(
               'Are you sure you want to delete "${event.title ?? 'this event'}"? This action cannot be undone.',
               style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
@@ -792,16 +1206,23 @@ class _EventRowMenu extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel',
-                    style: TextStyle(color: AppColors.textMuted)),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: AppColors.textMuted),
+                ),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.errorRed,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           ),
@@ -817,7 +1238,10 @@ class _EventRowMenu extends StatelessWidget {
         height: 32,
         child: Padding(
           padding: EdgeInsets.all(8),
-          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppColors.primary,
+          ),
         ),
       );
     }
@@ -829,7 +1253,11 @@ class _EventRowMenu extends StatelessWidget {
       onSelected: (value) async {
         if (value == 'toggle') {
           context.read<EventsBloc>().add(
-                ToggleEventStatusRequested(event.id!, _isPublished ? 'unpublished' : 'published'));
+            ToggleEventStatusRequested(
+              event.id!,
+              _isPublished ? 'unpublished' : 'published',
+            ),
+          );
         } else if (value == 'delete') {
           final confirmed = await _confirmDelete(context);
           if (confirmed && context.mounted) {
@@ -843,7 +1271,9 @@ class _EventRowMenu extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                _isPublished ? Icons.unpublished_outlined : Icons.publish_outlined,
+                _isPublished
+                    ? Icons.unpublished_outlined
+                    : Icons.publish_outlined,
                 size: 16,
                 color: _isPublished ? AppColors.textMuted : AppColors.primary,
               ),
@@ -864,7 +1294,11 @@ class _EventRowMenu extends StatelessWidget {
           value: 'delete',
           child: Row(
             children: [
-              const Icon(Icons.delete_outline, size: 16, color: AppColors.errorRed),
+              const Icon(
+                Icons.delete_outline,
+                size: 16,
+                color: AppColors.errorRed,
+              ),
               const SizedBox(width: 10),
               const Text(
                 'Delete',
@@ -893,7 +1327,9 @@ class _PaginationFooter extends StatelessWidget {
   const _PaginationFooter({this.model, this.activeType});
 
   void _goToPage(BuildContext context, int page) {
-    context.read<EventsBloc>().add(FetchEventsRequested(page: page, type: activeType));
+    context.read<EventsBloc>().add(
+      FetchEventsRequested(page: page, type: activeType),
+    );
   }
 
   List<int?> _pageNumbers(int current, int last) {
@@ -932,13 +1368,18 @@ class _PaginationFooter extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.keyboard_arrow_left, size: 18),
-                  onPressed: current > 1 ? () => _goToPage(context, current - 1) : null,
+                  onPressed: current > 1
+                      ? () => _goToPage(context, current - 1)
+                      : null,
                 ),
                 ..._pageNumbers(current, last).map((page) {
                   if (page == null) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: Text('…', style: TextStyle(color: AppColors.textMuted)),
+                      child: Text(
+                        '…',
+                        style: TextStyle(color: AppColors.textMuted),
+                      ),
                     );
                   }
                   return _PageBtn(
@@ -949,7 +1390,9 @@ class _PaginationFooter extends StatelessWidget {
                 }),
                 IconButton(
                   icon: const Icon(Icons.keyboard_arrow_right, size: 18),
-                  onPressed: current < last ? () => _goToPage(context, current + 1) : null,
+                  onPressed: current < last
+                      ? () => _goToPage(context, current + 1)
+                      : null,
                 ),
               ],
             ),
@@ -964,7 +1407,11 @@ class _PageBtn extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _PageBtn({required this.page, required this.isActive, required this.onTap});
+  const _PageBtn({
+    required this.page,
+    required this.isActive,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1001,14 +1448,17 @@ class _LiveDot extends StatefulWidget {
   State<_LiveDot> createState() => _LiveDotState();
 }
 
-class _LiveDotState extends State<_LiveDot> with SingleTickerProviderStateMixin {
+class _LiveDotState extends State<_LiveDot>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
   )..repeat(reverse: true);
 
-  late final Animation<double> _anim =
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+  late final Animation<double> _anim = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeInOut,
+  );
 
   @override
   void dispose() {
@@ -1023,7 +1473,10 @@ class _LiveDotState extends State<_LiveDot> with SingleTickerProviderStateMixin 
       child: Container(
         width: 8,
         height: 8,
-        decoration: const BoxDecoration(color: AppColors.errorRed, shape: BoxShape.circle),
+        decoration: const BoxDecoration(
+          color: AppColors.errorRed,
+          shape: BoxShape.circle,
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_analytics_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_detail_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_topic_model.dart';
@@ -16,4 +17,5 @@ abstract class QuizRepository {
   Future<ApiResponse<dynamic>> publishQuiz(int quizId);
   Future<ApiResponse<dynamic>> unpublishQuiz(int quizId);
   Future<ApiResponse<dynamic>> deleteQuiz(int quizId);
+  Future<ApiResponse<QuizAnalyticsModel>> quizAnalytics(int quizId);
 }

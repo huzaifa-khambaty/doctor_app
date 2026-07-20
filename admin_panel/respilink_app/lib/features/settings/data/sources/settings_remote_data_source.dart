@@ -10,6 +10,7 @@ import 'package:respilink_app/features/settings/presentation/pages/data/model/ro
 abstract class SettingsRemoteDataSource {
   Future<ApiResponse<List<RolesModel>>> getRoles();
   Future<ApiResponse<List<RolesModel>>> getPermissions();
+  Future<ApiResponse<RolesModel>> listPermissionsAgainstRole(int roleId);
   Future<ApiResponse<dynamic>> assignPermissions({
     required int roleId,
     required AssignPermissionsRequest request,
@@ -98,5 +99,13 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
   @override
   Future<ApiResponse<dynamic>> deleteAdmin(int adminId) async {
     return _client.delete('${ApiEndpoints.admins}/$adminId');
+  }
+
+    @override
+  Future<ApiResponse<RolesModel>> listPermissionsAgainstRole(int roleId) async {
+    return _client.get(
+      '${ApiEndpoints.roles}/$roleId',
+      fromJson: (json) => RolesModel.fromJson(json as Map<String, dynamic>),
+    );
   }
 }

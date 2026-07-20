@@ -16,6 +16,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<CreateRoleRequested>(_createRole);
     on<UpdateRoleRequested>(_updateRole);
     on<DeleteRoleRequested>(_deleteRole);
+    on<FetchRolePermissionsRequested>(_fetchRolePermissions);
     on<FetchAdminsRequested>(_fetchAdmins);
     on<CreateAdminRequested>(_createAdmin);
     on<UpdateAdminRequested>(_updateAdmin);
@@ -50,6 +51,25 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           error: res.fullErrorMessage,
         ),
       );
+    }
+  }
+
+  Future<void> _fetchRolePermissions(
+    FetchRolePermissionsRequested event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingRolePermissions: true));
+    final res = await _repository.listPermissionsAgainstRole(event.roleId);
+    if (res.success && res.data != null) {
+      emit(state.copyWith(
+        rolePermissions: res.data!.permissions ?? [],
+        isLoadingRolePermissions: false,
+      ));
+    } else {
+      emit(state.copyWith(
+        isLoadingRolePermissions: false,
+        error: res.fullErrorMessage,
+      ));
     }
   }
 
@@ -93,7 +113,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(state.copyWith(isUpdatingRole: true));
     final res = await _repository.updateRole(
       event.roleId,
-      CreateUpdateRoleRequest(event.name),
+      CreateUpdateRoleRequest(event.name, permissions: event.permissions),
     );
     if (res.success) {
       emit(state.copyWith(isUpdatingRole: false, updateRoleSuccess: true));

@@ -1,4 +1,5 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_analytics_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_detail_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_topic_model.dart';
@@ -54,4 +55,8 @@ class QuizRepositoryImpl implements QuizRepository {
   @override
   Future<ApiResponse<dynamic>> deleteQuiz(int quizId) =>
       _remoteDataSource.deleteQuiz(quizId);
+
+  @override
+  Future<ApiResponse<QuizAnalyticsModel>> quizAnalytics(int quizId) =>
+      _remoteDataSource.quizAnalytics(quizId);
 }

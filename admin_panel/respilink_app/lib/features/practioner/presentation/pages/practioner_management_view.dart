@@ -15,11 +15,11 @@ import 'package:shimmer/shimmer.dart';
 class PractitionerManagementContent extends StatefulWidget {
   const PractitionerManagementContent({
     super.key,
-    required this.onManualEnrollmentClicked,
+    this.onManualEnrollmentClicked,
     required this.onUserTapped,
   });
 
-  final VoidCallback onManualEnrollmentClicked;
+  final VoidCallback? onManualEnrollmentClicked;
   final Function(Practioners) onUserTapped;
 
   @override
@@ -161,9 +161,9 @@ class _PractitionerHeader extends StatelessWidget {
 }
 
 class _PipelineTitleSection extends StatelessWidget {
-  const _PipelineTitleSection({required this.onManualEnrollmentClicked});
+  const _PipelineTitleSection({this.onManualEnrollmentClicked});
 
-  final VoidCallback onManualEnrollmentClicked;
+  final VoidCallback? onManualEnrollmentClicked;
 
   @override
   Widget build(BuildContext context) {
@@ -218,29 +218,31 @@ class _PipelineTitleSection extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
-              onPressed: () => onManualEnrollmentClicked.call(),
-              icon: const Icon(Icons.add, size: 16, color: Colors.white),
-              label: const Text(
-                'Manual Enrollment',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+            if (onManualEnrollmentClicked != null) ...[
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: onManualEnrollmentClicked,
+                icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                label: const Text(
+                  'Manual Enrollment',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
+            ],
           ],
         ),
       ],

@@ -4,6 +4,11 @@ class FetchRolesRequested extends SettingsEvent {}
 
 class FetchPermissionsRequested extends SettingsEvent {}
 
+class FetchRolePermissionsRequested extends SettingsEvent {
+  final int roleId;
+  FetchRolePermissionsRequested(this.roleId);
+}
+
 class AssignPermissionsRequested extends SettingsEvent {
   final int roleId;
   final List<int> permissionIds;
@@ -22,7 +27,8 @@ class CreateRoleRequested extends SettingsEvent {
 class UpdateRoleRequested extends SettingsEvent {
   final int roleId;
   final String name;
-  UpdateRoleRequested({required this.roleId, required this.name});
+  final List<String>? permissions;
+  UpdateRoleRequested({required this.roleId, required this.name, this.permissions});
 }
 
 class DeleteRoleRequested extends SettingsEvent {

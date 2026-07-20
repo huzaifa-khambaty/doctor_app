@@ -1,5 +1,6 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
 import 'package:respilink_app/features/events/data/model/event_listing_model.dart';
+import 'package:respilink_app/features/events/data/model/event_participants_model.dart';
 import 'package:respilink_app/features/events/data/model/request/create_event_request.dart';
 import 'package:respilink_app/features/events/data/sources/events_remote_data_source.dart';
 import 'package:respilink_app/features/events/domain/repositories/events_repository.dart';
@@ -29,4 +30,8 @@ class EventsRepositoryImpl implements EventsRepository {
   @override
   Future<ApiResponse<dynamic>> deleteEvent(int id) =>
       _remoteDataSource.deleteEvent(id);
+
+  @override
+  Future<ApiResponse<EventParticipantsModel>> eventParticipants(int eventId) =>
+      _remoteDataSource.eventParticipants(eventId);
 }

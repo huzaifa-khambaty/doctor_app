@@ -20,6 +20,10 @@ class SettingsState {
   final bool isDeletingRole;
   final bool deleteRoleSuccess;
 
+  // Permissions assigned to the currently selected role
+  final List<RolesModel> rolePermissions;
+  final bool isLoadingRolePermissions;
+
   // Admin user management
   final List<AdminUserModel> admins;
   final bool isLoadingAdmins;
@@ -45,6 +49,8 @@ class SettingsState {
     this.updateRoleSuccess = false,
     this.isDeletingRole = false,
     this.deleteRoleSuccess = false,
+    this.rolePermissions = const [],
+    this.isLoadingRolePermissions = false,
     this.admins = const [],
     this.isLoadingAdmins = false,
     this.isCreatingAdmin = false,
@@ -69,6 +75,8 @@ class SettingsState {
     bool? updateRoleSuccess,
     bool? isDeletingRole,
     bool? deleteRoleSuccess,
+    List<RolesModel>? rolePermissions,
+    bool? isLoadingRolePermissions,
     List<AdminUserModel>? admins,
     bool? isLoadingAdmins,
     bool? isCreatingAdmin,
@@ -92,6 +100,8 @@ class SettingsState {
       updateRoleSuccess: updateRoleSuccess ?? false,
       isDeletingRole: isDeletingRole ?? this.isDeletingRole,
       deleteRoleSuccess: deleteRoleSuccess ?? false,
+      rolePermissions: rolePermissions ?? this.rolePermissions,
+      isLoadingRolePermissions: isLoadingRolePermissions ?? this.isLoadingRolePermissions,
       admins: admins ?? this.admins,
       isLoadingAdmins: isLoadingAdmins ?? this.isLoadingAdmins,
       isCreatingAdmin: isCreatingAdmin ?? this.isCreatingAdmin,

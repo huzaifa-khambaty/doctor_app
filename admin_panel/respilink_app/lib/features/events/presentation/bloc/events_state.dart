@@ -1,4 +1,5 @@
 import 'package:respilink_app/features/events/data/model/event_listing_model.dart';
+import 'package:respilink_app/features/events/data/model/event_participants_model.dart';
 import 'package:respilink_app/features/practioner/data/model/practioner_model.dart';
 
 class EventsState {
@@ -16,6 +17,11 @@ class EventsState {
   final String? error;
   final List<Practioners> speakers;
   final bool isLoadingSpeakers;
+  final EventParticipantsModel? participantsData;
+  final String? participantsEventTitle;
+  final bool isLoadingParticipants;
+  final int? loadingParticipantsForEventId;
+  final bool participantsJustFetched;
 
   const EventsState({
     this.events,
@@ -32,6 +38,11 @@ class EventsState {
     this.error,
     this.speakers = const [],
     this.isLoadingSpeakers = false,
+    this.participantsData,
+    this.participantsEventTitle,
+    this.isLoadingParticipants = false,
+    this.loadingParticipantsForEventId,
+    this.participantsJustFetched = false,
   });
 
   EventsState copyWith({
@@ -52,6 +63,11 @@ class EventsState {
     List<Practioners>? speakers,
     bool? isLoadingSpeakers,
     bool clearActiveType = false,
+    Object? participantsData = _sentinel,
+    String? participantsEventTitle,
+    bool? isLoadingParticipants,
+    Object? loadingParticipantsForEventId = _sentinel,
+    bool? participantsJustFetched,
   }) {
     return EventsState(
       events: events ?? this.events,
@@ -68,6 +84,17 @@ class EventsState {
       error: error,
       speakers: speakers ?? this.speakers,
       isLoadingSpeakers: isLoadingSpeakers ?? this.isLoadingSpeakers,
+      participantsData: identical(participantsData, _sentinel)
+          ? this.participantsData
+          : participantsData as EventParticipantsModel?,
+      participantsEventTitle: participantsEventTitle ?? this.participantsEventTitle,
+      isLoadingParticipants: isLoadingParticipants ?? this.isLoadingParticipants,
+      loadingParticipantsForEventId: identical(loadingParticipantsForEventId, _sentinel)
+          ? this.loadingParticipantsForEventId
+          : loadingParticipantsForEventId as int?,
+      participantsJustFetched: participantsJustFetched ?? false,
     );
   }
 }
+
+const Object _sentinel = Object();

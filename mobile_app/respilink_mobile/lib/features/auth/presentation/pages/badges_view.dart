@@ -247,7 +247,6 @@ class _BadgeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final earned = badge.earned ?? false;
-    print("${ApiEndpoints.imageUrl}${badge.icon}");
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 10.w),

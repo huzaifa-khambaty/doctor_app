@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/features/analytics/presentation/pages/engagement_analytics_view.dart';
 import 'package:respilink_app/features/auth/presentation/pages/user_account_content.dart';
+import 'package:respilink_app/features/content/data/models/content_model.dart';
+import 'package:respilink_app/features/content/presentation/bloc/content_bloc.dart';
+import 'package:respilink_app/features/content/presentation/pages/add_content_view.dart';
 import 'package:respilink_app/features/content/presentation/pages/content_repository_view.dart';
 import 'package:respilink_app/features/dashboard/presentation/widgets/desktop_dashboard_main_content.dart';
 import 'package:respilink_app/features/dashboard/presentation/widgets/mobile_dashboard_view.dart';
@@ -31,6 +34,7 @@ import 'package:respilink_app/features/settings/presentation/bloc/settings_event
 import 'package:respilink_app/features/settings/presentation/pages/setttings_view.dart';
 import 'package:respilink_app/features/settings/presentation/pages/admin_user_management_view.dart';
 import 'package:respilink_app/features/settings/presentation/pages/user_permission_content_view.dart';
+// import 'package:respilink_app/core/utils/global_notifiers.dart'; // re-enable with permission gating
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
 import 'package:respilink_app/shared/widgets/responsive_layout.dart';
 import 'package:respilink_app/shared/widgets/sidebar_content.dart';
@@ -50,6 +54,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   bool _showCreateQuizForm = false;
   int? _editingQuizId;
   bool _showNotificationHistory = false;
+  bool _showAddContentForm = false;
+  Data? _editingContent;
 
   // Practitioner section
   Practioners? _selectedPractioner;
@@ -72,18 +78,22 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     ..add(FetchTopicsRequested())
     ..add(FetchQuizzesRequested());
 
+  late final ContentBloc _contentBloc = locator<ContentBloc>();
+
   @override
   void dispose() {
     _practionerBloc.close();
     _eventsBloc.close();
     _settingsBloc.close();
     _quizBloc.close();
+    _contentBloc.close();
     super.dispose();
   }
 
   Widget _getContentBody(int index) {
     switch (index) {
       case 0:
+        if (!_hasPerm('users.view')) return const _AccessDeniedContent();
         return BlocProvider<PractionerBloc>.value(
           value: _practionerBloc,
           child: _showNotificationHistory
@@ -103,6 +113,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                 ),
         );
       case 1:
+        if (!_hasPerm('users.view')) return const _AccessDeniedContent();
         return BlocProvider<PractionerBloc>.value(
           value: _practionerBloc,
           child: _showManualEnrollmentForm
@@ -117,15 +128,33 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                           setState(() => _selectedPractioner = null),
                     )
                   : PractitionerManagementContent(
-                      onManualEnrollmentClicked: () =>
-                          setState(() => _showManualEnrollmentForm = true),
+                      onManualEnrollmentClicked: _hasPerm('users.create')
+                          ? () => setState(() => _showManualEnrollmentForm = true)
+                          : null,
                       onUserTapped: (p) =>
                           setState(() => _selectedPractioner = p),
                     ),
         );
       case 2:
-        return const ContentRepositoryContent();
+        return BlocProvider<ContentBloc>.value(
+          value: _contentBloc,
+          child: (_showAddContentForm || _editingContent != null)
+              ? AddContentView(
+                  existingContent: _editingContent,
+                  onBack: () => setState(() {
+                    _showAddContentForm = false;
+                    _editingContent = null;
+                  }),
+                )
+              : ContentRepositoryContent(
+                  onAddContentClicked: () =>
+                      setState(() => _showAddContentForm = true),
+                  onEditContentClicked: (item) =>
+                      setState(() => _editingContent = item),
+                ),
+        );
       case 3:
+        if (!_hasPerm('quizzes.view')) return const _AccessDeniedContent();
         return BlocProvider<QuizBloc>.value(
           value: _quizBloc,
           child: _showCreateQuizForm
@@ -147,6 +176,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                     ),
         );
       case 4:
+        if (!_hasPerm('events.view')) return const _AccessDeniedContent();
         return BlocProvider<EventsBloc>.value(
           value: _eventsBloc,
           child: _showCreateEventForm
@@ -166,18 +196,22 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       case 5:
         return QueryInboxContent();
       case 6:
+        if (!_hasAnyPerm(['admins.view', 'users.view'])) return const _AccessDeniedContent();
         return EngagementAnalyticsContent();
       case 7:
+        if (!_hasAnyPerm(['admins.view', 'roles.manage'])) return const _AccessDeniedContent();
         return BlocProvider<SettingsBloc>.value(
           value: _settingsBloc,
           child: const AdminUserManagementContent(),
         );
       case 8:
+        if (!_hasAnyPerm(['admins.view', 'roles.manage'])) return const _AccessDeniedContent();
         return BlocProvider<SettingsBloc>.value(
           value: _settingsBloc,
           child: const UserPermissionsContent(),
         );
       case 9:
+        if (!_hasAnyPerm(['admins.view', 'roles.manage'])) return const _AccessDeniedContent();
         return SettingsContent();
       case 10:
         return UserAccountContent();
@@ -198,9 +232,25 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     }
   }
 
+  // PERMISSION GATING DISABLED — re-enable by removing the `return true` lines
+  bool _hasPerm(String permission) => true;
+  bool _hasAnyPerm(List<String> permissions) => true;
+  // bool _hasPerm(String permission) {
+  //   final admin = GlobalNotifiers.adminNotifier.value;
+  //   if (admin == null) return false;
+  //   if (admin.roles?.contains('super_admin') == true) return true;
+  //   return admin.permissions?.contains(permission) == true;
+  // }
+  // bool _hasAnyPerm(List<String> permissions) =>
+  //     permissions.any((p) => _hasPerm(p));
+
   void _onNavigationChanged(int index) {
     setState(() {
       _currentNavigationIndex = index;
+      if (index == 2) {
+        _showAddContentForm = false;
+        _editingContent = null;
+      }
     });
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
@@ -303,6 +353,36 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 24),
             )
           : SizedBox.shrink(),
+    );
+  }
+}
+
+class _AccessDeniedContent extends StatelessWidget {
+  const _AccessDeniedContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.lock_outline_rounded, size: 64, color: Colors.grey[300]),
+          const SizedBox(height: 20),
+          Text(
+            'Access Restricted',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'You don\'t have permission to view this section.',
+            style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+          ),
+        ],
+      ),
     );
   }
 }

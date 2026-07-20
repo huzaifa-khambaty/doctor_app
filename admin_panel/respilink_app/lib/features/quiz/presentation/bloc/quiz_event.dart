@@ -50,3 +50,8 @@ class DeleteQuizRequested extends QuizEvent {
 }
 
 class ResetQuizFormRequested extends QuizEvent {}
+
+class FetchQuizAnalyticsRequested extends QuizEvent {
+  final int quizId;
+  FetchQuizAnalyticsRequested(this.quizId);
+}

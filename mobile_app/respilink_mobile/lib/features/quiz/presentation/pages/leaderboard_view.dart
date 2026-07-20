@@ -6,6 +6,7 @@ import 'package:respilink_mobile/features/quiz/presentation/widgets/leaderboard_
 import 'package:respilink_mobile/features/quiz/presentation/widgets/medical_leaderboard_widget.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/ranking_row.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/rankings_section_header.dart';
+import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_skeletons.dart';
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
 import '../../../../exports.dart';
@@ -42,7 +43,7 @@ class _LeaderboardViewState extends State<LeaderboardView> {
             }
 
             if (state is! QuizLeaderboardLoaded) {
-              return const Center(child: CircularProgressIndicator());
+              return const QuizLeaderboardSkeleton();
             }
 
             return SingleChildScrollView(
@@ -55,9 +56,7 @@ class _LeaderboardViewState extends State<LeaderboardView> {
                   SizedBox(height: 12.h),
 
                   RankingsSectionHeader(
-                    onAllSpecialtiesTap: () {
-                      // TODO: wire specialty filtering once it exists.
-                    },
+                    onAllSpecialtiesTap: null,
                   ),
 
                   SizedBox(height: 8.h),

@@ -2,7 +2,7 @@ class EventWorkshopModel {
   int? id;
   String? title;
   String? banner;
-  Trainer? trainer;
+  List<Trainer>? trainers;
   String? date;
   String? startTime;
   String? endTime;
@@ -17,7 +17,7 @@ class EventWorkshopModel {
       {this.id,
       this.title,
       this.banner,
-      this.trainer,
+      this.trainers,
       this.date,
       this.startTime,
       this.endTime,
@@ -32,8 +32,12 @@ class EventWorkshopModel {
     id = json['id'];
     title = json['title'];
     banner = json['banner'];
-    trainer =
-        json['trainer'] != null ? Trainer.fromJson(json['trainer']) : null;
+    if (json['trainers'] != null) {
+      trainers = <Trainer>[];
+      json['trainers'].forEach((v) {
+        trainers!.add(Trainer.fromJson(v));
+      });
+    }
     date = json['date'];
     startTime = json['start_time'];
     endTime = json['end_time'];
@@ -52,8 +56,8 @@ class EventWorkshopModel {
     data['id'] = id;
     data['title'] = title;
     data['banner'] = banner;
-    if (trainer != null) {
-      data['trainer'] = trainer!.toJson();
+    if (trainers != null) {
+      data['trainers'] = trainers!.map((v) => v.toJson()).toList();
     }
     data['date'] = date;
     data['start_time'] = startTime;
@@ -72,13 +76,20 @@ class Trainer {
   String? name;
   String? designation;
   String? image;
+  List<WorkshopSpecialty>? specialties;
 
-  Trainer({this.name, this.designation, this.image});
+  Trainer({this.name, this.designation, this.image, this.specialties});
 
   Trainer.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     designation = json['designation'];
     image = json['image'];
+    if (json['specialties'] != null) {
+      specialties = <WorkshopSpecialty>[];
+      json['specialties'].forEach((v) {
+        specialties!.add(WorkshopSpecialty.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -86,6 +97,31 @@ class Trainer {
     data['name'] = name;
     data['designation'] = designation;
     data['image'] = image;
+    if (specialties != null) {
+      data['specialties'] = specialties!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class WorkshopSpecialty {
+  int? id;
+  String? name;
+  String? slug;
+
+  WorkshopSpecialty({this.id, this.name, this.slug});
+
+  WorkshopSpecialty.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    slug = json['slug'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['slug'] = slug;
     return data;
   }
 }

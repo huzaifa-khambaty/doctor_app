@@ -5,20 +5,6 @@ import 'package:respilink_mobile/shared/widgets/app_notification_bell.dart';
 
 import '../../../../exports.dart';
 
-class _Badge {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final bool earned;
-
-  const _Badge({
-    required this.icon,
-    required this.label,
-    required this.color,
-    this.earned = true,
-  });
-}
-
 // TODO: replace with real data from the backend once the profile/stats API is wired up.
 List<(int, String, Color)> _stats = [
   (GlobalNotifiers.userNotifier.value?.quizCount ?? 0, 'QUIZZES', AppColors.primary),
@@ -26,29 +12,9 @@ List<(int, String, Color)> _stats = [
   (GlobalNotifiers.userNotifier.value?.badgeCount ?? 0, 'BADGES', AppColors.purpleAccent),
 ];
 
-final _badges = [
-  const _Badge(
-    icon: Icons.workspace_premium,
-    label: 'Top Contributor',
-    color: AppColors.primary,
-  ),
-  const _Badge(
-    icon: Icons.bolt,
-    label: 'Fast Learner',
-    color: AppColors.yellow,
-  ),
-  const _Badge(
-    icon: Icons.menu_book,
-    label: 'Librarian',
-    color: AppColors.purpleAccent,
-  ),
-  _Badge(
-    icon: Icons.lock_outline,
-    label: 'Expert',
-    color: AppColors.grey,
-    earned: false,
-  ),
-];
+/// Profile summary only has room for a handful — "View All" opens the full
+/// Badges screen for the rest.
+const _maxBadgesShown = 4;
 
 class ProfileView extends StatelessWidget {
   final bool showBackButton;
@@ -130,13 +96,7 @@ class ProfileView extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 14.h),
-                  Row(
-                    children: _badges
-                        .map(
-                          (badge) => Expanded(child: _BadgeTile(badge: badge)),
-                        )
-                        .toList(),
-                  ),
+                  _EarnedBadgesRow(badges: user?.earnedBadges ?? const []),
 
                   SizedBox(height: 24.h),
 
@@ -317,8 +277,32 @@ class _StatsRow extends StatelessWidget {
   }
 }
 
+class _EarnedBadgesRow extends StatelessWidget {
+  final List<EarnedBadges> badges;
+
+  const _EarnedBadgesRow({required this.badges});
+
+  @override
+  Widget build(BuildContext context) {
+    if (badges.isEmpty) {
+      return AppText.small(
+        label: 'No badges earned yet.',
+        color: AppColors.grey,
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: .start,
+      children: badges
+          .take(_maxBadgesShown)
+          .map((badge) => _BadgeTile(badge: badge))
+          .toList(),
+    );
+  }
+}
+
 class _BadgeTile extends StatelessWidget {
-  final _Badge badge;
+  final EarnedBadges badge;
 
   const _BadgeTile({required this.badge});
 
@@ -330,24 +314,36 @@ class _BadgeTile extends StatelessWidget {
           width: 48.r,
           height: 48.r,
           decoration: BoxDecoration(
-            color: badge.earned
-                ? badge.color.withValues(alpha: 0.12)
-                : AppColors.fieldColor,
+            color: AppColors.primary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            badge.icon,
-            color: badge.earned ? badge.color : AppColors.grey,
-            size: 22.sp,
-          ),
+          child: badge.icon != null
+              ? ClipOval(
+                  child: AppNetworkImage(
+                    imageUrl: badge.icon!,
+                    width: 48.r,
+                    height: 48.r,
+                    fit: BoxFit.cover,
+                    errorWidget: Icon(
+                      Icons.workspace_premium,
+                      color: AppColors.primary,
+                      size: 22.sp,
+                    ),
+                  ),
+                )
+              : Icon(
+                  Icons.workspace_premium,
+                  color: AppColors.primary,
+                  size: 22.sp,
+                ),
         ),
         SizedBox(height: 6.h),
         AppText.small(
-          label: badge.label,
+          label: badge.name ?? '',
           fontSize: 10.sp,
           fontWeight: FontWeight.w600,
           textAlign: TextAlign.center,
-          color: badge.earned ? AppColors.black : AppColors.grey,
+          color: AppColors.black,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),

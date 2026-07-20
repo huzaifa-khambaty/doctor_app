@@ -8,6 +8,7 @@ import 'package:respilink_app/features/settings/presentation/pages/data/model/ro
 abstract class SettingsRepository {
   Future<ApiResponse<List<RolesModel>>> getRoles();
   Future<ApiResponse<List<RolesModel>>> getPermissions();
+  Future<ApiResponse<RolesModel>> listPermissionsAgainstRole(int roleId);
   Future<ApiResponse<dynamic>> assignPermissions({
     required int roleId,
     required AssignPermissionsRequest request,

@@ -173,9 +173,7 @@ class _SettingsViewState extends State<SettingsView> {
                         icon: Icons.mail_outline,
                         label: 'Email Address',
                         trailingText: user?.email ?? 's.jenkins@hospital.org',
-                        onTap: () {
-                          // TODO: navigate to the edit-profile screen once it exists.
-                        },
+                        onTap: () {},
                         isLast: true,
                       ),
                     ],

@@ -62,7 +62,7 @@ class Handlers {
 
   static void onLogout(BuildContext context) async {
     await locator<PusherService>().disconnect();
-    BlocProvider.of<DashboardBloc>(context).add(ChangeTabRequested(0));
+    if(context.mounted) BlocProvider.of<DashboardBloc>(context).add(ChangeTabRequested(0));
     locator<NavigationService>().navigateAndRemove(RouterStrings.login);
   }
 }

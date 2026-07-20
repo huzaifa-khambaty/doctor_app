@@ -3,6 +3,7 @@ import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_review_blo
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_review_event.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_review_state.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_review_question_card.dart';
+import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_skeletons.dart';
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
 import '../../../../exports.dart';
@@ -113,7 +114,7 @@ class _QuizReviewViewState extends State<QuizReviewView> {
         }
 
         if (state is! QuizReviewLoaded) {
-          return AppSkeleton.cardList();
+          return const QuizReviewSkeleton();
         }
 
         return ListView.separated(

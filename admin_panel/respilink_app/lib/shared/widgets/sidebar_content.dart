@@ -17,135 +17,157 @@ class MySidebarContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.sidebarBg,
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-      child: Column(
-        crossAxisAlignment: isCollapsed
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
-        children: [
-          if (!isCollapsed) ...[
-            const Text(
-              'RespiLink Admin',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Clinical Management',
-              style: TextStyle(color: Colors.white60, fontSize: 12),
-            ),
-          ] else ...[
-            Icon(Icons.medical_information, color: Colors.white, size: 28),
-          ],
+    return ValueListenableBuilder(
+      valueListenable: GlobalNotifiers.adminNotifier,
+      builder: (context, admin, _) {
+        // PERMISSION GATING DISABLED — re-enable by removing the `return true` lines
+        bool hasPerm(String p) => true;
+        bool hasAnyPerm(List<String> perms) => true;
+        // bool hasPerm(String p) {
+        //   if (admin == null) return false;
+        //   if (admin.roles?.contains('super_admin') == true) return true;
+        //   return admin.permissions?.contains(p) == true;
+        // }
+        // bool hasAnyPerm(List<String> perms) => perms.any(hasPerm);
 
-          const SizedBox(height: 32),
+        return Container(
+          color: AppColors.sidebarBg,
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          child: Column(
+            crossAxisAlignment: isCollapsed
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
+            children: [
+              if (!isCollapsed) ...[
+                const Text(
+                  'RespiLink Admin',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Clinical Management',
+                  style: TextStyle(color: Colors.white60, fontSize: 12),
+                ),
+              ] else ...[
+                Icon(Icons.medical_information, color: Colors.white, size: 28),
+              ],
 
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _SidebarItem(
-                  icon: Icons.grid_view_rounded,
-                  title: 'Dashboard',
-                  isActive: selectedIndex == 0,
-                  isCollapsed: isCollapsed,
-                  onTap: (v) => onDestinationSelected?.call(v),
-                  index: 0,
-                ),
-                _SidebarItem(
-                  icon: Icons.people_outline_rounded,
-                  title: 'Users',
-                  isCollapsed: isCollapsed,
-                  isActive: selectedIndex == 1,
-                  onTap: (v) => onDestinationSelected?.call(v),
-                  index: 1,
-                ),
-                _SidebarItem(
-                  icon: Icons.description_outlined,
-                  title: 'Content',
-                  isCollapsed: isCollapsed,
-                  isActive: selectedIndex == 2,
-                  onTap: (v) => onDestinationSelected?.call(v),
-                  index: 2,
-                ),
-                _SidebarItem(
-                  icon: Icons.quiz_outlined,
-                  title: 'Quizzes',
-                  isCollapsed: isCollapsed,
-                  isActive: selectedIndex == 3,
-                  onTap: (v) => onDestinationSelected?.call(v),
-                  index: 3,
-                ),
-                _SidebarItem(
-                  icon: Icons.calendar_today_outlined,
-                  title: 'Events',
-                  isCollapsed: isCollapsed,
-                  isActive: selectedIndex == 4,
-                  onTap: (v) => onDestinationSelected?.call(v),
-                  index: 4,
-                ),
-                _SidebarItem(
-                  icon: Icons.help_outline_rounded,
-                  title: 'Queries',
-                  isCollapsed: isCollapsed,
-                  isActive: selectedIndex == 5,
-                  onTap: (v) => onDestinationSelected?.call(v),
-                  index: 5,
-                ),
-                _SidebarItem(
-                  icon: Icons.analytics_outlined,
-                  title: 'Analytics',
-                  isCollapsed: isCollapsed,
-                  isActive: selectedIndex == 6,
-                  onTap: (v) => onDestinationSelected?.call(v),
-                  index: 6,
-                ),
-                // Admin Management expandable group
-                _ExpandableSidebarGroup(
-                  icon: Icons.admin_panel_settings_outlined,
-                  title: 'Admin Management',
-                  isCollapsed: isCollapsed,
-                  isGroupActive: selectedIndex == 7 || selectedIndex == 8,
+              const SizedBox(height: 32),
+
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
                   children: [
-                    _SidebarSubItem(
-                      title: 'User Management',
-                      isActive: selectedIndex == 7,
-                      onTap: () => onDestinationSelected?.call(7),
+                    if (hasPerm('users.view'))
+                      _SidebarItem(
+                        icon: Icons.grid_view_rounded,
+                        title: 'Dashboard',
+                        isActive: selectedIndex == 0,
+                        isCollapsed: isCollapsed,
+                        onTap: (v) => onDestinationSelected?.call(v),
+                        index: 0,
+                      ),
+                    if (hasPerm('users.view'))
+                      _SidebarItem(
+                        icon: Icons.people_outline_rounded,
+                        title: 'Users',
+                        isCollapsed: isCollapsed,
+                        isActive: selectedIndex == 1,
+                        onTap: (v) => onDestinationSelected?.call(v),
+                        index: 1,
+                      ),
+                    _SidebarItem(
+                      icon: Icons.description_outlined,
+                      title: 'Content',
+                      isCollapsed: isCollapsed,
+                      isActive: selectedIndex == 2,
+                      onTap: (v) => onDestinationSelected?.call(v),
+                      index: 2,
                     ),
-                    _SidebarSubItem(
-                      title: 'Permissions',
-                      isActive: selectedIndex == 8,
-                      onTap: () => onDestinationSelected?.call(8),
+                    if (hasPerm('quizzes.view'))
+                      _SidebarItem(
+                        icon: Icons.quiz_outlined,
+                        title: 'Quizzes',
+                        isCollapsed: isCollapsed,
+                        isActive: selectedIndex == 3,
+                        onTap: (v) => onDestinationSelected?.call(v),
+                        index: 3,
+                      ),
+                    if (hasPerm('events.view'))
+                      _SidebarItem(
+                        icon: Icons.calendar_today_outlined,
+                        title: 'Events',
+                        isCollapsed: isCollapsed,
+                        isActive: selectedIndex == 4,
+                        onTap: (v) => onDestinationSelected?.call(v),
+                        index: 4,
+                      ),
+                    _SidebarItem(
+                      icon: Icons.help_outline_rounded,
+                      title: 'Queries',
+                      isCollapsed: isCollapsed,
+                      isActive: selectedIndex == 5,
+                      onTap: (v) => onDestinationSelected?.call(v),
+                      index: 5,
                     ),
+                    if (hasAnyPerm(['admins.view', 'users.view']))
+                      _SidebarItem(
+                        icon: Icons.analytics_outlined,
+                        title: 'Analytics',
+                        isCollapsed: isCollapsed,
+                        isActive: selectedIndex == 6,
+                        onTap: (v) => onDestinationSelected?.call(v),
+                        index: 6,
+                      ),
+                    if (hasAnyPerm(['admins.view', 'roles.manage']))
+                      _ExpandableSidebarGroup(
+                        icon: Icons.admin_panel_settings_outlined,
+                        title: 'Admin Management',
+                        isCollapsed: isCollapsed,
+                        isGroupActive: selectedIndex == 7 || selectedIndex == 8,
+                        children: [
+                          _SidebarSubItem(
+                            title: 'User Management',
+                            isActive: selectedIndex == 7,
+                            onTap: () => onDestinationSelected?.call(7),
+                          ),
+                          _SidebarSubItem(
+                            title: 'Permissions',
+                            isActive: selectedIndex == 8,
+                            onTap: () => onDestinationSelected?.call(8),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
+              ),
+
+              const Divider(color: Colors.white12, height: 32),
+              if (hasAnyPerm(['admins.view', 'roles.manage'])) ...[
+                _SidebarItem(
+                  icon: Icons.settings_outlined,
+                  title: 'Settings',
+                  isCollapsed: isCollapsed,
+                  isActive: selectedIndex == 9,
+                  onTap: (v) => onDestinationSelected?.call(v),
+                  index: 9,
+                ),
+                const SizedBox(height: 16),
               ],
-            ),
-          ),
 
-          const Divider(color: Colors.white12, height: 32),
-          _SidebarItem(
-            icon: Icons.settings_outlined,
-            title: 'Settings',
-            isCollapsed: isCollapsed,
-            isActive: selectedIndex == 9,
-            onTap: (v) => onDestinationSelected?.call(v),
-            index: 9,
+              InkWell(
+                onTap: () => onDestinationSelected?.call(10),
+                child: _UserProfileFooter(isCollapsed: isCollapsed),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-
-          InkWell(
-            onTap: () => onDestinationSelected?.call(10),
-            child: _UserProfileFooter(isCollapsed: isCollapsed),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

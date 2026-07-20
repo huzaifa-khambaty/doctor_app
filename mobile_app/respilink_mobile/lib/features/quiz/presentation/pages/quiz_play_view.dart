@@ -7,6 +7,7 @@ import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_app_bar
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_progress_header.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_question_card.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_question_image.dart';
+import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_skeletons.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_submit_button.dart';
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
@@ -74,7 +75,7 @@ class _QuizPlayViewState extends State<QuizPlayView> {
     }
 
     if (state is! QuizPlayLoaded) {
-      return AppSkeleton.cardList();
+      return const QuizPlaySkeleton();
     }
 
     final question = state.currentQuestion;

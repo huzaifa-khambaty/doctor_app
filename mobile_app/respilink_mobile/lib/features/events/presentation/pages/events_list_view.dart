@@ -6,6 +6,7 @@ import 'package:respilink_mobile/features/events/presentation/bloc/events_event.
 import 'package:respilink_mobile/features/events/presentation/bloc/events_state.dart';
 import 'package:respilink_mobile/features/events/presentation/widgets/event_card.dart';
 import 'package:respilink_mobile/features/events/presentation/widgets/event_filter_chips.dart';
+import 'package:respilink_mobile/features/events/presentation/widgets/event_skeletons.dart';
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
 import '../../../../exports.dart';
@@ -97,7 +98,7 @@ class _EventsListViewState extends State<EventsListView> {
     }
 
     if (state is! EventsLoaded) {
-      return AppSkeleton.cardList();
+      return const EventsListSkeleton();
     }
 
     return AppRefreshIndicator(

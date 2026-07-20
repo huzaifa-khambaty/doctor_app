@@ -10,6 +10,7 @@ import 'package:respilink_mobile/features/events/presentation/widgets/event_deta
 import 'package:respilink_mobile/features/events/presentation/widgets/event_detail_banner.dart';
 import 'package:respilink_mobile/features/events/presentation/widgets/event_detail_info_grid.dart';
 import 'package:respilink_mobile/features/events/presentation/widgets/event_price_footer_bar.dart';
+import 'package:respilink_mobile/features/events/presentation/widgets/event_skeletons.dart';
 import 'package:respilink_mobile/features/events/presentation/widgets/keynote_speakers_section.dart';
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
@@ -52,7 +53,7 @@ class _ConferenceDetailViewState extends State<ConferenceDetailView> {
             }
 
             if (state is! ConferenceDetailLoaded) {
-              return AppSkeleton.cardList();
+              return const ConferenceDetailSkeleton();
             }
 
             final detail = state.detail;

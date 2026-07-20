@@ -41,6 +41,7 @@ class QuizLeaderboardBloc
       name: entry.name ?? '',
       specialty: entry.speciality,
       location: entry.location,
+      avatarUrl: entry.avatar,
       points: entry.points ?? entry.score ?? 0,
     );
   }

@@ -10,6 +10,7 @@ import 'package:respilink_mobile/features/dashboard/presentation/widgets/special
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_attempt_bloc.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_attempt_event.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_attempt_state.dart';
+import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_skeletons.dart';
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
 import '../../../../exports.dart';
@@ -76,7 +77,7 @@ class _QuizTabViewState extends State<QuizTabView> {
     }
 
     if (state is! QuizHomeLoaded) {
-      return AppSkeleton.cardList();
+      return const QuizHomeSkeleton();
     }
 
     return AppRefreshIndicator(

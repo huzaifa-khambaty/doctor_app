@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_analytics_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_bloc.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_event.dart';
@@ -46,14 +47,105 @@ class _QuizDirectoryContentState extends State<QuizDirectoryContent> {
     super.dispose();
   }
 
+  String _fmtAvg(double? v) {
+    if (v == null) return '0';
+    return v == v.truncateToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
+  }
+
+  void _showAnalyticsDialog(BuildContext context, QuizAnalyticsModel data) {
+    final scores = data.scoreDistribution?.scores ?? {};
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.bar_chart_rounded, color: AppColors.primary, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Quiz Analytics', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                          Text(data.quizTitle ?? '—', style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Divider(color: AppColors.borderLight),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    _AnalyticsTile(label: 'Total Started', value: '${data.totalStarted ?? 0}', color: Colors.blue),
+                    const SizedBox(width: 12),
+                    _AnalyticsTile(label: 'Total Submitted', value: '${data.totalSubmitted ?? 0}', color: Colors.teal),
+                    const SizedBox(width: 12),
+                    _AnalyticsTile(label: 'Completion Rate', value: '${data.completionRate ?? 0}%', color: Colors.orange),
+                    const SizedBox(width: 12),
+                    _AnalyticsTile(label: 'Avg Score', value: _fmtAvg(data.averageScore), color: Colors.purple),
+                  ],
+                ),
+                if (scores.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  const Text('Score Distribution', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                  const SizedBox(height: 16),
+                  _ScoreBarChart(scores: scores),
+                ],
+                const SizedBox(height: 24),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                      foregroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    ),
+                    child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<QuizBloc, QuizState>(
       listenWhen: (prev, curr) =>
           (prev.actionSuccess != curr.actionSuccess && curr.actionSuccess) ||
+          (prev.analyticsJustFetched != curr.analyticsJustFetched && curr.analyticsJustFetched) ||
           (prev.error != curr.error && curr.error != null),
       listener: (context, state) {
-        if (state.actionSuccess) {
+        if (state.analyticsJustFetched && state.analyticsData != null) {
+          _showAnalyticsDialog(context, state.analyticsData!);
+        } else if (state.actionSuccess) {
           SnackbarUtil.showSnackbar(context, message: 'Action completed.');
         } else if (state.error != null) {
           SnackbarUtil.showSnackbar(
@@ -602,6 +694,7 @@ class _QuizDirectoryListBlock extends StatelessWidget {
                         context,
                         q,
                         state.actioningQuizId == q.id,
+                        state.loadingAnalyticsForQuizId == q.id,
                         onEditQuizClicked,
                       ),
                     ),
@@ -702,6 +795,7 @@ class _QuizDirectoryListBlock extends StatelessWidget {
     BuildContext context,
     Data quiz,
     bool isActioning,
+    bool isAnalyticsLoading,
     void Function(int quizId) onEditQuizClicked,
   ) {
     final status = quiz.status ?? 'draft';
@@ -856,16 +950,35 @@ class _QuizDirectoryListBlock extends StatelessWidget {
                 onPressed: quiz.id != null ? () => onEditQuizClicked(quiz.id!) : null,
               ),
               if (isLive)
-                IconButton(
-                  icon: const Icon(
-                    Icons.bar_chart_rounded,
-                    size: 16,
-                    color: AppColors.textMuted,
-                  ),
-                  splashRadius: 16,
-                  tooltip: 'Analytics',
-                  onPressed: () {},
-                ),
+                isAnalyticsLoading
+                    ? const SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: Center(
+                          child: SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(
+                          Icons.bar_chart_rounded,
+                          size: 16,
+                          color: AppColors.textMuted,
+                        ),
+                        splashRadius: 16,
+                        tooltip: 'Analytics',
+                        onPressed: quiz.id != null
+                            ? () => context.read<QuizBloc>().add(
+                                  FetchQuizAnalyticsRequested(quiz.id!),
+                                )
+                            : null,
+                      ),
               if (isActioning)
                 const SizedBox(
                   width: 16,
@@ -1051,6 +1164,149 @@ class _QuizDirectoryListBlock extends StatelessWidget {
 }
 
 enum _QuizAction { publish, unpublish, edit, delete }
+
+class _AnalyticsTile extends StatelessWidget {
+  const _AnalyticsTile({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreBarChart extends StatelessWidget {
+  const _ScoreBarChart({required this.scores});
+
+  final Map<String, int> scores;
+
+  static const _barColors = [
+    AppColors.primary,
+    AppColors.successGreen,
+    AppColors.warningOrange,
+    AppColors.accentBlue,
+    AppColors.errorRed,
+    AppColors.sidebarBg,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final sorted = scores.entries.toList()
+      ..sort((a, b) {
+        final ai = int.tryParse(a.key) ?? 0;
+        final bi = int.tryParse(b.key) ?? 0;
+        return ai.compareTo(bi);
+      });
+
+    final maxCount = sorted.isEmpty
+        ? 1
+        : sorted.map((e) => e.value).reduce((a, b) => a > b ? a : b);
+    const maxBarH = 100.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: maxBarH + 24, // bar + count label above it
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: sorted.asMap().entries.map((entry) {
+              final i = entry.key;
+              final e = entry.value;
+              final color = _barColors[i % _barColors.length];
+              final frac = maxCount == 0 ? 0.0 : e.value / maxCount;
+              final barH = (maxBarH * frac).clamp(4.0, maxBarH);
+
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${e.value}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        height: barH,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(5),
+                            topRight: Radius.circular(5),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: sorted.asMap().entries.map((entry) {
+            final i = entry.key;
+            final e = entry.value;
+            final color = _barColors[i % _barColors.length];
+            return Expanded(
+              child: Text(
+                'Score\n${e.key}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                  height: 1.3,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pagination footer

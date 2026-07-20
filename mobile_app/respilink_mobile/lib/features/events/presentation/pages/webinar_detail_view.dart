@@ -12,6 +12,7 @@ import 'package:respilink_mobile/features/events/presentation/widgets/event_deta
 import 'package:respilink_mobile/features/events/presentation/widgets/event_detail_info_grid.dart';
 import 'package:respilink_mobile/features/events/presentation/widgets/event_detail_section.dart';
 import 'package:respilink_mobile/features/events/presentation/widgets/event_host_row.dart';
+import 'package:respilink_mobile/features/events/presentation/widgets/event_skeletons.dart';
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
 import '../../../../exports.dart';
@@ -53,7 +54,7 @@ class _WebinarDetailViewState extends State<WebinarDetailView> {
             }
 
             if (state is! WebinarDetailLoaded) {
-              return AppSkeleton.cardList();
+              return const EventDetailSkeleton();
             }
 
             final detail = state.detail;
@@ -77,19 +78,14 @@ class _WebinarDetailViewState extends State<WebinarDetailView> {
                           fontSize: 19.sp,
                         ),
                         SizedBox(height: 14.h),
-                        EventHostRow(
-                          name: detail.hostName,
-                          title: detail.hostTitle,
-                          avatarUrl: detail.hostAvatar,
-                        ),
+                        EventHostRow(hosts: detail.hosts),
                         SizedBox(height: 18.h),
                         EventDetailInfoGrid(tiles: detail.infoTiles),
                         SizedBox(height: 22.h),
                         EventDetailSection(
                           title: detail.aboutTitle,
                           description: detail.description,
-                          expandedContent:
-                              'Full syllabus: session recordings, speaker slides, and a CME assessment quiz will be made available to all registered attendees after the live session.',
+                          expandedContent: detail.expandedContent,
                         ),
                         if (detail.listItems.isNotEmpty) ...[
                           SizedBox(height: 22.h),

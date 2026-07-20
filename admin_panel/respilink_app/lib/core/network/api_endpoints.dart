@@ -5,8 +5,7 @@ class ApiEndpoints {
   static const String baseUrl = 'http://192.168.100.115:8000/api/admin/v1';
 
   static const String imageUrl = "http://192.168.100.115:8000/storage/";
-  static const String documentUrl = "http://192.168.100.115:8000";
-  
+
   /// Auth
   static const String login = '/auth/login';
   static const String logout = '/auth/logout';
@@ -36,4 +35,7 @@ class ApiEndpoints {
   static const String topics = '/topics';
   static const String quizzes = '/quizzes';
   static const String publishQuiz = '/quizzes';
+
+  ///Content
+  static const String content = '/content';
 }

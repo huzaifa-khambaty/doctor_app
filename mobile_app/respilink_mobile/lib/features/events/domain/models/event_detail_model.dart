@@ -13,14 +13,30 @@ class EventInfoTile {
   });
 }
 
+class EventHostModel {
+  final String name;
+  final String title;
+  final String? avatarUrl;
+  final List<String> specialties;
+
+  const EventHostModel({
+    required this.name,
+    this.title = '',
+    this.avatarUrl,
+    this.specialties = const [],
+  });
+}
+
 class EventDetailModel {
   final EventModel event;
-  final String hostName;
-  final String hostTitle;
-  final String? hostAvatar;
+  final List<EventHostModel> hosts;
   final List<EventInfoTile> infoTiles;
   final String aboutTitle;
   final String description;
+
+  /// Extra text revealed by the "Read Full Syllabus" expand link. Null hides
+  /// the link entirely — only webinars currently have separate syllabus copy.
+  final String? expandedContent;
   final String listTitle;
   final List<String> listItems;
   final String registrationNote;
@@ -28,12 +44,11 @@ class EventDetailModel {
 
   const EventDetailModel({
     required this.event,
-    required this.hostName,
-    required this.hostTitle,
-    this.hostAvatar,
+    this.hosts = const [],
     required this.infoTiles,
     this.aboutTitle = 'About this Event',
     required this.description,
+    this.expandedContent,
     this.listTitle = 'Learning Objectives',
     required this.listItems,
     required this.registrationNote,

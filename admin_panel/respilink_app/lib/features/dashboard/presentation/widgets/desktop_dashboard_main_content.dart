@@ -497,59 +497,59 @@ class _MiddleRowSection extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 24),
-        // System Health Gauge Card
-        Expanded(
-          flex: 1,
-          child: Container(
-            height: 320,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.cardBg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'System Health',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                HealthRowItem(
-                  label: 'Health',
-                  value: 'Optimal',
-                  valueColor: AppColors.successGreen,
-                  showIndicator: true,
-                ),
-                const Divider(color: AppColors.borderLight, height: 32),
-                HealthRowItem(
-                  label: 'Database Load',
-                  value: '24%',
-                  valueColor: AppColors.textDark,
-                  showIndicator: false,
-                ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: const LinearProgressIndicator(
-                    value: 0.24,
-                    minHeight: 6,
-                    backgroundColor: AppColors.scaffoldBg,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        // const SizedBox(width: 24),
+        // // System Health Gauge Card
+        // Expanded(
+        //   flex: 1,
+        //   child: Container(
+        //     height: 320,
+        //     padding: const EdgeInsets.all(24),
+        //     decoration: BoxDecoration(
+        //       color: AppColors.cardBg,
+        //       borderRadius: BorderRadius.circular(12),
+        //       border: Border.all(color: AppColors.borderLight),
+        //     ),
+        //     child: Column(
+        //       crossAxisAlignment: CrossAxisAlignment.start,
+        //       children: [
+        //         const Text(
+        //           'System Health',
+        //           style: TextStyle(
+        //             fontSize: 15,
+        //             fontWeight: FontWeight.bold,
+        //             color: AppColors.textDark,
+        //           ),
+        //         ),
+        //         const SizedBox(height: 24),
+        //         HealthRowItem(
+        //           label: 'Health',
+        //           value: 'Optimal',
+        //           valueColor: AppColors.successGreen,
+        //           showIndicator: true,
+        //         ),
+        //         const Divider(color: AppColors.borderLight, height: 32),
+        //         HealthRowItem(
+        //           label: 'Database Load',
+        //           value: '24%',
+        //           valueColor: AppColors.textDark,
+        //           showIndicator: false,
+        //         ),
+        //         const SizedBox(height: 12),
+        //         ClipRRect(
+        //           borderRadius: BorderRadius.circular(4),
+        //           child: const LinearProgressIndicator(
+        //             value: 0.24,
+        //             minHeight: 6,
+        //             backgroundColor: AppColors.scaffoldBg,
+        //             valueColor: AlwaysStoppedAnimation<Color>(
+        //               AppColors.primary,
+        //             ),
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }

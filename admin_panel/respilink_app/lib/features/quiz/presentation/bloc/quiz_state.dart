@@ -1,3 +1,4 @@
+import 'package:respilink_app/features/quiz/data/models/quiz_analytics_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_detail_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_topic_model.dart';
@@ -15,11 +16,16 @@ class QuizState {
   final bool isSubmitting;
   final bool submitSuccess;
 
-  final int? actioningQuizId; // id of quiz currently being publish/unpublish/deleted
+  final int? actioningQuizId;
   final bool actionSuccess;
 
   final QuizDetailModel? quizDetail;
   final bool isLoadingDetail;
+
+  final QuizAnalyticsModel? analyticsData;
+  final bool isLoadingAnalytics;
+  final int? loadingAnalyticsForQuizId;
+  final bool analyticsJustFetched;
 
   final String? error;
 
@@ -37,6 +43,10 @@ class QuizState {
     this.actionSuccess = false,
     this.quizDetail,
     this.isLoadingDetail = false,
+    this.analyticsData,
+    this.isLoadingAnalytics = false,
+    this.loadingAnalyticsForQuizId,
+    this.analyticsJustFetched = false,
     this.error,
   });
 
@@ -54,6 +64,10 @@ class QuizState {
     bool? actionSuccess,
     Object? quizDetail = _sentinel,
     bool? isLoadingDetail,
+    Object? analyticsData = _sentinel,
+    bool? isLoadingAnalytics,
+    Object? loadingAnalyticsForQuizId = _sentinel,
+    bool? analyticsJustFetched,
     String? error,
   }) {
     return QuizState(
@@ -74,6 +88,14 @@ class QuizState {
           ? this.quizDetail
           : quizDetail as QuizDetailModel?,
       isLoadingDetail: isLoadingDetail ?? this.isLoadingDetail,
+      analyticsData: identical(analyticsData, _sentinel)
+          ? this.analyticsData
+          : analyticsData as QuizAnalyticsModel?,
+      isLoadingAnalytics: isLoadingAnalytics ?? this.isLoadingAnalytics,
+      loadingAnalyticsForQuizId: identical(loadingAnalyticsForQuizId, _sentinel)
+          ? this.loadingAnalyticsForQuizId
+          : loadingAnalyticsForQuizId as int?,
+      analyticsJustFetched: analyticsJustFetched ?? false,
       error: error,
     );
   }

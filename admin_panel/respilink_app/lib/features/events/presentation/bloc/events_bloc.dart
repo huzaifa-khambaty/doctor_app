@@ -15,6 +15,7 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
     on<ToggleEventStatusRequested>(_toggleEventStatus);
     on<DeleteEventRequested>(_deleteEvent);
     on<FetchSpeakersRequested>(_fetchSpeakers);
+    on<FetchEventParticipantsRequested>(_fetchEventParticipants);
   }
 
   Future<void> _fetchEvents(FetchEventsRequested event, Emitter<EventsState> emit) async {
@@ -102,6 +103,32 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
       ));
     } else {
       emit(state.copyWith(isLoadingSpeakers: false, error: res.fullErrorMessage));
+    }
+  }
+
+  Future<void> _fetchEventParticipants(
+    FetchEventParticipantsRequested event,
+    Emitter<EventsState> emit,
+  ) async {
+    emit(state.copyWith(
+      isLoadingParticipants: true,
+      loadingParticipantsForEventId: event.eventId,
+    ));
+    final res = await _repository.eventParticipants(event.eventId);
+    if (res.success && res.data != null) {
+      emit(state.copyWith(
+        isLoadingParticipants: false,
+        loadingParticipantsForEventId: null,
+        participantsData: res.data,
+        participantsEventTitle: event.eventTitle,
+        participantsJustFetched: true,
+      ));
+    } else {
+      emit(state.copyWith(
+        isLoadingParticipants: false,
+        loadingParticipantsForEventId: null,
+        error: res.fullErrorMessage,
+      ));
     }
   }
 }

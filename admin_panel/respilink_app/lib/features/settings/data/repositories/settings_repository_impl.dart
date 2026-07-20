@@ -21,6 +21,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
       _remoteDataSource.getPermissions();
 
   @override
+  Future<ApiResponse<RolesModel>> listPermissionsAgainstRole(int roleId) =>
+      _remoteDataSource.listPermissionsAgainstRole(roleId);
+
+  @override
   Future<ApiResponse<dynamic>> assignPermissions({
     required int roleId,
     required AssignPermissionsRequest request,

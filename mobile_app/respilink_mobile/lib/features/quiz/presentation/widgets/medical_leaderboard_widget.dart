@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:respilink_mobile/core/constants/app_constants.dart';
 import 'package:respilink_mobile/features/quiz/domain/models/quiz_leaderboard_entry_model.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/podium_widget.dart';
 
@@ -33,7 +32,7 @@ class MedicalLeaderboardWidget extends StatelessWidget {
               rank: 2,
               name: second.name,
               points: '${second.points}',
-         imageUrl: second.avatarUrl ?? "",
+              imageUrl: second.avatarUrl ?? "",
               podiumHeight: 100,
               gradientColors: const [Color(0xFFB0BCC6), Color(0xFFE2E8F0)],
             ),
@@ -45,7 +44,7 @@ class MedicalLeaderboardWidget extends StatelessWidget {
               rank: 1,
               name: first.name,
               points: '${first.points}',
-         imageUrl: first.avatarUrl ?? "",
+              imageUrl: first.avatarUrl ?? "",
               podiumHeight: 120,
               gradientColors: const [Color(0xFFFFAE34), Color(0xFFFFF4DF)],
               isFirstPlace: true,

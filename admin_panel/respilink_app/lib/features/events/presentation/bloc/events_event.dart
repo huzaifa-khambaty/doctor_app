@@ -38,3 +38,9 @@ class DeleteEventRequested extends EventsEvent {
 }
 
 class FetchSpeakersRequested extends EventsEvent {}
+
+class FetchEventParticipantsRequested extends EventsEvent {
+  final int eventId;
+  final String? eventTitle;
+  FetchEventParticipantsRequested(this.eventId, {this.eventTitle});
+}

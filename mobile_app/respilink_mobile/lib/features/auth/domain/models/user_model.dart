@@ -42,6 +42,7 @@ class Doctor {
   int? quizCount;
   int? rank;
   int? badgeCount;
+  List<EarnedBadges>? earnedBadges;
 
   Doctor({
     this.id,
@@ -62,6 +63,7 @@ class Doctor {
     this.quizCount,
     this.rank,
     this.badgeCount,
+    this.earnedBadges,
   });
 
   factory Doctor.fromCachedJson(String source) =>
@@ -86,6 +88,7 @@ class Doctor {
     int? quizCount,
     int? rank,
     int? badgeCount,
+    List<EarnedBadges>? earnedBadges,
   }) {
     return Doctor(
       id: id ?? this.id,
@@ -106,6 +109,7 @@ class Doctor {
       quizCount: quizCount ?? this.quizCount,
       badgeCount: badgeCount ?? this.badgeCount,
       rank: rank ?? this.rank,
+      earnedBadges: earnedBadges ?? this.earnedBadges,
     );
   }
 
@@ -138,6 +142,12 @@ class Doctor {
     quizCount = json['quiz_count'];
     rank = json['rank'];
     badgeCount = json['badge_count'];
+    if (json['earned_badges'] != null) {
+      earnedBadges = <EarnedBadges>[];
+      json['earned_badges'].forEach((v) {
+        earnedBadges!.add(EarnedBadges.fromJson(v));
+      });
+    }
   }
 
   /// Some endpoints (e.g. profile update) return a full URL for the photo
@@ -173,6 +183,9 @@ class Doctor {
     data['quiz_count'] = quizCount;
     data['rank'] = rank;
     data['badge_count'] = badgeCount;
+    if (earnedBadges != null) {
+      data['earned_badges'] = earnedBadges!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 }
@@ -192,6 +205,40 @@ class Specialties {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['name'] = name;
+    return data;
+  }
+}
+
+class EarnedBadges {
+  int? id;
+  String? name;
+  String? description;
+  String? icon;
+  String? earnedAt;
+
+  EarnedBadges({
+    this.id,
+    this.name,
+    this.description,
+    this.icon,
+    this.earnedAt,
+  });
+
+  EarnedBadges.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    description = json['description'];
+    icon = json['icon'];
+    earnedAt = json['earned_at'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['description'] = description;
+    data['icon'] = icon;
+    data['earned_at'] = earnedAt;
     return data;
   }
 }

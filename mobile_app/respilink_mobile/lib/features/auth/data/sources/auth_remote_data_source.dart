@@ -127,7 +127,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<ApiResponse<void>> resetPassword(ResetPasswordRequest request) async {
-    print("data is ${request.toJson()}");
     return _client.post(
       ApiEndpoints.resetPassword,
       data: request.toJson(),
