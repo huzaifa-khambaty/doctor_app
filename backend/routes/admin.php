@@ -11,6 +11,8 @@ use App\Domain\Shared\Http\Controllers\Api\SpecialtyController;
 use App\Domain\Admin\Http\Controllers\Api\EventController;
 use App\Domain\Admin\Http\Controllers\Api\AdminQuizController;
 use App\Domain\Admin\Http\Controllers\Api\AdminTopicController;
+use App\Domain\Admin\Http\Controllers\Api\ContentLibraryController;
+use App\Domain\Admin\Http\Controllers\Api\DashboardController;
 
 Route::prefix('admin/v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -76,6 +78,18 @@ Route::prefix('admin/v1')->group(function () {
 
         Route::apiResource('topics', AdminTopicController::class);
 
+        // Content Library
+        Route::prefix('content')->controller(ContentLibraryController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('{content}', 'show');
+            Route::put('{content}', 'update');
+            Route::delete('{content}', 'destroy');
+            Route::patch('{content}/status', 'updateStatus');
+        });
+
         Route::get('specialties', [SpecialtyController::class, 'index']);
+
+        Route::get('dashboard', [DashboardController::class, 'index']);
     });
 });

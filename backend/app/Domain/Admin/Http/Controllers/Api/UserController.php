@@ -75,6 +75,11 @@ class UserController extends Controller
 
         $user = User::create($validated);
         $user->specialties()->attach($specialties);
+
+        if (($validated['status'] ?? 'pending') === 'verified') {
+            $user->update(['email_verified_at' => now()]);
+        }
+
         $user->load('specialties');
 
         return response()->json([
@@ -126,6 +131,11 @@ class UserController extends Controller
 
         $user->update($validated);
 
+        if (isset($validated['status']) && $validated['status'] === 'verified'
+            && !$user->email_verified_at && !$user->phone_verified_at) {
+            $user->update(['email_verified_at' => now()]);
+        }
+
         return response()->json([
             'message' => 'User updated successfully.',
             'user' => $user->fresh()
@@ -163,6 +173,7 @@ class UserController extends Controller
             'status' => 'verified',
             'verified_at' => now(),
             'verified_by' => $request->user()->id,
+            'email_verified_at' => now(),
             'rejection_reason' => null,
         ]);
 

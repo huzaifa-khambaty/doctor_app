@@ -106,6 +106,16 @@ class User extends Authenticatable
                     ->withPivot('awarded_at');
     }
 
+    public function bookmarks()
+    {
+        return $this->hasMany(\App\Domain\Shared\Models\ContentBookmark::class);
+    }
+
+    public function contentLikes()
+    {
+        return $this->hasMany(\App\Domain\Shared\Models\ContentLike::class);
+    }
+
     // Count of submitted quizzes
     public function submittedQuizzes()
     {
@@ -115,7 +125,7 @@ class User extends Authenticatable
     // Badge count
     public function userBadges()
     {
-        return $this->belongsToMany(\App\Domain\Shared\Models\Badge::class, 'user_badges', 'user_id', 'badge_id');
+        return $this->belongsToMany(\App\Domain\Shared\Models\Badge::class, 'user_badges', 'user_id', 'badge_id')->withPivot('awarded_at');
     }
 
     protected function photoUrl(): Attribute

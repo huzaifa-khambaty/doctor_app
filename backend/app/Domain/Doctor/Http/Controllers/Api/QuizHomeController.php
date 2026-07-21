@@ -108,6 +108,10 @@ class QuizHomeController extends Controller
                 $q->whereNull('opens_at')
                   ->orWhere('opens_at', '<=', now());
             })
+            ->where(function ($q) {
+                $q->whereNull('closes_at')
+                  ->orWhere('closes_at', '>', now());
+            })
             ->withCount('questions')
             ->orderByDesc('created_at')
             ->first();
