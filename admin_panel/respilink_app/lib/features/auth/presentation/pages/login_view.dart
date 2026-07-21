@@ -147,10 +147,10 @@ class _LoginPageState extends State<LoginPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text('Password', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                                GestureDetector(
-                                  onTap: () {}, // Handled directly without extra physical buttons cluttering row vectors
-                                  child: const Text('Forgot password?', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary)),
-                                )
+                                // GestureDetector(
+                                //   onTap: () {}, // Handled directly without extra physical buttons cluttering row vectors
+                                //   child: const Text('Forgot password?', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary)),
+                                // )
                               ],
                             ),
                             const SizedBox(height: 8),

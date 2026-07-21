@@ -12,6 +12,8 @@ class CreateContentRequest {
   final String status;
   final List<int>? fileBytes;
   final String? fileName;
+  final List<int>? thumbnailBytes;
+  final String? thumbnailName;
 
   const CreateContentRequest({
     required this.title,
@@ -25,6 +27,8 @@ class CreateContentRequest {
     this.status = 'draft',
     this.fileBytes,
     this.fileName,
+    this.thumbnailBytes,
+    this.thumbnailName,
   });
 
   // Maps content type string to the backend type_id integer.
@@ -75,16 +79,23 @@ class CreateContentRequest {
       formData.fields.add(MapEntry('quiz_id', quizId.toString()));
     }
     if (fileBytes != null && fileName != null) {
+      final fileKey = typeId == 1 ? 'pdf_file' : 'webinar_file';
       formData.files.add(MapEntry(
-        'file',
+        fileKey,
         MultipartFile.fromBytes(fileBytes!, filename: fileName),
+      ));
+    }
+    if (thumbnailBytes != null && thumbnailName != null) {
+      formData.files.add(MapEntry(
+        'thumbnail',
+        MultipartFile.fromBytes(thumbnailBytes!, filename: thumbnailName),
       ));
     }
     formData.fields.add(MapEntry('_method', "PUT"));
     return formData;
   }
 
-    FormData toFormDataPost() {
+  FormData toFormDataPost() {
     final formData = FormData();
     formData.fields.add(MapEntry('title', title));
     formData.fields.add(MapEntry('type_id', typeId.toString()));
@@ -106,9 +117,16 @@ class CreateContentRequest {
       formData.fields.add(MapEntry('quiz_id', quizId.toString()));
     }
     if (fileBytes != null && fileName != null) {
+      final fileKey = typeId == 1 ? 'pdf_file' : 'webinar_file';
       formData.files.add(MapEntry(
-        'file',
+        fileKey,
         MultipartFile.fromBytes(fileBytes!, filename: fileName),
+      ));
+    }
+    if (thumbnailBytes != null && thumbnailName != null) {
+      formData.files.add(MapEntry(
+        'thumbnail',
+        MultipartFile.fromBytes(thumbnailBytes!, filename: thumbnailName),
       ));
     }
     return formData;
@@ -128,5 +146,7 @@ class UpdateContentRequest extends CreateContentRequest {
     required super.status,
     super.fileBytes,
     super.fileName,
+    super.thumbnailBytes,
+    super.thumbnailName,
   });
 }

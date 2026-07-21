@@ -9,18 +9,20 @@ class DocumentLibraryCard extends StatelessWidget {
   final LibraryContentModel content;
   final VoidCallback? onTap;
   final VoidCallback? onBookmarkTap;
+  final bool isLoading;
 
   const DocumentLibraryCard({
     super.key,
     required this.content,
     this.onTap,
     this.onBookmarkTap,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: isLoading ? null : onTap,
       child: Container(
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
@@ -39,21 +41,34 @@ class DocumentLibraryCard extends StatelessWidget {
                 color: AppColors.error.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12.r),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.picture_as_pdf, color: AppColors.error, size: 22.sp),
-                  if (content.fileSize != null) ...[
-                    SizedBox(height: 4.h),
-                    AppText.small(
-                      label: content.fileSize!,
-                      color: AppColors.error,
-                      fontSize: 9.sp,
-                      fontWeight: FontWeight.w600,
+              child: isLoading
+                  ? SizedBox(
+                      width: 20.r,
+                      height: 20.r,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(AppColors.error),
+                      ),
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.picture_as_pdf,
+                          color: AppColors.error,
+                          size: 22.sp,
+                        ),
+                        if (content.fileSize != null) ...[
+                          SizedBox(height: 4.h),
+                          AppText.small(
+                            label: content.fileSize!,
+                            color: AppColors.error,
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
-                ],
-              ),
             ),
             SizedBox(width: 14.w),
             Expanded(

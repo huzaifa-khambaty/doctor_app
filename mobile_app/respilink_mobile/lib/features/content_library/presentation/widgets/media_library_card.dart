@@ -9,20 +9,47 @@ class MediaLibraryCard extends StatelessWidget {
   final LibraryContentModel content;
   final VoidCallback? onTap;
   final VoidCallback? onBookmarkTap;
+  final bool isLoading;
 
   const MediaLibraryCard({
     super.key,
     required this.content,
     this.onTap,
     this.onBookmarkTap,
+    this.isLoading = false,
   });
+
+  String get _imageUrl {
+    final image = content.image ?? '';
+    return image.startsWith('http')
+        ? image
+        : "${AppConstants.imagePath}$image";
+  }
+
+  ({String label, Color color, IconData icon}) get _typeTag => switch (content.type) {
+        LibraryContentType.webinar => (
+            label: 'WEBINAR',
+            color: AppColors.purpleAccent,
+            icon: Icons.live_tv_outlined,
+          ),
+        LibraryContentType.article => (
+            label: 'ARTICLE',
+            color: AppColors.primary,
+            icon: Icons.article_outlined,
+          ),
+        _ => (
+            label: 'CONTENT',
+            color: AppColors.primary,
+            icon: Icons.image_outlined,
+          ),
+      };
 
   @override
   Widget build(BuildContext context) {
-    final isVideo = content.type == LibraryContentType.video;
+    final tag = _typeTag;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: isLoading ? null : onTap,
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.white,
@@ -36,7 +63,7 @@ class MediaLibraryCard extends StatelessWidget {
             Stack(
               children: [
                 AppNetworkImage(
-                  imageUrl: "${AppConstants.imagePath}${content.image}",
+                  imageUrl: _imageUrl,
                   width: double.infinity,
                   height: 140.h,
                   fit: BoxFit.cover,
@@ -45,9 +72,9 @@ class MediaLibraryCard extends StatelessWidget {
                   top: 10.h,
                   left: 10.w,
                   child: ContentTypeTag(
-                    label: isVideo ? 'VIDEO' : 'DIAGNOSTICS',
-                    color: isVideo ? AppColors.primary : AppColors.purpleAccent,
-                    icon: isVideo ? Icons.play_circle_outline : Icons.image_outlined,
+                    label: tag.label,
+                    color: tag.color,
+                    icon: tag.icon,
                   ),
                 ),
                 Positioned(
@@ -58,6 +85,22 @@ class MediaLibraryCard extends StatelessWidget {
                     onTap: onBookmarkTap,
                   ),
                 ),
+                if (isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      color: AppColors.black.withValues(alpha: 0.35),
+                      child: Center(
+                        child: SizedBox(
+                          width: 22.r,
+                          height: 22.r,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(AppColors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 if (content.duration != null)
                   Positioned(
                     bottom: 10.h,

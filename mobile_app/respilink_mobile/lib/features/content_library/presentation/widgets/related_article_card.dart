@@ -22,7 +22,9 @@ class RelatedArticleCard extends StatelessWidget {
         child: Row(
           children: [
             AppNetworkImage(
-              imageUrl: "${AppConstants.imagePath}${article.image}",
+              imageUrl: article.image.startsWith('http')
+                  ? article.image
+                  : "${AppConstants.imagePath}${article.image}",
               width: 90.w,
               height: 80.h,
               fit: BoxFit.cover,

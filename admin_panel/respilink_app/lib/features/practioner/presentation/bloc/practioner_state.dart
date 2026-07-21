@@ -21,6 +21,10 @@ class PractionerState {
   final String? error;
   final bool actionSuccess;
 
+  // Dashboard stats — fetched independently so they don't interfere with the table.
+  final int? pendingTotal;
+  final int? verifiedTotal;
+
   const PractionerState({
     this.specialties = const [],
     this.isLoadingSpecialties = false,
@@ -34,6 +38,8 @@ class PractionerState {
     this.createSuccess = false,
     this.error,
     this.actionSuccess = false,
+    this.pendingTotal,
+    this.verifiedTotal,
   });
 
   PractionerState copyWith({
@@ -52,6 +58,8 @@ class PractionerState {
     bool clearStatus = false,
     bool clearSpecialtyId = false,
     bool clearActioningUserId = false,
+    int? pendingTotal,
+    int? verifiedTotal,
   }) {
     return PractionerState(
       specialties: specialties ?? this.specialties,
@@ -66,6 +74,8 @@ class PractionerState {
       createSuccess: createSuccess ?? false,
       error: error,
       actionSuccess: actionSuccess ?? false,
+      pendingTotal: pendingTotal ?? this.pendingTotal,
+      verifiedTotal: verifiedTotal ?? this.verifiedTotal,
     );
   }
 }

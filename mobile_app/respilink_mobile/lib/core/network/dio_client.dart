@@ -167,6 +167,24 @@ class DioClient {
   }
 
   // ─────────────────────────────────────────────
+  // FILE DOWNLOAD — accepts an absolute URL (bypasses baseUrl) and saves
+  // straight to disk rather than through the JSON envelope in `_execute`.
+  // ─────────────────────────────────────────────
+  Future<void> downloadFile(
+    String url,
+    String savePath, {
+    void Function(int received, int total)? onReceiveProgress,
+    CancelToken? cancelToken,
+  }) {
+    return _dio.download(
+      url,
+      savePath,
+      onReceiveProgress: onReceiveProgress,
+      cancelToken: cancelToken,
+    );
+  }
+
+  // ─────────────────────────────────────────────
   // Private executor — centralised error handling
   // ─────────────────────────────────────────────
   Future<ApiResponse<T>> _execute<T>(

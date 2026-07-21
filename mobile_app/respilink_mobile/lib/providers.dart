@@ -4,6 +4,7 @@ import 'package:respilink_mobile/features/auth/presentation/bloc/auth_event.dart
 import 'package:respilink_mobile/features/auth/presentation/bloc/badges_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_home_bloc.dart';
+import 'package:respilink_mobile/features/content_library/presentation/bloc/library_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_list_bloc.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/event_detail_bloc.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/event_register_bloc.dart';
@@ -54,5 +55,6 @@ class Providers {
       create: (context) => QuizLeaderboardBloc(locator()),
     ),
     BlocProvider<BadgesBloc>(create: (context) => BadgesBloc(locator())),
+    BlocProvider<LibraryBloc>(create: (context) => LibraryBloc(locator())),
   ];
 }

@@ -3,9 +3,17 @@ import 'package:respilink_mobile/features/content_library/presentation/widgets/l
 import '../../../../exports.dart';
 
 class LibraryHeaderBanner extends StatelessWidget {
+  final String title;
+  final String subtitle;
   final ValueChanged<String>? onSearchChanged;
 
-  const LibraryHeaderBanner({super.key, this.onSearchChanged});
+  const LibraryHeaderBanner({
+    super.key,
+    this.title = 'Medical Library',
+    this.subtitle =
+        'Access peer-reviewed pulmonary research and clinical guidelines updated daily.',
+    this.onSearchChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,15 +32,14 @@ class LibraryHeaderBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText.large(
-            label: 'Medical Library',
+            label: title,
             color: AppColors.white,
             fontWeight: FontWeight.bold,
             fontSize: 19.sp,
           ),
           SizedBox(height: 6.h),
           AppText.small(
-            label:
-                'Access peer-reviewed pulmonary research and clinical guidelines updated daily.',
+            label: subtitle,
             color: AppColors.white.withValues(alpha: 0.9),
             fontSize: 12.sp,
           ),
