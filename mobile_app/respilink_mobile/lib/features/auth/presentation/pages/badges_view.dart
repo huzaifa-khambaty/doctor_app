@@ -58,7 +58,7 @@ class _BadgesViewState extends State<BadgesView> {
             }
 
             if (state is! BadgesLoaded) {
-              return AppSkeleton.cardList();
+              return const _BadgesSkeleton();
             }
 
             return _BadgesBody(badges: state.badges);
@@ -318,6 +318,64 @@ class _BadgeTile extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Matches the milestones card + repeated category-section layout of
+/// [_BadgesBody] so the loading state doesn't jump when data arrives.
+class _BadgesSkeleton extends StatelessWidget {
+  const _BadgesSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppSkeleton(width: double.infinity, height: 140.h, borderRadius: 20.r),
+          SizedBox(height: 24.h),
+          for (var i = 0; i < 2; i++) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                AppSkeleton.textBar(width: 110.w, height: 15.h),
+                AppSkeleton.textBar(width: 70.w, height: 12.h),
+              ],
+            ),
+            SizedBox(height: 12.h),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 4,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12.w,
+                mainAxisSpacing: 12.h,
+                childAspectRatio: 1.4,
+              ),
+              itemBuilder: (context, index) => Container(
+                padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 10.w),
+                decoration: BoxDecoration(
+                  color: AppColors.fieldColor,
+                  borderRadius: BorderRadius.circular(14.r),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AppSkeleton.circle(size: 44.r),
+                    SizedBox(height: 8.h),
+                    AppSkeleton.textBar(width: 60.w, height: 11.h),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 22.h),
+          ],
         ],
       ),
     );

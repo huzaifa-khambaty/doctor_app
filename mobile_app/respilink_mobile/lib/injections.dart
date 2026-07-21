@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:respilink_mobile/core/network/dio_client.dart';
 import 'package:respilink_mobile/features/auth/auth_injections.dart';
+import 'package:respilink_mobile/features/content_library/content_library_injections.dart';
 import 'package:respilink_mobile/features/dashboard/dashboard_injections.dart';
 import 'package:respilink_mobile/features/events/events_injections.dart';
 import 'package:respilink_mobile/features/onboarding/data/onboarding_local_manager.dart';
@@ -25,6 +26,7 @@ void initDependencies() {
   AuthInjections.setupAuthInjections();
   DashboardInjections.setupDashboardInjections();
   EventsInjections.setupEventsInjections();
+  ContentLibraryInjections.setupContentLibraryInjections();
 
   locator.registerLazySingleton<OnboardingLocalManager>(
     () => OnboardingLocalManagerImpl(locator()),

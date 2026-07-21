@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-enum LibraryContentType { video, guideline, assessment, diagnostic }
+/// Mirrors the backend's `type_id`: 1 = pdf, 2 = article, 3 = webinar, 4 = quiz.
+enum LibraryContentType { pdf, article, webinar, quiz }
 
 class LibraryContentModel {
   final int id;
@@ -31,6 +32,12 @@ class LibraryContentModel {
 
   final bool isBookmarked;
 
+  /// Quiz-only — the quiz to launch when the CTA is tapped.
+  final int? quizId;
+
+  /// Pdf-only — the file to download and open when tapped.
+  final String? pdfUrl;
+
   const LibraryContentModel({
     required this.id,
     required this.type,
@@ -47,5 +54,7 @@ class LibraryContentModel {
     this.metaRightIcon,
     this.ctaLabel,
     this.isBookmarked = false,
+    this.quizId,
+    this.pdfUrl,
   });
 }

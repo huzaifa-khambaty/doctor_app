@@ -30,6 +30,7 @@ class PractitionerManagementContent extends StatefulWidget {
 class _PractitionerManagementContentState
     extends State<PractitionerManagementContent> {
   String _searchQuery = '';
+  String? _selectedSpecialtyId;
   Timer? _debounce;
 
   @override
@@ -89,11 +90,16 @@ class _PractitionerManagementContentState
               const SizedBox(height: 24),
               const _PipelineMetricsGrid(),
               const SizedBox(height: 24),
-              const _FilterControlsBar(),
+              _FilterControlsBar(
+                selectedSpecialtyId: _selectedSpecialtyId,
+                onSpecialtyChanged: (val) =>
+                    setState(() => _selectedSpecialtyId = val),
+              ),
               const SizedBox(height: 20),
               _PractitionerDataTable(
                 onUserTapped: widget.onUserTapped,
                 searchQuery: _searchQuery,
+                selectedSpecialtyId: _selectedSpecialtyId,
               ),
             ],
           ),
@@ -255,48 +261,42 @@ class _PipelineMetricsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double cardWidth = (constraints.maxWidth - (3 * 16)) / 4;
-        if (cardWidth < 200) cardWidth = 200;
+    return BlocBuilder<PractionerBloc, PractionerState>(
+      buildWhen: (prev, curr) =>
+          prev.pendingTotal != curr.pendingTotal ||
+          prev.verifiedTotal != curr.verifiedTotal,
+      builder: (context, state) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            double cardWidth = (constraints.maxWidth - (3 * 16)) / 4;
+            if (cardWidth < 200) cardWidth = 200;
 
-        return Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          children: [
-            _PipelineCard(
-              width: cardWidth,
-              title: 'AWAITING APPROVAL',
-              value: '24',
-              subtitle: '+12% vs last week',
-              subColor: AppColors.errorRed,
-              icon: Icons.assignment_late_outlined,
-            ),
-            _PipelineCard(
-              width: cardWidth,
-              title: 'VERIFIED TODAY',
-              value: '08',
-              subtitle: 'On Target',
-              subColor: AppColors.successGreen,
-              icon: Icons.verified_outlined,
-            ),
-            _PipelineCard(
-              width: cardWidth,
-              title: 'AVERAGE WAIT',
-              value: '1.4h',
-              subtitle: '-15m improvement',
-              subColor: AppColors.successGreen,
-              icon: Icons.hourglass_empty_rounded,
-            ),
-            _PipelineCard(
-              width: cardWidth,
-              title: 'SYSTEM INTEGRITY',
-              value: '99.9%',
-              subtitle: 'Live monitoring active',
-              subColor: AppColors.textMuted,
-              icon: Icons.gpp_good_outlined,
-            ),
-          ],
+            final pendingValue = state.pendingTotal?.toString() ?? '—';
+            final verifiedValue = state.verifiedTotal?.toString() ?? '—';
+
+            return Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                _PipelineCard(
+                  width: cardWidth,
+                  title: 'AWAITING APPROVAL',
+                  value: pendingValue,
+                  subtitle: 'Pending verification',
+                  subColor: AppColors.errorRed,
+                  icon: Icons.assignment_late_outlined,
+                ),
+                _PipelineCard(
+                  width: cardWidth,
+                  title: 'TOTAL VERIFIED',
+                  value: verifiedValue,
+                  subtitle: 'Verified practitioners',
+                  subColor: AppColors.successGreen,
+                  icon: Icons.verified_outlined,
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -381,80 +381,100 @@ class _PipelineCard extends StatelessWidget {
 // =========================================================================
 
 class _FilterControlsBar extends StatefulWidget {
-  const _FilterControlsBar();
+  const _FilterControlsBar({
+    required this.selectedSpecialtyId,
+    required this.onSpecialtyChanged,
+  });
+
+  final String? selectedSpecialtyId;
+  final ValueChanged<String?> onSpecialtyChanged;
 
   @override
   State<_FilterControlsBar> createState() => _FilterControlsBarState();
 }
 
 class _FilterControlsBarState extends State<_FilterControlsBar> {
-  String? _selectedSpecialtyId;
   String? _selectedStatus;
 
   void _dispatchFetch() {
+    // Reset specialty selection when status changes so the dropdown stays
+    // consistent with the newly fetched list.
+    widget.onSpecialtyChanged(null);
     context.read<PractionerBloc>().add(
-      FetchPractionersRequested(
-        page: 1,
-        status: _selectedStatus,
-        specialtyId: _selectedSpecialtyId != null
-            ? int.tryParse(_selectedSpecialtyId!)
-            : null,
-      ),
+      FetchPractionersRequested(page: 1, status: _selectedStatus),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.borderLight),
-          ),
-          child: Row(
-            children: [
-              _StatusFilterChip(
-                label: 'All',
-                isActive: _selectedStatus == null,
-                onTap: () {
-                  setState(() => _selectedStatus = null);
-                  _dispatchFetch();
-                },
+    return BlocBuilder<PractionerBloc, PractionerState>(
+      buildWhen: (prev, curr) =>
+          prev.specialties != curr.specialties ||
+          prev.isLoadingSpecialties != curr.isLoadingSpecialties,
+      builder: (context, state) {
+        // Use the full specialties list from the API so every specialty appears,
+        // not just those present on the current page of practitioners.
+        final specialtyMap = <String, String>{};
+        for (final s in state.specialties) {
+          if (s.id != null) {
+            specialtyMap[s.id!.toString()] = s.name ?? s.slug ?? '';
+          }
+        }
+
+        // Guard: if the selected specialty is no longer in the list
+        // (e.g. list reloaded), display "Specialty: All" without resetting state.
+        final dropdownValue = specialtyMap.containsKey(widget.selectedSpecialtyId)
+            ? widget.selectedSpecialtyId
+            : null;
+
+        return Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.borderLight),
               ),
-              _StatusFilterChip(
-                label: 'Pending',
-                isActive: _selectedStatus == 'pending',
-                onTap: () {
-                  setState(() => _selectedStatus = 'pending');
-                  _dispatchFetch();
-                },
+              child: Row(
+                children: [
+                  _StatusFilterChip(
+                    label: 'All',
+                    isActive: _selectedStatus == null,
+                    onTap: () {
+                      setState(() => _selectedStatus = null);
+                      _dispatchFetch();
+                    },
+                  ),
+                  _StatusFilterChip(
+                    label: 'Pending',
+                    isActive: _selectedStatus == 'pending',
+                    onTap: () {
+                      setState(() => _selectedStatus = 'pending');
+                      _dispatchFetch();
+                    },
+                  ),
+                  _StatusFilterChip(
+                    label: 'Verified',
+                    isActive: _selectedStatus == 'verified',
+                    onTap: () {
+                      setState(() => _selectedStatus = 'verified');
+                      _dispatchFetch();
+                    },
+                  ),
+                  _StatusFilterChip(
+                    label: 'Rejected',
+                    isActive: _selectedStatus == 'rejected',
+                    onTap: () {
+                      setState(() => _selectedStatus = 'rejected');
+                      _dispatchFetch();
+                    },
+                  ),
+                ],
               ),
-              _StatusFilterChip(
-                label: 'Verified',
-                isActive: _selectedStatus == 'verified',
-                onTap: () {
-                  setState(() => _selectedStatus = 'verified');
-                  _dispatchFetch();
-                },
-              ),
-              _StatusFilterChip(
-                label: 'Rejected',
-                isActive: _selectedStatus == 'rejected',
-                onTap: () {
-                  setState(() => _selectedStatus = 'rejected');
-                  _dispatchFetch();
-                },
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 16),
-        BlocBuilder<PractionerBloc, PractionerState>(
-          builder: (context, state) {
-            return Container(
+            ),
+            const SizedBox(width: 16),
+            Container(
               height: 45,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -487,7 +507,7 @@ class _FilterControlsBarState extends State<_FilterControlsBar> {
                       ),
                     )
                   : DropdownButton<String?>(
-                      value: _selectedSpecialtyId,
+                      value: dropdownValue,
                       underline: const SizedBox(),
                       icon: const Icon(Icons.keyboard_arrow_down, size: 18),
                       style: const TextStyle(
@@ -500,49 +520,19 @@ class _FilterControlsBarState extends State<_FilterControlsBar> {
                           value: null,
                           child: Text('Specialty: All'),
                         ),
-                        ...state.specialties.map(
-                          (s) => DropdownMenuItem<String?>(
-                            value: s.id?.toString(),
-                            child: Text(s.name ?? s.slug ?? ''),
+                        ...specialtyMap.entries.map(
+                          (e) => DropdownMenuItem<String?>(
+                            value: e.key,
+                            child: Text(e.value),
                           ),
                         ),
                       ],
-                      onChanged: (val) {
-                        setState(() => _selectedSpecialtyId = val);
-                        context.read<PractionerBloc>().add(
-                          FetchPractionersRequested(
-                            page: 1,
-                            status: _selectedStatus,
-                            specialtyId: val != null ? int.tryParse(val) : null,
-                          ),
-                        );
-                      },
+                      onChanged: widget.onSpecialtyChanged,
                     ),
-            );
-          },
-        ),
-        // const Spacer(),
-        // OutlinedButton.icon(
-        //   onPressed: () {},
-        //   icon: const Icon(
-        //     Icons.tune_rounded,
-        //     size: 16,
-        //     color: AppColors.textDark,
-        //   ),
-        //   label: const Text(
-        //     'Advanced Filters',
-        //     style: TextStyle(color: AppColors.textDark, fontSize: 13),
-        //   ),
-        //   style: OutlinedButton.styleFrom(
-        //     backgroundColor: Colors.white,
-        //     side: const BorderSide(color: AppColors.borderLight),
-        //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        //     shape: RoundedRectangleBorder(
-        //       borderRadius: BorderRadius.circular(8),
-        //     ),
-        //   ),
-        // ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -589,23 +579,36 @@ class _PractitionerDataTable extends StatelessWidget {
   const _PractitionerDataTable({
     required this.onUserTapped,
     required this.searchQuery,
+    required this.selectedSpecialtyId,
   });
 
   final Function(Practioners) onUserTapped;
   final String searchQuery;
+  final String? selectedSpecialtyId;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PractionerBloc, PractionerState>(
       builder: (context, state) {
-        final all = state.practioners?.data ?? [];
-        final practitioners = searchQuery.isEmpty
-            ? all
-            : all.where((p) {
-                final name = (p.fullName ?? '').toLowerCase();
-                final id = (p.uuid ?? p.id?.toString() ?? '').toLowerCase();
-                return name.contains(searchQuery) || id.contains(searchQuery);
-              }).toList();
+        var practitioners = state.practioners?.data ?? [];
+
+        // Client-side specialty filter.
+        if (selectedSpecialtyId != null) {
+          practitioners = practitioners.where((p) {
+            return (p.specialties ?? []).any(
+              (s) => s.id?.toString() == selectedSpecialtyId,
+            );
+          }).toList();
+        }
+
+        // Client-side search filter.
+        if (searchQuery.isNotEmpty) {
+          practitioners = practitioners.where((p) {
+            final name = (p.fullName ?? '').toLowerCase();
+            final id = (p.uuid ?? p.id?.toString() ?? '').toLowerCase();
+            return name.contains(searchQuery) || id.contains(searchQuery);
+          }).toList();
+        }
         final isLoading = state.isLoadingPractioners;
 
         return Container(
@@ -932,7 +935,7 @@ class _PractitionerDataTable extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'ID: ${p.uuid?.substring(0, 8) ?? p.id?.toString() ?? '—'}',
+                      'ID: ${p.licenseNumber ?? '—'}',
                       style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.textMuted,

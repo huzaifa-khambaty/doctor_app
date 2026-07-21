@@ -137,7 +137,8 @@ class RouterConfiguration {
       ),
       GoRoute(
         path: RouterStrings.articleReaderView,
-        builder: (context, state) => const ArticleReaderView(),
+        builder: (context, state) =>
+            ArticleReaderView(contentId: state.extra as int),
       ),
     ],
   );

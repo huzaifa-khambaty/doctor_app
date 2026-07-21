@@ -12,6 +12,8 @@ class CreatePractionerRequested extends PractionerEvent {
 
 class FetchSpecialtiesRequested extends PractionerEvent {}
 
+class FetchPractitionerStatsRequested extends PractionerEvent {}
+
 class FetchPractionersRequested extends PractionerEvent {
   final int page;
   final String? status;

@@ -53,6 +53,11 @@ class _AddContentViewState extends State<AddContentView> {
   String? _fileName;
   String? _existingFileUrl;
 
+  // ── Thumbnail state ──────────────────────────────────────────────────────
+  Uint8List? _thumbnailBytes;
+  String? _thumbnailName;
+  String? _existingThumbnailUrl;
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +70,7 @@ class _AddContentViewState extends State<AddContentView> {
       _contentType = typeMap[c.typeId] ?? _kContentTypes.first;
       _status = c.status ?? 'draft';
       _existingFileUrl = c.pdfUrl;
+      _existingThumbnailUrl = c.thumbnailUrl;
       _selectedSpecialtyIds = c.specialties?.map((s) => s.id).whereType<int>().toSet() ?? {};
       _selectedQuizId = c.quizId;
       if (c.scheduledAt != null) {
@@ -108,6 +114,21 @@ class _AddContentViewState extends State<AddContentView> {
       setState(() {
         _fileBytes = file.bytes;
         _fileName = file.name;
+      });
+    }
+  }
+
+  void _pickThumbnail() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+      withData: true,
+    );
+    if (result != null && result.files.isNotEmpty) {
+      final file = result.files.first;
+      setState(() {
+        _thumbnailBytes = file.bytes;
+        _thumbnailName = file.name;
       });
     }
   }
@@ -160,6 +181,10 @@ class _AddContentViewState extends State<AddContentView> {
       SnackbarUtil.showSnackbar(context, message: 'Please select at least one specialty', isError: true);
       return;
     }
+    if ((_contentType == 'Article' || _contentType == 'Webinar') && _thumbnailBytes == null && (_existingThumbnailUrl == null || _existingThumbnailUrl!.isEmpty)) {
+      SnackbarUtil.showSnackbar(context, message: 'Please upload a thumbnail image', isError: true);
+      return;
+    }
     if (_requiresFile && _fileBytes == null && (_existingFileUrl == null || _existingFileUrl!.isEmpty)) {
       SnackbarUtil.showSnackbar(
         context,
@@ -186,6 +211,8 @@ class _AddContentViewState extends State<AddContentView> {
       status: targetStatus,
       fileBytes: _fileBytes != null ? List<int>.from(_fileBytes!) : null,
       fileName: _fileName,
+      thumbnailBytes: _thumbnailBytes != null ? List<int>.from(_thumbnailBytes!) : null,
+      thumbnailName: _thumbnailName,
     );
 
     if (_isEdit) {
@@ -204,6 +231,8 @@ class _AddContentViewState extends State<AddContentView> {
             status: targetStatus,
             fileBytes: request.fileBytes,
             fileName: request.fileName,
+            thumbnailBytes: request.thumbnailBytes,
+            thumbnailName: request.thumbnailName,
           ),
         ),
       );
@@ -344,6 +373,8 @@ class _AddContentViewState extends State<AddContentView> {
                     _contentType = type;
                     _fileBytes = null;
                     _fileName = null;
+                    _thumbnailBytes = null;
+                    _thumbnailName = null;
                   }),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -408,7 +439,15 @@ class _AddContentViewState extends State<AddContentView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // File upload — shown for PDF and Webinar
+          // Thumbnail / banner image — Article and Webinar only
+          if (_contentType == 'Article' || _contentType == 'Webinar') ...[
+            const _Label('Thumbnail / Banner Image *'),
+            const SizedBox(height: 8),
+            _buildThumbnailZone(),
+            const SizedBox(height: 20),
+          ],
+
+          // File upload — PDF and Webinar only
           if (_requiresFile) ...[
             _Label(_contentType == 'PDF' ? 'Upload PDF File *' : 'Upload Video File *'),
             const SizedBox(height: 8),
@@ -416,87 +455,87 @@ class _AddContentViewState extends State<AddContentView> {
             const SizedBox(height: 20),
           ],
 
-          // Link
-          _Label(_contentType == 'Webinar' ? 'External Video Link' : 'Content Link *'),
-          const SizedBox(height: 8),
-          _StyledTextField(
-            controller: _linkCtrl,
-            hintText: 'https://',
-            keyboardType: TextInputType.url,
-            validator: _contentType == 'Webinar'
-                ? (v) {
-                    if (v == null || v.trim().isEmpty) return null;
-                    final uri = Uri.tryParse(v.trim());
-                    if (uri == null || !uri.hasScheme || (!uri.isScheme('http') && !uri.isScheme('https'))) {
-                      return 'Enter a valid URL (https://...)';
+          // Content link and external links — Article and Webinar only
+          if (_contentType == 'Article' || _contentType == 'Webinar') ...[
+            _Label(_contentType == 'Webinar' ? 'External Video Link' : 'Content Link *'),
+            const SizedBox(height: 8),
+            _StyledTextField(
+              controller: _linkCtrl,
+              hintText: 'https://',
+              keyboardType: TextInputType.url,
+              validator: _contentType == 'Webinar'
+                  ? (v) {
+                      if (v == null || v.trim().isEmpty) return null;
+                      final uri = Uri.tryParse(v.trim());
+                      if (uri == null || !uri.hasScheme || (!uri.isScheme('http') && !uri.isScheme('https'))) {
+                        return 'Enter a valid URL (https://...)';
+                      }
+                      return null;
                     }
-                    return null;
-                  }
-                : (v) {
-                    if (v == null || v.trim().isEmpty) return 'Content link is required';
-                    final uri = Uri.tryParse(v.trim());
-                    if (uri == null || !uri.hasScheme || (!uri.isScheme('http') && !uri.isScheme('https'))) {
-                      return 'Enter a valid URL (https://...)';
-                    }
-                    return null;
-                  },
-          ),
-          const SizedBox(height: 20),
-
-          // External links
-          Row(
-            children: [
-              const _Label('External Links'),
-              const Spacer(),
-              TextButton.icon(
-                onPressed: _addExternalLink,
-                icon: const Icon(Icons.add, size: 14),
-                label: const Text('Add Link', style: TextStyle(fontSize: 12)),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  : (v) {
+                      if (v == null || v.trim().isEmpty) return 'Content link is required';
+                      final uri = Uri.tryParse(v.trim());
+                      if (uri == null || !uri.hasScheme || (!uri.isScheme('http') && !uri.isScheme('https'))) {
+                        return 'Enter a valid URL (https://...)';
+                      }
+                      return null;
+                    },
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const _Label('External Links'),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: _addExternalLink,
+                  icon: const Icon(Icons.add, size: 14),
+                  label: const Text('Add Link', style: TextStyle(fontSize: 12)),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          if (_externalLinkCtrls.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'No external links added yet.',
-                style: TextStyle(fontSize: 12, color: AppColors.textMuted.withValues(alpha: 0.6)),
-              ),
-            )
-          else
-            ...List.generate(_externalLinkCtrls.length, (i) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _StyledTextField(
-                        controller: _externalLinkCtrls[i],
-                        hintText: 'https://',
-                        keyboardType: TextInputType.url,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    InkWell(
-                      onTap: () => _removeExternalLink(i),
-                      borderRadius: BorderRadius.circular(6),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-                          borderRadius: BorderRadius.circular(6),
+              ],
+            ),
+            if (_externalLinkCtrls.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'No external links added yet.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textMuted.withValues(alpha: 0.6)),
+                ),
+              )
+            else
+              ...List.generate(_externalLinkCtrls.length, (i) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _StyledTextField(
+                          controller: _externalLinkCtrls[i],
+                          hintText: 'https://',
+                          keyboardType: TextInputType.url,
                         ),
-                        child: const Icon(Icons.remove, size: 16, color: Colors.red),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: () => _removeExternalLink(i),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(Icons.remove, size: 16, color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+          ],
         ],
       ),
     );
@@ -567,6 +606,77 @@ class _AddContentViewState extends State<AddContentView> {
                 _contentType == 'PDF'
                     ? 'Supported format: PDF'
                     : 'Supported formats: MP4, MOV, AVI, MKV',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted.withValues(alpha: 0.7)),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumbnailZone() {
+    final hasNew = _thumbnailBytes != null;
+    final hasExisting = _existingThumbnailUrl != null && _existingThumbnailUrl!.isNotEmpty;
+
+    return GestureDetector(
+      onTap: _pickThumbnail,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+        decoration: BoxDecoration(
+          color: hasNew
+              ? AppColors.primary.withValues(alpha: 0.04)
+              : const Color(0xFFF8FAFC),
+          border: Border.all(
+            color: hasNew ? AppColors.primary.withValues(alpha: 0.4) : AppColors.borderLight,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              hasNew ? Icons.check_circle_outline : Icons.image_outlined,
+              size: 32,
+              color: hasNew ? AppColors.primary : AppColors.textMuted,
+            ),
+            const SizedBox(height: 10),
+            if (hasNew) ...[
+              Text(
+                _thumbnailName ?? 'Image selected',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Tap to change image',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted.withValues(alpha: 0.7)),
+              ),
+            ] else if (hasExisting) ...[
+              Text(
+                'Current: ${_existingThumbnailUrl!.split('/').last}',
+                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Tap to replace image',
+                style: TextStyle(fontSize: 12, color: AppColors.primary),
+              ),
+            ] else ...[
+              const Text(
+                'Click to upload thumbnail',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Supported formats: JPG, PNG, GIF, WEBP',
                 style: TextStyle(fontSize: 12, color: AppColors.textMuted.withValues(alpha: 0.7)),
               ),
             ],

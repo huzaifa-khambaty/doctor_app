@@ -64,7 +64,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   // Single BLoC instance shared across the management list and detail view.
   late final PractionerBloc _practionerBloc = locator<PractionerBloc>()
     ..add(FetchSpecialtiesRequested())
-    ..add(FetchPractionersRequested());
+    ..add(FetchPractionersRequested())
+    ..add(FetchPractitionerStatsRequested());
 
   late final EventsBloc _eventsBloc = locator<EventsBloc>()
     ..add(FetchEventsRequested());

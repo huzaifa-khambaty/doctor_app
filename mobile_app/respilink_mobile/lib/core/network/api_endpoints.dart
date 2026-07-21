@@ -30,4 +30,7 @@ class ApiEndpoints {
   static const String categoryQuiz = '/topics';
   static const String quizzes = '/quizzes';
   static const String badges = '/badges/overview';
+
+  //Content
+  static const String library = '/library';
 }

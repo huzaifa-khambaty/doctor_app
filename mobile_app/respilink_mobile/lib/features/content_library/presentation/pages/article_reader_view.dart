@@ -1,162 +1,216 @@
-import 'package:respilink_mobile/features/content_library/domain/models/article_block.dart';
-import 'package:respilink_mobile/features/content_library/domain/models/article_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/features/content_library/data/models/content_details_model.dart';
 import 'package:respilink_mobile/features/content_library/domain/models/related_article_model.dart';
+import 'package:respilink_mobile/features/content_library/presentation/bloc/content_details_bloc.dart';
+import 'package:respilink_mobile/features/content_library/presentation/bloc/content_details_event.dart';
+import 'package:respilink_mobile/features/content_library/presentation/bloc/content_details_state.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_author_row.dart';
-import 'package:respilink_mobile/features/content_library/presentation/widgets/article_body.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_bookmark_fab.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_engagement_bar.dart';
+import 'package:respilink_mobile/features/content_library/presentation/widgets/article_external_links.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_header_image.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_share_fab.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_tag_row.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_tags_row.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_title.dart';
-import 'package:respilink_mobile/features/content_library/presentation/widgets/related_articles_section.dart';
+import 'package:respilink_mobile/features/content_library/presentation/widgets/article_video_preview.dart';
+import 'package:respilink_mobile/features/content_library/presentation/widgets/library_skeletons.dart';
+import 'package:respilink_mobile/shared/widgets/app_html_text.dart';
+import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 import 'package:respilink_mobile/shared/widgets/respilink_app_bar.dart';
 
 import '../../../../exports.dart';
 
-// TODO: replace with real data from the backend once the article API is wired up.
-const _article = ArticleModel(
-  title: 'Advanced Pulmonary Rehabilitation Techniques in COPD Management',
-  tag: 'CLINICAL GUIDELINE',
-  readTime: '8 min read',
-  bannerImage: 'copd.png',
-  authorName: 'Dr. Sarah Chen, MD',
-  publishedLabel: 'Published Oct 24, 2023 • Peer Reviewed',
-  blocks: [
-    ArticleBlock.paragraph(
-      'Pulmonary rehabilitation (PR) remains a cornerstone in the comprehensive management of patients with chronic obstructive pulmonary disease (COPD). While traditional models focus on treadmill and cycle ergometry, emerging evidence suggests that integrative high-intensity interval training (HIIT) combined with specialized breathing techniques can significantly enhance functional outcomes.',
-      highlightPhrase: 'integrative high-intensity interval training (HIIT)',
-    ),
-    ArticleBlock.heading('The Shift Toward HIIT'),
-    ArticleBlock.paragraph(
-      'Recent clinical trials have demonstrated that HIIT may provide superior physiological adaptations compared to continuous moderate-intensity training. By allowing patients to reach higher ventilatory thresholds for shorter durations, we reduce the total burden of dyspnea while maximizing peripheral muscle output.',
-    ),
-    ArticleBlock.insight(
-      'Patients implementing HIIT showed a 15% greater improvement in 6-minute walk distance (6MWD) compared to traditional aerobic training protocols over a 12-week period.',
-    ),
-    ArticleBlock.paragraph(
-      "Beyond exercise, the psychological aspect of rehabilitation cannot be understated. Gamification of breathing exercises—now being pioneered in RespiLink's new Quiz modules—has shown a 40% increase in patient adherence to home-based exercise prescriptions.",
-    ),
-    ArticleBlock.heading('Integration of Digital Monitoring'),
-    ArticleBlock.paragraph(
-      'The modern clinician now has access to real-time data streaming from wearable devices. Tracking SpO2 levels and respiratory rates during active phases allows for dynamic intensity adjustment, ensuring patient safety while pushing the therapeutic ceiling.',
-    ),
-    ArticleBlock.interactiveWidget(
-      'Interactive Lung Capacity Model',
-      ctaLabel: 'Launch Viewer',
-    ),
-    ArticleBlock.paragraph(
-      'In conclusion, pulmonary rehabilitation is evolving from a standardized one-size-fits-all model into a precision-based medical intervention. Clinicians must leverage both traditional physiological principles and modern digital engagement tools to achieve optimal long-term management of COPD.',
-    ),
-  ],
-);
-
-const _tags = ['COPD', 'Rehabilitation', 'DigitalHealth', 'ClinicalTrials'];
-
-const _relatedArticles = [
-  RelatedArticleModel(
-    image: 'take_quiz.png',
-    category: 'PHARMACOLOGY',
-    categoryColor: AppColors.purpleAccent,
-    title: 'Novel Bronchodilators: A 2024 Review',
-  ),
-  RelatedArticleModel(
-    image: 'respiratory.png',
-    category: 'RESEARCH',
-    categoryColor: AppColors.primary,
-    title: 'The Microbiome-Lung Axis: Current Understanding',
-  ),
-];
-
 class ArticleReaderView extends StatelessWidget {
-  const ArticleReaderView({super.key});
+  final int contentId;
+
+  const ArticleReaderView({super.key, required this.contentId});
+
+  @override
+  Widget build(BuildContext context) {
+    // Page-scoped (not global) so tapping into a related article and
+    // navigating back doesn't clobber the previous article's state.
+    return BlocProvider<ContentDetailsBloc>(
+      create: (context) => ContentDetailsBloc(locator())
+        ..add(ContentDetailsRequested(contentId: contentId)),
+      child: _ArticleReaderBody(contentId: contentId),
+    );
+  }
+}
+
+class _ArticleReaderBody extends StatelessWidget {
+  final int contentId;
+
+  const _ArticleReaderBody({required this.contentId});
+
+  RelatedArticleModel _mapRelated(RelatedContent related) {
+    return RelatedArticleModel(
+      id: related.id ?? 0,
+      image: related.thumbnailUrl ?? related.thumbnailPath ?? '',
+      category: related.type?.name?.toUpperCase() ?? '',
+      categoryColor: AppColors.primary,
+      title: related.title ?? '',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: const RespiLinkAppBar(showSearchAction: true),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          ArticleBookmarkFab(
-            onTap: () {
-              // TODO: wire to the native bookmark functionality once it exists.
-            },
-          ),
-          3.h.addHeight,
-          ArticleShareFab(
-            onTap: () {
-              // TODO: wire to the native share sheet once it exists.
-            },
-          ),
-        ],
-      ),
+      appBar: const RespiLinkAppBar(showSearchAction: false),
+      // Rendered as a Positioned overlay in the body (not via
+      // Scaffold.floatingActionButton) so it never participates in the
+      // Scaffold's floating-SnackBar avoidance layout, which otherwise
+      // throws "Floating SnackBar presented off screen" when the reserved
+      // headroom above the FAB column collapses below the SnackBar's height.
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ArticleHeaderImage(image: _article.bannerImage),
+        child: Stack(
+          children: [
+            BlocConsumer<ContentDetailsBloc, ContentDetailsState>(
+              listener: (context, state) {
+                if (state is ContentDetailsFailed) {
+                  SnackbarUtil.showSnackbar(
+                    message: state.message,
+                    isError: true,
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state is ContentDetailsFailed) {
+                  return RequestFailed(message: state.message);
+                }
 
-              SizedBox(height: 16.h),
+                if (state is! ContentDetailsLoaded) {
+                  return const ArticleReaderSkeleton();
+                }
 
-              ArticleTagRow(tag: _article.tag, readTime: _article.readTime),
+                final details = state.details;
+                final relatedArticles = [
+                  for (final related in details.relatedContent ?? const <RelatedContent>[])
+                    _mapRelated(related),
+                ];
 
-              SizedBox(height: 10.h),
+                return SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ArticleHeaderImage(image: details.thumbnail ?? ''),
 
-              ArticleTitle(title: _article.title),
+                      SizedBox(height: 16.h),
 
-              SizedBox(height: 14.h),
+                      ArticleTagRow(
+                        tag: (details.topic ?? details.type ?? '').toUpperCase(),
+                        readTime: details.readTime ?? '',
+                      ),
 
-              ArticleAuthorRow(
-                authorName: _article.authorName,
-                authorAvatarUrl: _article.authorAvatarUrl,
-                publishedLabel: _article.publishedLabel,
-              ),
+                      SizedBox(height: 10.h),
 
-              SizedBox(height: 20.h),
+                      ArticleTitle(title: details.title ?? ''),
 
-              ArticleBody(
-                blocks: _article.blocks,
-                onInteractiveWidgetLaunch: (block) {
-                  // TODO: launch the interactive lung capacity model once it exists.
+                      SizedBox(height: 14.h),
+
+                      ArticleAuthorRow(
+                        authorName: details.author?.name ?? 'RespiLink',
+                        publishedLabel: details.publishedAt ?? '',
+                      ),
+
+                      SizedBox(height: 20.h),
+
+                      AppHtmlText(html: details.body ?? ''),
+
+                      if ((details.webinarUrl ?? '').trim().isNotEmpty) ...[
+                        SizedBox(height: 16.h),
+                        ArticleVideoPreview(
+                          videoUrl: details.webinarUrl,
+                          thumbnailUrl: details.thumbnail,
+                        ),
+                      ],
+
+                      if ((details.externalUrl ?? '').trim().isNotEmpty ||
+                          (details.externalLinks ?? const []).isNotEmpty) ...[
+                        SizedBox(height: 16.h),
+                        ArticleExternalLinks(
+                          externalUrl: details.externalUrl,
+                          externalLinks: details.externalLinks,
+                        ),
+                      ],
+
+                      SizedBox(height: 16.h),
+
+                      ArticleTagsRow(tags: details.tags ?? const []),
+
+                      SizedBox(height: 16.h),
+
+                      ArticleEngagementBar(
+                        likeCount: '${details.likes ?? 0}',
+                        commentCount: '${details.commentsCount ?? 0}',
+                        isLiked: details.isLiked ?? false,
+                        onLikeTap: () => context.read<ContentDetailsBloc>().add(
+                          ContentLikeToggled(),
+                        ),
+                        onCommentTap: () {
+                          // TODO: navigate to comments once they exist.
+                        },
+                        onSaveTap: () => context.read<ContentDetailsBloc>().add(
+                          ContentBookmarkToggled(),
+                        ),
+                      ),
+
+                      // if (relatedArticles.isNotEmpty) ...[
+                      //   SizedBox(height: 24.h),
+                      //   RelatedArticlesSection(
+                      //     articles: relatedArticles,
+                      //     onArticleTap: (article) {
+                      //       locator<NavigationService>().navigate(
+                      //         RouterStrings.articleReaderView,
+                      //         arguments: article.id,
+                      //       );
+                      //     },
+                      //   ),
+                      // ],
+
+                      // SizedBox(height: 16.h),
+
+                      // Reserve room so the FAB overlay never covers the
+                      // last piece of content.
+                      SizedBox(height: 72.h),
+                    ],
+                  ),
+                );
+              },
+            ),
+            Positioned(
+              right: 16.w,
+              bottom: 16.h,
+              child: BlocBuilder<ContentDetailsBloc, ContentDetailsState>(
+                builder: (context, state) {
+                  final isBookmarked = state is ContentDetailsLoaded
+                      ? (state.details.isSaved ?? false)
+                      : false;
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ArticleBookmarkFab(
+                        isBookmarked: isBookmarked,
+                        onTap: () => context.read<ContentDetailsBloc>().add(
+                          ContentBookmarkToggled(),
+                        ),
+                      ),
+                      3.h.addHeight,
+                      ArticleShareFab(
+                        onTap: () {
+                          // TODO: wire to the native share sheet once it exists.
+                        },
+                      ),
+                    ],
+                  );
                 },
               ),
-
-              const ArticleTagsRow(tags: _tags),
-
-              SizedBox(height: 16.h),
-
-              ArticleEngagementBar(
-                likeCount: '2.4k',
-                commentCount: '142',
-                onLikeTap: () {
-                  // TODO: wire to the like API once it exists.
-                },
-                onCommentTap: () {
-                  // TODO: navigate to comments once they exist.
-                },
-                onSaveTap: () {
-                  // TODO: wire to the collections API once it exists.
-                },
-              ),
-
-              SizedBox(height: 24.h),
-
-              RelatedArticlesSection(
-                articles: _relatedArticles,
-                onArticleTap: (article) {
-                  // TODO: navigate to the tapped article once article routing is dynamic.
-                },
-              ),
-
-              SizedBox(height: 16.h),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

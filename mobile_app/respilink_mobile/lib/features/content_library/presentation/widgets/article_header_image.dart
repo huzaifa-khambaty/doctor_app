@@ -7,10 +7,14 @@ class ArticleHeaderImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final url = image.startsWith('http')
+        ? image
+        : "${AppConstants.imagePath}$image";
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.r),
       child: AppNetworkImage(
-        imageUrl: "${AppConstants.imagePath}$image",
+        imageUrl: url,
         width: double.infinity,
         height: 180.h,
         fit: BoxFit.cover,
