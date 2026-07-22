@@ -92,7 +92,8 @@ class ContentLibrary extends Model
 
     public function scopePublished($query)
     {
-        return $query->where('status', 'published');
+        return $query->where('status', 'published')
+                    ->orderBy('created_at', 'desc');
             
     }
 

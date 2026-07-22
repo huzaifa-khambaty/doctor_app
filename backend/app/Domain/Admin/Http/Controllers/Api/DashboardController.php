@@ -20,7 +20,7 @@ class DashboardController extends Controller
 
         $activeDoctors = $this->getActiveDoctors($thirtyDaysAgo, $sixtyDaysAgo);
         $pendingVerifications = $this->getPendingVerifications();
-        $quizParticipation = $this->getQuizParticipation($thirtyDaysAgo, $sixtyDaysAgo, $activeDoctors['current']);
+        $quizParticipation = $this->getQuizParticipation($thirtyDaysAgo, $sixtyDaysAgo, $activeDoctors['count']);
         $libraryViews = $this->getLibraryViews($thirtyDaysAgo);
         $engagementTrend = $this->getEngagementTrend($thirtyDaysAgo);
         $verificationQueue = $this->getVerificationQueue();
