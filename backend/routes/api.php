@@ -8,6 +8,8 @@ use App\Domain\Doctor\Http\Controllers\Api\EventController;
 use App\Domain\Doctor\Http\Controllers\Api\QuizController;
 use App\Domain\Doctor\Http\Controllers\Api\BadgeController;
 use App\Domain\Doctor\Http\Controllers\Api\QuizHomeController;
+use App\Domain\Doctor\Http\Controllers\Api\ContentLibraryController;
+use App\Domain\Doctor\Http\Controllers\Api\HomeController;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -60,11 +62,23 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware(['auth:sanctum', 'ability:doctor'])->group(function () {
         Route::get('topics/{topic}/quizzes', [QuizHomeController::class, 'topicQuizzes']);
+        Route::get('home', [HomeController::class, 'index']);
     });
 
     Route::prefix('badges')->middleware(['auth:sanctum', 'ability:doctor'])->controller(BadgeController::class)->group(function () {
         Route::get('mine', 'index');
         Route::get('overview', 'overview');
+    });
+
+    Route::prefix('library')->middleware(['auth:sanctum', 'ability:doctor'])->controller(ContentLibraryController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('{content}', 'show');
+        Route::post('{content}/view', 'viewCount');
+        Route::post('{content}/save', 'save');
+        Route::delete('{content}/unsave', 'unsave');
+        Route::post('{content}/like', 'like');
+        Route::delete('{content}/like', 'unlike');
+        Route::post('{content}/download', 'download');
     });
 
     Route::get('specialties', [SpecialtyController::class, 'index']);

@@ -32,6 +32,17 @@ class DoctorResource extends JsonResource
             'quiz_count' => $this->submitted_quizzes_count ?? 0,
             'rank' => $this->rank_position ?? 0,
             'badge_count' => $this->user_badges_count ?? 0,
+            'earned_badges' => $this->whenLoaded('userBadges', function () {
+                return $this->userBadges
+                    ->take(3)
+                    ->map(fn ($badge) => [
+                        'id' => $badge->id,
+                        'name' => $badge->name,
+                        'description' => $badge->description,
+                        'icon' => $badge->icon_path ? asset('storage/' . $badge->icon_path) : null,
+                        'earned_at' => $badge->pivot->awarded_at,
+                    ]);
+            }, []),
         ];
     }
 }

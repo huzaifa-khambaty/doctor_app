@@ -41,6 +41,11 @@ class RolePermissionSeeder extends Seeder
             'quizzes.publish',
             'quizzes.delete',
             'quizzes.leaderboard.manage',
+            'content.view',
+            'content.create',
+            'content.edit',
+            'content.publish',
+            'content.delete',
         ];
 
         foreach ($permissions as $perm) {
@@ -65,7 +70,8 @@ class RolePermissionSeeder extends Seeder
         $contentManager = Role::findByName('content_manager', $guard);
         $contentManager->syncPermissions([
             'events.view', 'events.create', 'events.edit', 'events.publish', 'events.delete',
-            'quizzes.view', 'quizzes.create', 'quizzes.edit', 'quizzes.publish', 'quizzes.delete', 'quizzes.leaderboard.manage'
+            'quizzes.view', 'quizzes.create', 'quizzes.edit', 'quizzes.publish', 'quizzes.delete', 'quizzes.leaderboard.manage',
+            'content.view', 'content.create', 'content.edit', 'content.publish', 'content.delete',
         ]);
 
         $verificationOfficer = Role::findByName('verification_officer', $guard);

@@ -70,7 +70,7 @@ class LeaderboardSeeder extends Seeder
                 'status' => 'published',
                 'tie_breaker' => 'score_then_time',
                 'opens_at' => now()->subDay(),
-                'closes_at' => now()->addMonths(6),
+                'closes_at' => now()->addDay(),
             ]
         );
 

@@ -194,23 +194,29 @@ class EventController extends Controller
             return response()->json(['message' => 'Event not found.'], 404);
         }
 
-        $event->load('workshopDetail.prerequisites', 'speakers');
+        $event->load('workshopDetail.prerequisites', 'speakers.specialties');
 
         $user = $request->user();
         $isRegistered = $event->registrations()->where('user_id', $user->id)->where('status', '!=', 'cancelled')->exists();
 
-        $trainer = $event->speakers->first();
         $detail = $event->workshopDetail;
+
+        $trainers = $event->speakers->map(fn ($speaker) => [
+            'name' => $speaker->full_name,
+            'designation' => $detail?->trainer_designation,
+            'image' => $speaker->photo_url,
+            'specialties' => $speaker->specialties->map(fn ($specialty) => [
+                'id' => $specialty->id,
+                'name' => $specialty->name,
+                'slug' => $specialty->slug,
+            ]),
+        ]);
 
         return response()->json([
             'id' => $event->id,
             'title' => $event->title,
             'banner' => $event->banner_url,
-            'trainer' => $trainer ? [
-                'name' => $trainer->full_name,
-                'designation' => $detail?->trainer_designation,
-                'image' => $trainer->photo_url,
-            ] : null,
+            'trainers' => $trainers,
             'date' => $event->starts_at?->format('Y-m-d'),
             'start_time' => $event->starts_at?->format('H:i'),
             'end_time' => $event->ends_at?->format('H:i'),

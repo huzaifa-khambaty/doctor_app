@@ -15,4 +15,5 @@ class Quiz extends Model
     public function attempts() { return $this->hasMany(QuizAttempt::class); }
     public function createdBy() { return $this->belongsTo(Admin::class, 'created_by'); }
     public function topic() { return $this->belongsTo(Topic::class); }
+    public function specialties() { return $this->belongsToMany(Specialty::class, 'quiz_specialty', 'quiz_id', 'specialty_id'); }
 }

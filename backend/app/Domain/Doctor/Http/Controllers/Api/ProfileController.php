@@ -37,6 +37,7 @@ class ProfileController extends Controller
 
         $user->update($validated);
         $user->load('specialties');
+        $user->load('userBadges');
 
         return response()->json([
             'success' => true,
@@ -52,6 +53,15 @@ class ProfileController extends Controller
                     'id' => $s->id,
                     'name' => $s->name,
                 ]),
+                'earned_badges' => $user->userBadges
+                    ->take(3)
+                    ->map(fn($badge) => [
+                        'id' => $badge->id,
+                        'name' => $badge->name,
+                        'description' => $badge->description,
+                        'icon' => $badge->icon_path ? asset('storage/' . $badge->icon_path) : null,
+                        'earned_at' => $badge->pivot->awarded_at,
+                    ]),
             ],
         ]);
     }

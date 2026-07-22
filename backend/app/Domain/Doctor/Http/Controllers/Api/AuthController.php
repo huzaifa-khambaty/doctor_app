@@ -121,7 +121,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('doctor-access', ['doctor'])->plainTextToken;
 
-        $user->load('specialties');
+        $user->load('specialties', 'userBadges');
         $user->loadCount('submittedQuizzes', 'userBadges');
         $user->rank_position = User::where('points', '>', $user->points)->count() + 1;
 
