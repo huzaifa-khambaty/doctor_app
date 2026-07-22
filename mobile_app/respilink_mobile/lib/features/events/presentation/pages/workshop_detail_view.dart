@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:respilink_mobile/features/events/presentation/bloc/event_detail_bloc.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/event_detail_event.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/event_detail_state.dart';
@@ -119,6 +121,10 @@ class _WorkshopDetailViewState extends State<WorkshopDetailView> {
               if (state is! WorkshopDetailLoaded) return const SizedBox.shrink();
 
               final isLoading = registerState is EventRegisterLoading;
+              final joinLink = state.detail.event.externalJoinLink?.trim();
+              final isJoinLive = state.detail.event.isLive &&
+                  joinLink != null &&
+                  joinLink.isNotEmpty;
 
               return Container(
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
@@ -137,9 +143,11 @@ class _WorkshopDetailViewState extends State<WorkshopDetailView> {
                   child: ElevatedButton(
                     onPressed: isLoading
                         ? null
-                        : () => context.read<EventRegisterBloc>().add(
-                            EventRegisterRequested(eventId: widget.eventId),
-                          ),
+                        : isJoinLive
+                            ? () => _joinLive(context, joinLink)
+                            : () => context.read<EventRegisterBloc>().add(
+                                EventRegisterRequested(eventId: widget.eventId),
+                              ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       padding: EdgeInsets.symmetric(
@@ -161,7 +169,7 @@ class _WorkshopDetailViewState extends State<WorkshopDetailView> {
                             ),
                           )
                         : AppText.medium(
-                            label: state.detail.ctaLabel,
+                            label: isJoinLive ? 'Join Live' : state.detail.ctaLabel,
                             color: AppColors.white,
                             fontWeight: FontWeight.bold,
                             maxLines: 1,
@@ -175,5 +183,24 @@ class _WorkshopDetailViewState extends State<WorkshopDetailView> {
         },
       ),
     );
+  }
+
+  Future<void> _joinLive(BuildContext context, String url) async {
+    try {
+      final uri = Uri.tryParse(url);
+      if (uri == null || !uri.hasScheme) {
+        SnackbarUtil.showSnackbar(message: 'Invalid live session link.', isError: true);
+        return;
+      }
+
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        SnackbarUtil.showSnackbar(message: 'Unable to open the live session.', isError: true);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        SnackbarUtil.showSnackbar(message: 'Unable to open the live session.', isError: true);
+      }
+    }
   }
 }

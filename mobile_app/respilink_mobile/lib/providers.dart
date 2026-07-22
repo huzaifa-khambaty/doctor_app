@@ -3,6 +3,7 @@ import 'package:respilink_mobile/exports.dart';
 import 'package:respilink_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:respilink_mobile/features/auth/presentation/bloc/badges_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:respilink_mobile/features/dashboard/presentation/bloc/home_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_home_bloc.dart';
 import 'package:respilink_mobile/features/content_library/presentation/bloc/library_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_list_bloc.dart';
@@ -32,6 +33,7 @@ class Providers {
           AuthBloc(locator())..add(UserAuthenticationRequested()),
     ),
     BlocProvider<DashboardBloc>(create: (context) => DashboardBloc()),
+    BlocProvider<HomeBloc>(create: (context) => HomeBloc(locator())),
     BlocProvider<EventsBloc>(create: (context) => EventsBloc(locator())),
     BlocProvider<EventDetailBloc>(
       create: (context) => EventDetailBloc(locator()),

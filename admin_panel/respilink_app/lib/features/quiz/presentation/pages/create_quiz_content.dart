@@ -85,6 +85,11 @@ class _CreateQuizContentState extends State<CreateQuizContent> {
     super.initState();
     // Reset any stuck isSubmitting / submitSuccess from a prior session
     context.read<QuizBloc>().add(ResetQuizFormRequested());
+    // Fetch topics if they haven't been loaded yet
+    final quizState = context.read<QuizBloc>().state;
+    if (quizState.topics.isEmpty && !quizState.isLoadingTopics) {
+      context.read<QuizBloc>().add(FetchTopicsRequested());
+    }
   }
 
   @override
@@ -397,187 +402,143 @@ class _CreateQuizContentState extends State<CreateQuizContent> {
                   const SizedBox(height: 24),
 
                   // ── Metadata cards ───────────────────────────────────────
-                  Flex(
-                    direction: useVerticalStack
-                        ? Axis.vertical
-                        : Axis.horizontal,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // General information
-                      Expanded(
-                        flex: useVerticalStack ? 0 : 2,
-                        child: _ConfigSectionCard(
-                          title: 'General Information',
-                          icon: Icons.info_outline_rounded,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _label('QUIZ TITLE'),
-                              const SizedBox(height: 6),
-                              TextField(
-                                controller: _titleController,
-                                decoration: _inputDeco(
-                                  'e.g., Advanced Respiratory Diagnostics',
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              _label('DESCRIPTION (OPTIONAL)'),
-                              const SizedBox(height: 6),
-                              TextField(
-                                controller: _descriptionController,
-                                maxLines: 3,
-                                decoration: _inputDeco(
-                                  'Explain what the clinician will learn...',
-                                ),
-                              ),
-                            ],
+                  Builder(builder: (_) {
+                    final generalCard = _ConfigSectionCard(
+                      title: 'General Information',
+                      icon: Icons.info_outline_rounded,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _label('QUIZ TITLE'),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _titleController,
+                            decoration: _inputDeco('e.g., Advanced Respiratory Diagnostics'),
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                          _label('DESCRIPTION (OPTIONAL)'),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _descriptionController,
+                            maxLines: 3,
+                            decoration: _inputDeco('Explain what the clinician will learn...'),
+                          ),
+                        ],
                       ),
-                      useVerticalStack
-                          ? const SizedBox(height: 16)
-                          : const SizedBox(width: 16),
+                    );
 
-                      // Configuration
-                      Expanded(
-                        flex: useVerticalStack ? 0 : 1,
-                        child: _ConfigSectionCard(
-                          title: 'Configuration',
-                          icon: Icons.tune_rounded,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    final configCard = _ConfigSectionCard(
+                      title: 'Configuration',
+                      icon: Icons.tune_rounded,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _label('TOPIC AREA'),
+                          const SizedBox(height: 6),
+                          if (state.isLoadingTopics)
+                            Shimmer.fromColors(
+                              baseColor: const Color(0xFFE2E8F0),
+                              highlightColor: const Color(0xFFF8FAFC),
+                              child: Container(
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            )
+                          else
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F8FA),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.borderLight),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<QuizTopicModel>(
+                                  value: _selectedTopic,
+                                  isExpanded: true,
+                                  hint: const Text(
+                                    'Select a topic',
+                                    style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                                  ),
+                                  icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+                                  items: state.topics
+                                      .map((t) => DropdownMenuItem(
+                                            value: t,
+                                            child: Text(t.name ?? '', style: const TextStyle(fontSize: 13)),
+                                          ))
+                                      .toList(),
+                                  onChanged: (val) => setState(() => _selectedTopic = val),
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 16),
+                          _label('TIME LIMIT (MINUTES)'),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _timeLimitController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            decoration: _inputDeco('e.g., 30'),
+                          ),
+                          const SizedBox(height: 16),
+                          _label('OPEN PERIOD'),
+                          const SizedBox(height: 6),
+                          Row(
                             children: [
-                              _label('TOPIC AREA'),
-                              const SizedBox(height: 6),
-                              BlocBuilder<QuizBloc, QuizState>(
-                                builder: (context, state) {
-                                  if (state.isLoadingTopics) {
-                                    return Shimmer.fromColors(
-                                      baseColor:
-                                          const Color(0xFFE2E8F0),
-                                      highlightColor:
-                                          const Color(0xFFF8FAFC),
-                                      child: Container(
-                                        height: 44,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF5F8FA),
-                                      borderRadius:
-                                          BorderRadius.circular(8),
-                                      border: Border.all(
-                                          color: AppColors.borderLight),
-                                    ),
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton<QuizTopicModel>(
-                                        value: _selectedTopic,
-                                        isExpanded: true,
-                                        hint: const Text(
-                                          'Select a topic',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: AppColors.textMuted,
-                                          ),
-                                        ),
-                                        icon: const Icon(
-                                          Icons.keyboard_arrow_down,
-                                          size: 18,
-                                        ),
-                                        items: state.topics
-                                            .map(
-                                              (t) => DropdownMenuItem(
-                                                value: t,
-                                                child: Text(
-                                                  t.name ?? '',
-                                                  style: const TextStyle(
-                                                      fontSize: 13),
-                                                ),
-                                              ),
-                                            )
-                                            .toList(),
-                                        onChanged: (val) => setState(
-                                            () => _selectedTopic = val),
-                                      ),
-                                    ),
-                                  );
-                                },
+                              Expanded(
+                                child: TextField(
+                                  controller: _opensAtController,
+                                  readOnly: true,
+                                  onTap: () => _pickDateTime(_opensAtController),
+                                  decoration: _inputDeco(
+                                    'Start date',
+                                    suffix: const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textMuted),
+                                  ),
+                                ),
                               ),
-                              const SizedBox(height: 16),
-                              _label('TIME LIMIT (MINUTES)'),
-                              const SizedBox(height: 6),
-                              TextField(
-                                controller: _timeLimitController,
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                ],
-                                decoration: _inputDeco('e.g., 30'),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 6),
+                                child: Text('to', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
                               ),
-                              const SizedBox(height: 16),
-                              _label('OPEN PERIOD'),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: TextField(
-                                      controller: _opensAtController,
-                                      readOnly: true,
-                                      onTap: () => _pickDateTime(
-                                          _opensAtController),
-                                      decoration: _inputDeco(
-                                        'Start date',
-                                        suffix: const Icon(
-                                          Icons.calendar_today_outlined,
-                                          size: 14,
-                                          color: AppColors.textMuted,
-                                        ),
-                                      ),
-                                    ),
+                              Expanded(
+                                child: TextField(
+                                  controller: _closesAtController,
+                                  readOnly: true,
+                                  onTap: () => _pickDateTime(_closesAtController),
+                                  decoration: _inputDeco(
+                                    'End date',
+                                    suffix: const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textMuted),
                                   ),
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 6.0),
-                                    child: Text(
-                                      'to',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textMuted,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: TextField(
-                                      controller: _closesAtController,
-                                      readOnly: true,
-                                      onTap: () => _pickDateTime(
-                                          _closesAtController),
-                                      decoration: _inputDeco(
-                                        'End date',
-                                        suffix: const Icon(
-                                          Icons.calendar_today_outlined,
-                                          size: 14,
-                                          color: AppColors.textMuted,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+
+                    if (useVerticalStack) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          generalCard,
+                          const SizedBox(height: 16),
+                          configCard,
+                        ],
+                      );
+                    }
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 2, child: generalCard),
+                        const SizedBox(width: 16),
+                        Expanded(flex: 1, child: configCard),
+                      ],
+                    );
+                  }),
                   const SizedBox(height: 32),
 
                   // ── Questions header ─────────────────────────────────────

@@ -10,14 +10,34 @@ class EngagementChart extends StatelessWidget {
 
   const EngagementChart({super.key, required this.data, this.isMobile = false});
 
+  static double _ceilToInterval(double value, double interval) {
+    if (value <= 0) return interval;
+    return (value / interval).ceil() * interval;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
       return const Center(child: Text('No analytical data available.'));
     }
 
+    final maxVal = data.fold<double>(0, (m, p) {
+      final v = p.views > p.quizzes ? p.views.toDouble() : p.quizzes.toDouble();
+      return v > m ? v : m;
+    });
+    final interval = maxVal <= 50
+        ? 10.0
+        : maxVal <= 200
+            ? 50.0
+            : maxVal <= 500
+                ? 100.0
+                : 200.0;
+    final maxY = _ceilToInterval(maxVal, interval);
+
     return LineChart(
       LineChartData(
+        minY: 0,
+        maxY: maxY,
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
@@ -68,11 +88,12 @@ class EngagementChart extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: isMobile ? 28 : 40,
+              reservedSize: isMobile ? 32 : 44,
+              interval: interval,
               getTitlesWidget: (value, meta) {
+                if (value == 0) return const SizedBox.shrink();
                 return SideTitleWidget(
                   meta: meta,
-                  //axisSide: meta.axisSide,
                   space: 4,
                   child: Text(
                     value.toInt().toString(),

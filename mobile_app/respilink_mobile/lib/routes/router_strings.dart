@@ -23,4 +23,5 @@ class RouterStrings {
   static String leaderboard = '/leaderboard';
   static String queryForm = '/queryForm';
   static String articleReaderView = '/articleReaderView';
+  static String profileView = '/profileView';
 }

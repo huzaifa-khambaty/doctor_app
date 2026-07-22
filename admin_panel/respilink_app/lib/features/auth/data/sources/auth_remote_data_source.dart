@@ -1,5 +1,6 @@
 import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/network/dio_client.dart';
+import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
 import 'package:respilink_app/features/auth/data/models/requests/edit_profile_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/forget_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/login_request.dart';
@@ -18,7 +19,10 @@ abstract class AuthRemoteDataSource {
   Future<ApiResponse<void>> resetPassword(ResetPasswordRequest request);
 
   Future<ApiResponse<void>> forgetPassword(ForgetPasswordRequest request);
+
   Future<ApiResponse<Admin>> me();
+
+  Future<ApiResponse<DashboardModel>> dashboard();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -83,4 +87,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     );
   }
 
+    @override
+  Future<ApiResponse<DashboardModel>> dashboard() async {
+    return _client.get(
+      ApiEndpoints.dashboard,
+      fromJson: (json) => DashboardModel.fromJson(json as Map<String, dynamic>),
+    );
+  }
 }

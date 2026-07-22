@@ -35,8 +35,7 @@ class _AddContentViewState extends State<AddContentView> {
 
   // ── Form field controllers ───────────────────────────────────────────────
   late final TextEditingController _titleCtrl;
-  late final TextEditingController _descriptionCtrl;
-  late final TextEditingController _linkCtrl;
+  late final _RichTextController _descriptionCtrl;
 
   // ── Selection state ──────────────────────────────────────────────────────
   String _contentType = _kContentTypes.first;
@@ -63,8 +62,7 @@ class _AddContentViewState extends State<AddContentView> {
     super.initState();
     final c = widget.existingContent;
     _titleCtrl = TextEditingController(text: c?.title ?? '');
-    _descriptionCtrl = TextEditingController(text: c?.description ?? '');
-    _linkCtrl = TextEditingController(text: c?.contentLink ?? '');
+    _descriptionCtrl = _RichTextController(c?.description ?? '');
     if (c != null) {
       const typeMap = {1: 'PDF', 2: 'Article', 3: 'Webinar', 4: 'Quiz'};
       _contentType = typeMap[c.typeId] ?? _kContentTypes.first;
@@ -89,7 +87,6 @@ class _AddContentViewState extends State<AddContentView> {
   void dispose() {
     _titleCtrl.dispose();
     _descriptionCtrl.dispose();
-    _linkCtrl.dispose();
     for (final c in _externalLinkCtrls) {
       c.dispose();
     }
@@ -201,9 +198,9 @@ class _AddContentViewState extends State<AddContentView> {
 
     final request = CreateContentRequest(
       title: _titleCtrl.text.trim(),
-      description: _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.text.trim(),
+      description: _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.toHtml(),
       contentType: _contentType.toLowerCase(),
-      link: _linkCtrl.text.trim().isEmpty ? null : _linkCtrl.text.trim(),
+      link: null,
       externalLinks: externalLinks.isEmpty ? null : externalLinks,
       specialtyIds: _selectedSpecialtyIds.isEmpty ? null : _selectedSpecialtyIds.toList(),
       quizId: _selectedQuizId,
@@ -424,7 +421,7 @@ class _AddContentViewState extends State<AddContentView> {
           // Description
           _Label('Description *'),
           const SizedBox(height: 8),
-          _HtmlEditorField(controller: _descriptionCtrl),
+          _RichTextEditorField(controller: _descriptionCtrl),
         ],
       ),
     );
@@ -455,33 +452,8 @@ class _AddContentViewState extends State<AddContentView> {
             const SizedBox(height: 20),
           ],
 
-          // Content link and external links — Article and Webinar only
+          // External links — Article and Webinar only
           if (_contentType == 'Article' || _contentType == 'Webinar') ...[
-            _Label(_contentType == 'Webinar' ? 'External Video Link' : 'Content Link *'),
-            const SizedBox(height: 8),
-            _StyledTextField(
-              controller: _linkCtrl,
-              hintText: 'https://',
-              keyboardType: TextInputType.url,
-              validator: _contentType == 'Webinar'
-                  ? (v) {
-                      if (v == null || v.trim().isEmpty) return null;
-                      final uri = Uri.tryParse(v.trim());
-                      if (uri == null || !uri.hasScheme || (!uri.isScheme('http') && !uri.isScheme('https'))) {
-                        return 'Enter a valid URL (https://...)';
-                      }
-                      return null;
-                    }
-                  : (v) {
-                      if (v == null || v.trim().isEmpty) return 'Content link is required';
-                      final uri = Uri.tryParse(v.trim());
-                      if (uri == null || !uri.hasScheme || (!uri.isScheme('http') && !uri.isScheme('https'))) {
-                        return 'Enter a valid URL (https://...)';
-                      }
-                      return null;
-                    },
-            ),
-            const SizedBox(height: 20),
             Row(
               children: [
                 const _Label('External Links'),
@@ -1150,80 +1122,268 @@ class _StyledTextField extends StatelessWidget {
   }
 }
 
+
 // ─────────────────────────────────────────────────────────────────────────────
-// HTML toolbar editor
+// WYSIWYG rich-text controller + editor
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _HtmlEditorField extends StatefulWidget {
-  final TextEditingController controller;
+enum _Fmt { bold, italic, underline, h1, h2, h3 }
 
-  const _HtmlEditorField({required this.controller});
-
-  @override
-  State<_HtmlEditorField> createState() => _HtmlEditorFieldState();
+class _FormatRange {
+  int start;
+  int end;
+  final _Fmt fmt;
+  _FormatRange(this.start, this.end, this.fmt);
 }
 
-class _HtmlEditorFieldState extends State<_HtmlEditorField> {
-  bool _showPreview = false;
-  final FocusNode _focusNode = FocusNode();
+class _RichTextController extends TextEditingController {
+  final List<_FormatRange> _formats = [];
+  String _prev = '';
+
+  _RichTextController([String raw = '']) : super(text: _extractPlain(raw)) {
+    _formats.addAll(_extractFormats(raw));
+    _prev = text;
+    addListener(_sync);
+  }
+
+  // ── HTML → plain text + format ranges ────────────────────────────────────
+
+  static const _kTagMap = {
+    'h1': _Fmt.h1, 'h2': _Fmt.h2, 'h3': _Fmt.h3,
+    'strong': _Fmt.bold, 'b': _Fmt.bold,
+    'em': _Fmt.italic, 'i': _Fmt.italic,
+    'u': _Fmt.underline,
+  };
+
+  static bool _isHtml(String s) => s.contains('<') && s.contains('>');
+
+  static String _extractPlain(String raw) =>
+      _isHtml(raw) ? _parseHtml(raw).$1 : raw;
+
+  static List<_FormatRange> _extractFormats(String raw) =>
+      _isHtml(raw) ? _parseHtml(raw).$2 : [];
+
+  static (String, List<_FormatRange>) _parseHtml(String html) {
+    final buf = StringBuffer();
+    final ranges = <_FormatRange>[];
+    final stack = <(int, _Fmt)>[];
+    int i = 0;
+    while (i < html.length) {
+      if (html[i] == '<') {
+        final end = html.indexOf('>', i);
+        if (end == -1) { buf.write(html[i]); i++; continue; }
+        final tag = html.substring(i + 1, end).trim().toLowerCase();
+        if (tag.startsWith('/')) {
+          final name = tag.substring(1).trim();
+          final fmt = _kTagMap[name];
+          if (fmt != null) {
+            for (int j = stack.length - 1; j >= 0; j--) {
+              if (stack[j].$2 == fmt) {
+                final start = stack[j].$1;
+                if (buf.length > start) {
+                  ranges.add(_FormatRange(start, buf.length, fmt));
+                }
+                stack.removeAt(j);
+                break;
+              }
+            }
+          }
+        } else {
+          final name = tag.split(RegExp(r'[\s>]'))[0];
+          final fmt = _kTagMap[name];
+          if (fmt != null) stack.add((buf.length, fmt));
+        }
+        i = end + 1;
+      } else if (html[i] == '&') {
+        final semi = html.indexOf(';', i);
+        if (semi != -1 && semi - i <= 6) {
+          final entity = html.substring(i + 1, semi);
+          buf.write(switch (entity) {
+            'amp'  => '&',
+            'lt'   => '<',
+            'gt'   => '>',
+            'nbsp' => ' ',
+            'quot' => '"',
+            _      => '&$entity;',
+          });
+          i = semi + 1;
+        } else {
+          buf.write(html[i]);
+          i++;
+        }
+      } else {
+        buf.write(html[i]);
+        i++;
+      }
+    }
+    return (buf.toString(), ranges);
+  }
+
+  // ── Keep format spans in sync when text is edited ─────────────────────────
+  void _sync() {
+    final curr = text;
+    if (curr == _prev) { _prev = curr; return; }
+    _adjustSpans(_prev, curr);
+    _prev = curr;
+  }
+
+  void _adjustSpans(String old, String curr) {
+    int pfx = 0;
+    final min = old.length < curr.length ? old.length : curr.length;
+    while (pfx < min && old[pfx] == curr[pfx]) { pfx++; }
+
+    int sfx = 0;
+    while (sfx < old.length - pfx &&
+           sfx < curr.length - pfx &&
+           old[old.length - 1 - sfx] == curr[curr.length - 1 - sfx]) {
+      sfx++;
+    }
+
+    final delEnd = old.length - sfx;
+    final insEnd = curr.length - sfx;
+    final delta  = insEnd - delEnd;
+
+    for (final f in _formats) {
+      if (delta > 0) {
+        if (f.start >= delEnd) { f.start += delta; }
+        else if (f.start > pfx) { f.start = insEnd; }
+        if (f.end >= delEnd) { f.end += delta; }
+        else if (f.end > pfx) { f.end = insEnd; }
+      } else if (delta < 0) {
+        if (f.start >= delEnd) { f.start += delta; }
+        else if (f.start > pfx) { f.start = pfx; }
+        if (f.end >= delEnd) { f.end += delta; }
+        else if (f.end > pfx) { f.end = pfx; }
+        f.start = f.start.clamp(0, curr.length);
+        f.end   = f.end.clamp(0, curr.length);
+      }
+    }
+    _formats.removeWhere((f) => f.start >= f.end);
+  }
+
+  // ── Apply / toggle a format on the current selection ─────────────────────
+  void applyFormat(_Fmt fmt) {
+    final sel = selection;
+    if (!sel.isValid || sel.isCollapsed) return;
+    final s = sel.start, e = sel.end;
+    final already = _formats.any((f) => f.fmt == fmt && f.start <= s && f.end >= e);
+    _formats.removeWhere((f) => f.fmt == fmt && f.start < e && f.end > s);
+    if (!already) _formats.add(_FormatRange(s, e, fmt));
+    notifyListeners();
+  }
+
+  bool isActive(_Fmt fmt) {
+    final sel = selection;
+    if (!sel.isValid || sel.isCollapsed) return false;
+    return _formats.any((f) => f.fmt == fmt && f.start <= sel.start && f.end >= sel.end);
+  }
+
+  // ── Serialize to HTML for API submission ──────────────────────────────────
+  String toHtml() {
+    final plain = text;
+    if (_formats.isEmpty) return plain;
+    final charFmts = List<Set<_Fmt>>.generate(plain.length, (_) => {});
+    for (final f in _formats) {
+      for (int i = f.start.clamp(0, plain.length); i < f.end.clamp(0, plain.length); i++) {
+        charFmts[i].add(f.fmt);
+      }
+    }
+    final buf = StringBuffer();
+    int i = 0;
+    while (i < plain.length) {
+      final fmts = charFmts[i];
+      int j = i + 1;
+      while (j < plain.length && _eq(charFmts[j], fmts)) { j++; }
+      buf.write(_openTags(fmts));
+      buf.write(plain.substring(i, j));
+      buf.write(_closeTags(fmts));
+      i = j;
+    }
+    return buf.toString();
+  }
+
+  String _openTags(Set<_Fmt> f) {
+    final b = StringBuffer();
+    if (f.contains(_Fmt.h1))        b.write('<h1>');
+    if (f.contains(_Fmt.h2))        b.write('<h2>');
+    if (f.contains(_Fmt.h3))        b.write('<h3>');
+    if (f.contains(_Fmt.bold))      b.write('<strong>');
+    if (f.contains(_Fmt.italic))    b.write('<em>');
+    if (f.contains(_Fmt.underline)) b.write('<u>');
+    return b.toString();
+  }
+
+  String _closeTags(Set<_Fmt> f) {
+    final b = StringBuffer();
+    if (f.contains(_Fmt.underline)) b.write('</u>');
+    if (f.contains(_Fmt.italic))    b.write('</em>');
+    if (f.contains(_Fmt.bold))      b.write('</strong>');
+    if (f.contains(_Fmt.h3))        b.write('</h3>');
+    if (f.contains(_Fmt.h2))        b.write('</h2>');
+    if (f.contains(_Fmt.h1))        b.write('</h1>');
+    return b.toString();
+  }
+
+  // ── Render formatted text inside the TextField ────────────────────────────
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    final plain = text;
+    if (_formats.isEmpty || plain.isEmpty) {
+      return TextSpan(style: style, text: plain);
+    }
+    final charFmts = List<Set<_Fmt>>.generate(plain.length, (_) => {});
+    for (final f in _formats) {
+      for (int i = f.start.clamp(0, plain.length); i < f.end.clamp(0, plain.length); i++) {
+        charFmts[i].add(f.fmt);
+      }
+    }
+    final children = <TextSpan>[];
+    int i = 0;
+    while (i < plain.length) {
+      final fmts = charFmts[i];
+      int j = i + 1;
+      while (j < plain.length && _eq(charFmts[j], fmts)) { j++; }
+      children.add(TextSpan(text: plain.substring(i, j), style: _applyFmts(style, fmts)));
+      i = j;
+    }
+    return TextSpan(style: style, children: children);
+  }
+
+  bool _eq(Set<_Fmt> a, Set<_Fmt> b) => a.length == b.length && a.containsAll(b);
+
+  TextStyle _applyFmts(TextStyle? base, Set<_Fmt> fmts) {
+    var s = base ?? const TextStyle();
+    for (final f in fmts) {
+      s = switch (f) {
+        _Fmt.bold      => s.copyWith(fontWeight: FontWeight.bold),
+        _Fmt.italic    => s.copyWith(fontStyle: FontStyle.italic),
+        _Fmt.underline => s.copyWith(decoration: TextDecoration.underline),
+        _Fmt.h1        => s.copyWith(fontSize: 22, fontWeight: FontWeight.bold, height: 1.4),
+        _Fmt.h2        => s.copyWith(fontSize: 18, fontWeight: FontWeight.bold, height: 1.4),
+        _Fmt.h3        => s.copyWith(fontSize: 15, fontWeight: FontWeight.w600, height: 1.4),
+      };
+    }
+    return s;
+  }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    removeListener(_sync);
     super.dispose();
   }
+}
 
-  void _wrap(String open, String close) {
-    final ctrl = widget.controller;
-    final sel = ctrl.selection;
-    final text = ctrl.text;
+class _RichTextEditorField extends StatelessWidget {
+  final _RichTextController controller;
+  const _RichTextEditorField({required this.controller});
 
-    if (!sel.isValid) {
-      // No cursor — append tags at the end
-      final inserted = '$open$close';
-      ctrl.value = TextEditingValue(
-        text: text + inserted,
-        selection: TextSelection.collapsed(offset: text.length + open.length),
-      );
-      return;
-    }
-
-    if (sel.isCollapsed) {
-      // No selection — insert tag pair at cursor, place caret between them
-      final before = text.substring(0, sel.start);
-      final after = text.substring(sel.start);
-      ctrl.value = TextEditingValue(
-        text: '$before$open$close$after',
-        selection: TextSelection.collapsed(offset: sel.start + open.length),
-      );
-    } else {
-      // Wrap selected text
-      final selected = sel.textInside(text);
-      final before = text.substring(0, sel.start);
-      final after = text.substring(sel.end);
-      ctrl.value = TextEditingValue(
-        text: '$before$open$selected$close$after',
-        selection: TextSelection.collapsed(
-          offset: sel.start + open.length + selected.length + close.length,
-        ),
-      );
-    }
-    _focusNode.requestFocus();
-  }
-
-  void _insertBlock(String open, String close, {String inner = ''}) {
-    final ctrl = widget.controller;
-    final sel = ctrl.selection;
-    final text = ctrl.text;
-    final pos = sel.isValid ? sel.start : text.length;
-    final prefix = (pos > 0 && text[pos - 1] != '\n') ? '\n' : '';
-    final snippet = '$prefix$open$inner$close\n';
-    final newText = text.substring(0, pos) + snippet + text.substring(pos);
-    ctrl.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: pos + prefix.length + open.length),
-    );
-    _focusNode.requestFocus();
+  void _apply(_Fmt fmt, void Function(VoidCallback) setState) {
+    controller.applyFormat(fmt);
+    setState(() {});
   }
 
   @override
@@ -1237,7 +1397,7 @@ class _HtmlEditorFieldState extends State<_HtmlEditorField> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Toolbar ────────────────────────────────────────────────────────
+          // ── Toolbar ───────────────────────────────────────────────────────
           Container(
             decoration: const BoxDecoration(
               color: Color(0xFFF8FAFC),
@@ -1250,267 +1410,99 @@ class _HtmlEditorFieldState extends State<_HtmlEditorField> {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: ListenableBuilder(
+                listenable: controller,
+                builder: (ctx, _) {
+                  return StatefulBuilder(
+                    builder: (ctx, setState) => Row(
+                      children: [
+                        _FmtBtn(label: 'H1', fmt: _Fmt.h1,        ctrl: controller, bold: true,      onTap: () => _apply(_Fmt.h1,        setState)),
+                        _FmtBtn(label: 'H2', fmt: _Fmt.h2,        ctrl: controller, bold: true,      onTap: () => _apply(_Fmt.h2,        setState)),
+                        _FmtBtn(label: 'H3', fmt: _Fmt.h3,        ctrl: controller, bold: true,      onTap: () => _apply(_Fmt.h3,        setState)),
+                        _ToolbarSep(),
+                        _FmtBtn(label: 'B',  fmt: _Fmt.bold,      ctrl: controller, bold: true,      onTap: () => _apply(_Fmt.bold,      setState)),
+                        _FmtBtn(label: 'I',  fmt: _Fmt.italic,    ctrl: controller, italic: true,    onTap: () => _apply(_Fmt.italic,    setState)),
+                        _FmtBtn(label: 'U',  fmt: _Fmt.underline, ctrl: controller, underline: true, onTap: () => _apply(_Fmt.underline, setState)),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // ── Editable area ─────────────────────────────────────────────────
+          TextField(
+            controller: controller,
+            minLines: 5,
+            maxLines: 12,
+            style: const TextStyle(fontSize: 13, color: AppColors.textDark, height: 1.6),
+            decoration: InputDecoration(
+              hintText: 'Enter description...',
+              hintStyle: TextStyle(color: AppColors.textMuted.withValues(alpha: 0.5), fontSize: 13),
+              filled: true,
+              fillColor: const Color(0xFFFCFDFE),
+              contentPadding: const EdgeInsets.all(14),
+              border: InputBorder.none,
+              enabledBorder: const OutlineInputBorder(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
+                ),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: const OutlineInputBorder(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
+                ),
+                borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+            ),
+          ),
+
+          // ── Footer ────────────────────────────────────────────────────────
+          ListenableBuilder(
+            listenable: controller,
+            builder: (context, w) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: AppColors.borderLight)),
+              ),
               child: Row(
                 children: [
-                  // Headings
-                  _ToolbarBtn(label: 'H1', tooltip: 'Heading 1', onTap: () => _wrap('<h1>', '</h1>')),
-                  _ToolbarBtn(label: 'H2', tooltip: 'Heading 2', onTap: () => _wrap('<h2>', '</h2>')),
-                  _ToolbarBtn(label: 'H3', tooltip: 'Heading 3', onTap: () => _wrap('<h3>', '</h3>')),
-                  _ToolbarBtn(label: 'P',  tooltip: 'Paragraph',  onTap: () => _wrap('<p>', '</p>')),
-                  const _ToolbarDivider(),
-
-                  // Inline styles
-                  _ToolbarBtn(label: 'B', tooltip: 'Bold',      bold: true,   onTap: () => _wrap('<strong>', '</strong>')),
-                  _ToolbarBtn(label: 'I', tooltip: 'Italic',    italic: true, onTap: () => _wrap('<em>', '</em>')),
-                  _ToolbarBtn(label: 'U', tooltip: 'Underline', underline: true, onTap: () => _wrap('<u>', '</u>')),
-                  const _ToolbarDivider(),
-
-                  // Lists
-                  _ToolbarIconBtn(icon: Icons.format_list_bulleted, tooltip: 'Unordered list',
-                      onTap: () => _insertBlock('<ul>\n  <li>', '</li>\n</ul>')),
-                  _ToolbarIconBtn(icon: Icons.format_list_numbered, tooltip: 'Ordered list',
-                      onTap: () => _insertBlock('<ol>\n  <li>', '</li>\n</ol>')),
-                  _ToolbarBtn(label: 'LI', tooltip: 'List item', onTap: () => _wrap('<li>', '</li>')),
-                  const _ToolbarDivider(),
-
-                  // Other
-                  _ToolbarIconBtn(icon: Icons.link, tooltip: 'Hyperlink',
-                      onTap: () => _wrap('<a href="">', '</a>')),
-                  _ToolbarIconBtn(icon: Icons.image_outlined, tooltip: 'Image',
-                      onTap: () => _insertBlock('<img src="', '" alt="" />')),
-                  _ToolbarBtn(label: 'BR', tooltip: 'Line break', onTap: () {
-                    final ctrl = widget.controller;
-                    final sel = ctrl.selection;
-                    final text = ctrl.text;
-                    final pos = sel.isValid ? sel.start : text.length;
-                    final newText = '${text.substring(0, pos)}<br />\n${text.substring(pos)}';
-                    ctrl.value = TextEditingValue(
-                      text: newText,
-                      selection: TextSelection.collapsed(offset: pos + 7),
-                    );
-                    _focusNode.requestFocus();
-                  }),
-                  const _ToolbarDivider(),
-
-                  // Preview toggle
-                  GestureDetector(
-                    onTap: () => setState(() => _showPreview = !_showPreview),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: _showPreview
-                            ? AppColors.primary.withValues(alpha: 0.1)
-                            : Colors.transparent,
-                        border: Border.all(
-                          color: _showPreview ? AppColors.primary : AppColors.borderLight,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _showPreview ? Icons.code : Icons.preview_outlined,
-                            size: 14,
-                            color: _showPreview ? AppColors.primary : AppColors.textMuted,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _showPreview ? 'HTML' : 'Preview',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: _showPreview ? AppColors.primary : AppColors.textMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Text(
+                    'Select text then tap a format button',
+                    style: TextStyle(fontSize: 11, color: AppColors.textMuted.withValues(alpha: 0.6)),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${controller.text.length} chars',
+                    style: TextStyle(fontSize: 11, color: AppColors.textMuted.withValues(alpha: 0.6)),
                   ),
                 ],
               ),
             ),
           ),
-
-          // ── Editor / Preview ──────────────────────────────────────────────
-          AnimatedCrossFade(
-            duration: const Duration(milliseconds: 200),
-            crossFadeState: _showPreview ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            firstChild: TextField(
-              controller: widget.controller,
-              focusNode: _focusNode,
-              minLines: 10,
-              maxLines: 20,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textDark,
-                fontFamily: 'monospace',
-                height: 1.6,
-              ),
-              decoration: InputDecoration(
-                hintText: '<h2>Section Heading</h2>\n<p>Your content here...</p>',
-                hintStyle: TextStyle(
-                  color: AppColors.textMuted.withValues(alpha: 0.4),
-                  fontSize: 13,
-                  fontFamily: 'monospace',
-                ),
-                filled: true,
-                fillColor: const Color(0xFFFCFDFE),
-                contentPadding: const EdgeInsets.all(14),
-                border: InputBorder.none,
-                enabledBorder: const OutlineInputBorder(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(8),
-                    bottomRight: Radius.circular(8),
-                  ),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(8),
-                    bottomRight: Radius.circular(8),
-                  ),
-                  borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-                ),
-              ),
-            ),
-            secondChild: _HtmlPreview(html: widget.controller.text),
-          ),
-
-          // ── Footer hint ───────────────────────────────────────────────────
-          if (!_showPreview)
-            ListenableBuilder(
-              listenable: widget.controller,
-              builder: (_, child) {
-                final charCount = widget.controller.text.length;
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: AppColors.borderLight)),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Use toolbar to insert HTML tags, or type directly',
-                        style: TextStyle(fontSize: 11, color: AppColors.textMuted.withValues(alpha: 0.6)),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '$charCount chars',
-                        style: TextStyle(fontSize: 11, color: AppColors.textMuted.withValues(alpha: 0.6)),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
         ],
       ),
     );
   }
 }
 
-// Renders a styled preview of raw HTML tags without a WebView
-class _HtmlPreview extends StatelessWidget {
-  final String html;
-  const _HtmlPreview({required this.html});
-
-  @override
-  Widget build(BuildContext context) {
-    final lines = html.split('\n');
-    return Container(
-      constraints: const BoxConstraints(minHeight: 200),
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(8),
-          bottomRight: Radius.circular(8),
-        ),
-      ),
-      child: html.trim().isEmpty
-          ? Text(
-              'Nothing to preview yet.',
-              style: TextStyle(fontSize: 13, color: AppColors.textMuted.withValues(alpha: 0.5)),
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: lines.map((line) => _renderLine(line.trim())).toList(),
-            ),
-    );
-  }
-
-  Widget _renderLine(String line) {
-    if (line.isEmpty) return const SizedBox(height: 4);
-
-    if (line.startsWith('<h1>') && line.endsWith('</h1>')) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8, top: 4),
-        child: Text(_stripTags(line),
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-      );
-    }
-    if (line.startsWith('<h2>') && line.endsWith('</h2>')) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 6, top: 4),
-        child: Text(_stripTags(line),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-      );
-    }
-    if (line.startsWith('<h3>') && line.endsWith('</h3>')) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 4, top: 4),
-        child: Text(_stripTags(line),
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textDark)),
-      );
-    }
-    if (line.startsWith('<p>') && line.endsWith('</p>')) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(_stripTags(line),
-            style: const TextStyle(fontSize: 13, color: AppColors.textDark, height: 1.6)),
-      );
-    }
-    if (line.startsWith('<li>') && line.endsWith('</li>')) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 4, left: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('• ', style: TextStyle(fontSize: 13, color: AppColors.textDark)),
-            Expanded(child: Text(_stripTags(line),
-                style: const TextStyle(fontSize: 13, color: AppColors.textDark, height: 1.5))),
-          ],
-        ),
-      );
-    }
-    if (line == '<br />' || line == '<br/>') {
-      return const SizedBox(height: 10);
-    }
-    // Raw HTML fallback — show in muted monospace
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Text(
-        line,
-        style: const TextStyle(fontSize: 12, color: AppColors.textMuted, fontFamily: 'monospace'),
-      ),
-    );
-  }
-
-  String _stripTags(String s) => s.replaceAll(RegExp(r'<[^>]+>'), '');
-}
-
-class _ToolbarBtn extends StatelessWidget {
+class _FmtBtn extends StatelessWidget {
   final String label;
-  final String tooltip;
+  final _Fmt fmt;
+  final _RichTextController ctrl;
   final VoidCallback onTap;
   final bool bold;
   final bool italic;
   final bool underline;
 
-  const _ToolbarBtn({
+  const _FmtBtn({
     required this.label,
-    required this.tooltip,
+    required this.fmt,
+    required this.ctrl,
     required this.onTap,
     this.bold = false,
     this.italic = false,
@@ -1519,15 +1511,20 @@ class _ToolbarBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final active = ctrl.isActive(fmt);
     return Tooltip(
-      message: tooltip,
+      message: fmt.name,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(6),
         child: Container(
           margin: const EdgeInsets.only(right: 2),
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(6)),
+          decoration: BoxDecoration(
+            color: active ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+            border: active ? Border.all(color: AppColors.primary.withValues(alpha: 0.4)) : null,
+          ),
           child: Text(
             label,
             style: TextStyle(
@@ -1535,7 +1532,7 @@ class _ToolbarBtn extends StatelessWidget {
               fontWeight: bold ? FontWeight.bold : FontWeight.w600,
               fontStyle: italic ? FontStyle.italic : FontStyle.normal,
               decoration: underline ? TextDecoration.underline : null,
-              color: AppColors.textDark,
+              color: active ? AppColors.primary : AppColors.textDark,
             ),
           ),
         ),
@@ -1544,43 +1541,13 @@ class _ToolbarBtn extends StatelessWidget {
   }
 }
 
-class _ToolbarIconBtn extends StatelessWidget {
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  const _ToolbarIconBtn({required this.icon, required this.tooltip, required this.onTap});
-
+class _ToolbarSep extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          margin: const EdgeInsets.only(right: 2),
-          padding: const EdgeInsets.all(5),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(6)),
-          child: Icon(icon, size: 16, color: AppColors.textDark),
-        ),
-      ),
-    );
-  }
-}
-
-class _ToolbarDivider extends StatelessWidget {
-  const _ToolbarDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 20,
-      margin: const EdgeInsets.symmetric(horizontal: 6),
-      color: AppColors.borderLight,
-    );
-  }
+  Widget build(BuildContext context) => Container(
+        width: 1, height: 20,
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        color: AppColors.borderLight,
+      );
 }
 
 class _StatusBadge extends StatelessWidget {

@@ -172,8 +172,9 @@ class _LibraryViewState extends State<LibraryView> {
           }
         },
         builder: (context, state) {
-          // The header/search bar and filter chips stay put across
-          // loading/empty/error results — only the list area below swaps.
+          // The header/search bar and filter chips scroll together with the
+          // results below as a single page — only the composition of the
+          // results slivers changes (skeleton/empty/error/list).
           final selectedFilter = switch (state) {
             LibraryLoaded(:final filter) => filter,
             LibraryFailed(:final filter) => filter,
@@ -182,34 +183,50 @@ class _LibraryViewState extends State<LibraryView> {
 
           return SafeArea(
             top: false,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 0),
-                  child: LibraryHeaderBanner(
-                    title: state is LibraryLoaded
-                        ? state.heroTitle
-                        : 'Medical Library',
-                    subtitle: state is LibraryLoaded
-                        ? state.heroSubtitle
-                        : 'Access peer-reviewed pulmonary research and clinical guidelines updated daily.',
-                    onSearchChanged: _onSearchChanged,
+            child: RefreshIndicator(
+              onRefresh: () async {
+                context.read<LibraryBloc>().add(
+                  LibraryRequested(
+                    filter: selectedFilter,
+                    search: state is LibraryLoaded ? state.search : '',
                   ),
-                ),
-                SizedBox(height: 20.h),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  child: LibraryFilterChips(
-                    selected: selectedFilter,
-                    onSelected: (filter) => context.read<LibraryBloc>().add(
-                      LibraryFilterChanged(filter: filter),
+                );
+              },
+              child: CustomScrollView(
+                controller: _scrollController,
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: LibraryHeaderBanner(
+                        title: state is LibraryLoaded
+                            ? state.heroTitle
+                            : 'Medical Library',
+                        subtitle: state is LibraryLoaded
+                            ? state.heroSubtitle
+                            : 'Access peer-reviewed pulmonary research and clinical guidelines updated daily.',
+                        onSearchChanged: _onSearchChanged,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 20.h),
-                Expanded(child: _buildResults(state)),
-              ],
+                  SliverToBoxAdapter(child: SizedBox(height: 20.h)),
+                  SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    sliver: SliverToBoxAdapter(
+                      child: LibraryFilterChips(
+                        selected: selectedFilter,
+                        onSelected: (filter) => context.read<LibraryBloc>().add(
+                          LibraryFilterChanged(filter: filter),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: 20.h)),
+                  ..._buildResultSlivers(state),
+                ],
+              ),
             ),
           );
         },
@@ -217,50 +234,52 @@ class _LibraryViewState extends State<LibraryView> {
     );
   }
 
-  Widget _buildResults(LibraryState state) {
+  List<Widget> _buildResultSlivers(LibraryState state) {
     if (state is LibraryFailed) {
-      return RequestFailed(message: state.message);
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: RequestFailed(message: state.message),
+        ),
+      ];
     }
 
     if (state is! LibraryLoaded) {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        child: const LibraryResultsSkeleton(),
-      );
+      return [
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          sliver: const SliverToBoxAdapter(child: LibraryResultsSkeleton()),
+        ),
+      ];
     }
 
-    return AppRefreshIndicator(
-      onRefresh: () async {
-        context.read<LibraryBloc>().add(
-          LibraryRequested(filter: state.filter, search: state.search),
-        );
-      },
-      isEmpty: state.items.isEmpty,
-      //emptyWidget: const RequestFailed(message: 'No content found.'),
-      child: ListView.builder(
-        controller: _scrollController,
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 16.h),
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: state.items.length + 1,
-        itemBuilder: (context, index) {
-          if (index == state.items.length) {
-            return state.isLoadingMore
-                ? Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
-                    child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  )
-                : const SizedBox.shrink();
-          }
+    if (state.items.isEmpty) {
+      return [SliverToBoxAdapter(child: SizedBox(height: 180.h))];
+    }
 
-          return Padding(
-            padding: EdgeInsets.only(bottom: 16.h),
-            child: _cardFor(state.items[index]),
-          );
-        },
+    return [
+      SliverPadding(
+        padding: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 16.h),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            if (index == state.items.length) {
+              return state.isLoadingMore
+                  ? Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
+                      child: const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : const SizedBox.shrink();
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(bottom: 16.h),
+              child: _cardFor(state.items[index]),
+            );
+          }, childCount: state.items.length + 1),
+        ),
       ),
-    );
+    ];
   }
 }

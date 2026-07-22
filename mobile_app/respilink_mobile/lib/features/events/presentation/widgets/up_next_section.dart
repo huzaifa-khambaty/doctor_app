@@ -7,8 +7,14 @@ import '../../../../exports.dart';
 class UpNextSection extends StatelessWidget {
   final List<EventModel> events;
   final VoidCallback? onViewAll;
+  final ValueChanged<EventModel>? onEventTap;
 
-  const UpNextSection({super.key, required this.events, this.onViewAll});
+  const UpNextSection({
+    super.key,
+    required this.events,
+    this.onViewAll,
+    this.onEventTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,16 +40,25 @@ class UpNextSection extends StatelessWidget {
           ],
         ),
         SizedBox(height: 12.h),
-        SizedBox(
-          height: 130.h,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: events.length,
-            separatorBuilder: (context, index) => SizedBox(width: 12.w),
-            itemBuilder: (context, index) =>
-                UpNextEventCard(event: events[index]),
+        if (events.isEmpty)
+          AppText.small(
+            label: 'No upcoming events.',
+            color: AppColors.grey,
+            fontSize: 12.sp,
+          )
+        else
+          SizedBox(
+            height: 130.h,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: events.length,
+              separatorBuilder: (context, index) => SizedBox(width: 12.w),
+              itemBuilder: (context, index) => UpNextEventCard(
+                event: events[index],
+                onTap: onEventTap != null ? () => onEventTap!(events[index]) : null,
+              ),
+            ),
           ),
-        ),
       ],
     );
   }

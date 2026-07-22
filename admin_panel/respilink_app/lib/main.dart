@@ -1,13 +1,19 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:respilink_app/core/constants/app_constants.dart';
+import 'package:respilink_app/firebase_options.dart';
 import 'package:respilink_app/injections.dart';
 import 'package:respilink_app/providers.dart';
 import 'package:respilink_app/routes/router_configuration.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+);
   initDependencies();
 
   // Preload token before widgets build so the API interceptor has it

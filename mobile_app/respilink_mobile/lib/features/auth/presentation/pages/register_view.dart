@@ -266,7 +266,7 @@ class _RegisterViewState extends State<RegisterView> {
                       controller: _hospitalCtrl,
                       hint: 'Mayo Clinic, Rochester',
                       prefixIcon: Icon(
-                        Icons.local_hospital_outlined,
+                        Icons.medical_information_outlined,
                         size: 20.sp,
                       ),
                       validator: (v) => (v == null || v.isEmpty)

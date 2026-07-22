@@ -675,7 +675,7 @@ class _QuizDirectoryListBlock extends StatelessWidget {
               Table(
                 columnWidths: const {
                   0: FlexColumnWidth(2.6),
-                  1: FlexColumnWidth(1.0),
+                  1: FlexColumnWidth(1.2),
                   2: FlexColumnWidth(1.1),
                   3: FlexColumnWidth(1.1),
                   4: FlexColumnWidth(1.3),

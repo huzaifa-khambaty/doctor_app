@@ -141,7 +141,8 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
         timeLabel: _formatTimeRange(model.startTime, model.endTime),
         location: model.location,
         image: model.banner ?? '',
-        isLive: false,
+        isLive: model.isLive ?? false,
+        externalJoinLink: model.externalJoinLink,
       ),
       hosts: [
         for (final trainer in model.trainers ?? const <Trainer>[])

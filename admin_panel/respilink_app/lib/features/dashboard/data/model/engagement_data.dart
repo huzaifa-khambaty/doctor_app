@@ -1,3 +1,5 @@
+import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
+
 class EngagementDataPoint {
   final DateTime date;
   final int views;
@@ -15,6 +17,29 @@ class EngagementDataPoint {
       views: json['views'] as int,
       quizzes: json['quizzes'] as int,
     );
+  }
+
+  static const _months = {
+    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
+    'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
+    'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+  };
+
+  static List<EngagementDataPoint> fromTrend(EngagementTrend trend) {
+    final labels = trend.labels ?? [];
+    final views = trend.views ?? [];
+    final quizzes = trend.quizzes ?? [];
+    final year = DateTime.now().year;
+    return List.generate(labels.length, (i) {
+      final parts = labels[i].split(' ');
+      final month = _months[parts[0]] ?? 1;
+      final day = parts.length > 1 ? (int.tryParse(parts[1]) ?? 1) : 1;
+      return EngagementDataPoint(
+        date: DateTime(year, month, day),
+        views: i < views.length ? views[i] : 0,
+        quizzes: i < quizzes.length ? quizzes[i] : 0,
+      );
+    });
   }
 
   // Generate clean mock API response pipeline data matching image_bd8279.png

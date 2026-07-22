@@ -15,34 +15,50 @@ class WelcomeHeader extends StatelessWidget {
       builder: (context, user, child) {
         return Row(
           children: [
-            user?.profilePhotoPath != null
-                ? AppNetworkImage(
-                    imageUrl: "${ApiEndpoints.imageUrl}/${user!.profilePhotoPath}",
-                    width: 40.r,
-                    height: 40.r,
-                    isCircle: true,
-                  )
-                : CircleAvatar(
-                    radius: 20.r,
-                    backgroundColor: AppColors.fieldColor,
-                    child: Icon(Icons.person, color: AppColors.grey, size: 22.sp),
-                  ),
-            SizedBox(width: 10.w),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText.small(
-                    label: 'Welcome back,',
-                    color: AppColors.grey,
-                    fontSize: 11.sp,
-                  ),
-                  AppText.medium(
-                    label: user?.fullName ?? 'Doctor',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15.sp,
-                  ),
-                ],
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12.r),
+                onTap: () =>
+                    locator<NavigationService>().navigate(RouterStrings.profileView),
+                child: Row(
+                  children: [
+                    user?.profilePhotoPath != null
+                        ? AppNetworkImage(
+                            imageUrl:
+                                "${ApiEndpoints.imageUrl}/${user!.profilePhotoPath}",
+                            width: 40.r,
+                            height: 40.r,
+                            isCircle: true,
+                          )
+                        : CircleAvatar(
+                            radius: 20.r,
+                            backgroundColor: AppColors.fieldColor,
+                            child: Icon(
+                              Icons.person,
+                              color: AppColors.grey,
+                              size: 22.sp,
+                            ),
+                          ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AppText.small(
+                            label: 'Welcome back,',
+                            color: AppColors.grey,
+                            fontSize: 11.sp,
+                          ),
+                          AppText.medium(
+                            label: user?.fullName ?? 'Doctor',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15.sp,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const AppNotificationBell(),

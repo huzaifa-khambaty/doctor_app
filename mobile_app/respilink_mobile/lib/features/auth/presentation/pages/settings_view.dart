@@ -1,13 +1,7 @@
 import 'package:respilink_mobile/core/network/api_endpoints.dart';
 import 'package:respilink_mobile/core/utils/global_notifiers.dart';
-import 'package:respilink_mobile/core/utils/handlers.dart';
 import 'package:respilink_mobile/features/auth/domain/models/user_model.dart';
-import 'package:respilink_mobile/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:respilink_mobile/features/auth/presentation/bloc/auth_event.dart';
-import 'package:respilink_mobile/features/auth/presentation/bloc/auth_state.dart';
-import 'package:respilink_mobile/shared/widgets/app_loader.dart';
 import 'package:respilink_mobile/shared/widgets/app_notification_bell.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../exports.dart';
 
@@ -25,59 +19,6 @@ class _SettingsViewState extends State<SettingsView> {
   bool _newsletter = false;
   bool _biometricLogin = true;
   bool _darkMode = false;
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => BlocConsumer<AuthBloc, AuthState>(
-        bloc: BlocProvider.of<AuthBloc>(context),
-        listener: (context, state) {
-          if (state is AuthLogoutSuccess) {
-            if (Navigator.canPop(dialogContext)) Navigator.pop(dialogContext);
-            Handlers.onLogout(context);
-            return;
-          }
-
-          if (state is Unauthenticated || state is AuthFailed) {
-            if (Navigator.canPop(dialogContext)) Navigator.pop(dialogContext);
-            Handlers.onLogout(context);
-          }
-        },
-        builder: (context, state) {
-          return AlertDialog(
-            backgroundColor: AppColors.white,
-            title: AppText.medium(label: 'Log Out', color: AppColors.black),
-            content: AppText.small(
-              label: 'Are you sure you want to log out?',
-              color: AppColors.black,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: AppText.small(label: 'CANCEL', color: AppColors.black),
-              ),
-              state is AuthLoading
-                  ? AppLoader()
-                  : TextButton(
-                      onPressed: () => BlocProvider.of<AuthBloc>(
-                        context,
-                      ).add(LogoutRequested()),
-                      child: Text(
-                        'LOG OUT',
-                        style: TextStyle(
-                          color: AppColors.error,
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: AppConstants.fontFamily,
-                        ),
-                      ),
-                    ),
-            ],
-          );
-        },
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -225,51 +166,18 @@ class _SettingsViewState extends State<SettingsView> {
 
                   SizedBox(height: 20.h),
 
-                  _SettingsGroup(
-                    title: 'Appearance',
-                    children: [
-                      _SettingsRow(
-                        icon: Icons.dark_mode_outlined,
-                        label: 'Dark Mode',
-                        toggleValue: _darkMode,
-                        onToggle: (v) => setState(() => _darkMode = v),
-                        isLast: true,
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 28.h),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => _showLogoutDialog(context),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: AppColors.white,
-                        side: BorderSide(color: AppColors.error, width: 1.5),
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14.r),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.logout,
-                            color: AppColors.error,
-                            size: 18.sp,
-                          ),
-                          SizedBox(width: 8.w),
-                          AppText.medium(
-                            label: 'Log Out',
-                            color: AppColors.error,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // _SettingsGroup(
+                  //   title: 'Appearance',
+                  //   children: [
+                  //     _SettingsRow(
+                  //       icon: Icons.dark_mode_outlined,
+                  //       label: 'Dark Mode',
+                  //       toggleValue: _darkMode,
+                  //       onToggle: (v) => setState(() => _darkMode = v),
+                  //       isLast: true,
+                  //     ),
+                  //   ],
+                  // ),
 
                   SizedBox(height: 16.h),
                 ],

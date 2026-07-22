@@ -33,4 +33,7 @@ class ApiEndpoints {
 
   //Content
   static const String library = '/library';
+
+  ///Home
+  static const String home = '/home';
 }
