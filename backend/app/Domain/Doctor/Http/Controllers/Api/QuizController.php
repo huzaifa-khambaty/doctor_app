@@ -148,8 +148,20 @@ class QuizController extends Controller
             ->where('user_id', $request->user()->id)
             ->first();
 
-        if ($attempt) {
-            return response()->json(['message' => 'You have already started or submitted this quiz.'], 409);
+        if ($attempt && $attempt->status === 'submitted') {
+            return response()->json(['message' => 'You have already submitted this quiz.'], 409);
+        }
+
+        if ($attempt && $attempt->status === 'in_progress') {
+            $questions = $quiz->questions()->with(['options' => function ($q) {
+                $q->select('id', 'quiz_question_id', 'option_text', 'order');
+            }])->get();
+
+            return response()->json([
+                'message' => 'Quiz resumed successfully.',
+                'attempt_id' => $attempt->id,
+                'questions' => $questions,
+            ]);
         }
 
         $attempt = QuizAttempt::create([
