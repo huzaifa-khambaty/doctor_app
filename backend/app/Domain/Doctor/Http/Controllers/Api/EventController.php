@@ -68,7 +68,7 @@ class EventController extends Controller
             return response()->json(['message' => 'Event not found.'], 404);
         }
 
-        if ($event->starts_at < now()) {
+        if ($event->ends_at < now()) {
             return response()->json(['message' => 'Cannot register for a past event.'], 422);
         }
 

@@ -168,6 +168,7 @@ class QuizController extends Controller
             'quiz_id' => $quiz->id,
             'user_id' => $request->user()->id,
             'status' => 'in_progress',
+            'started_at' => now(),
         ]);
 
         $questions = $quiz->questions()->with(['options' => function ($q) {
