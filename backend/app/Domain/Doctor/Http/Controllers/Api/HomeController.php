@@ -90,7 +90,7 @@ class HomeController extends Controller
 
         $hasAttempted = QuizAttempt::where('quiz_id', $quiz->id)
             ->where('user_id', $user->id)
-            ->where('status', 'submitted')
+            ->whereIn('status', ['in_progress', 'submitted'])
             ->exists();
 
         $remainingSeconds = null;
