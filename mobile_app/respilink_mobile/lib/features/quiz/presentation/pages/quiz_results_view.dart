@@ -155,8 +155,8 @@ class _QuizResultsBody extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: 24.h),
-          ReinforceKnowledgeSection(items: _reinforceContent),
+          //SizedBox(height: 24.h),
+          //ReinforceKnowledgeSection(items: _reinforceContent),
         ],
       ),
     );

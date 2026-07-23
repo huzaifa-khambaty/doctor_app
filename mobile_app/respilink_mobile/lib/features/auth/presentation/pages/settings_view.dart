@@ -91,8 +91,9 @@ class _SettingsViewState extends State<SettingsView> {
                         ),
                         SizedBox(height: 4.h),
                         AppText.small(
-                          label: "${user?.specialties?.map((e) => e.name).whereType<String>().join(", ") ?? 'General Physician'} • ${user?.hospitalAffiliation ?? 'St. Mary'}",
+                          label: "${user?.specialties?.map((e) => e.name).whereType<String>().join(", ") ?? 'General Physician'}\n${user?.hospitalAffiliation ?? 'St. Mary'}",
                           color: AppColors.grey,
+                          textAlign: .center,
                         ),
                       ],
                     ),

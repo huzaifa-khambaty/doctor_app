@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
+import 'package:respilink_app/core/utils/export/app_exporter.dart';
+import 'package:respilink_app/core/utils/export/practitioner_export_builder.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/practioner/data/model/practioner_model.dart';
 import 'package:respilink_app/features/practioner/presentation/bloc/practioner_bloc.dart';
@@ -86,6 +88,7 @@ class _PractitionerManagementContentState
               const SizedBox(height: 32),
               _PipelineTitleSection(
                 onManualEnrollmentClicked: widget.onManualEnrollmentClicked,
+                onExportTapped: () => _exportPractitioners(context),
               ),
               const SizedBox(height: 24),
               const _PipelineMetricsGrid(),
@@ -166,10 +169,29 @@ class _PractitionerHeader extends StatelessWidget {
   }
 }
 
+Future<void> _exportPractitioners(BuildContext context) async {
+  final state = context.read<PractionerBloc>().state;
+  final saved = await AppExporter.export(
+    document: buildPractitionerExportDocument(
+      pendingTotal: state.pendingTotal,
+      verifiedTotal: state.verifiedTotal,
+      practitioners: state.practioners?.data ?? [],
+    ),
+  );
+  if (!context.mounted) return;
+  if (saved) {
+    SnackbarUtil.showSnackbar(context, message: 'Report exported successfully');
+  }
+}
+
 class _PipelineTitleSection extends StatelessWidget {
-  const _PipelineTitleSection({this.onManualEnrollmentClicked});
+  const _PipelineTitleSection({
+    this.onManualEnrollmentClicked,
+    required this.onExportTapped,
+  });
 
   final VoidCallback? onManualEnrollmentClicked;
+  final VoidCallback onExportTapped;
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +224,7 @@ class _PipelineTitleSection extends StatelessWidget {
         Row(
           children: [
             OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: onExportTapped,
               icon: const Icon(
                 Icons.file_download_outlined,
                 size: 16,

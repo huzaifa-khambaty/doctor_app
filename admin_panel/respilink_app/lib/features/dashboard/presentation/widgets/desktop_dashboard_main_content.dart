@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
+import 'package:respilink_app/core/utils/export/app_exporter.dart';
+import 'package:respilink_app/core/utils/export/dashboard_export_builder.dart';
 import 'package:respilink_app/core/utils/global_notifiers.dart';
+import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_event.dart';
@@ -56,7 +59,12 @@ class DesktopDashboardMainContent extends StatelessWidget {
                 children: [
                   HeaderBar(onNotificationTapped: onNotificationTapped),
                   const SizedBox(height: 32),
-                  const TitleSection(),
+                  TitleSection(
+                    onExportTapped: () => _exportDashboard(
+                      context,
+                      dashboard: dashState.data,
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   MetricsGrid(
                     dashboard: dashState.data,
@@ -130,13 +138,13 @@ class HeaderBar extends StatelessWidget {
           ),
           onPressed: () => onNotificationTapped.call(),
         ),
-        IconButton(
-          icon: const Icon(
-            Icons.help_outline_rounded,
-            color: AppColors.textDark,
-          ),
-          onPressed: () {},
-        ),
+        // IconButton(
+        //   icon: const Icon(
+        //     Icons.help_outline_rounded,
+        //     color: AppColors.textDark,
+        //   ),
+        //   onPressed: () {},
+        // ),
         const SizedBox(width: 16),
 
         ValueListenableBuilder<Admin?>(
@@ -219,8 +227,28 @@ class HeaderBar extends StatelessWidget {
   }
 }
 
+Future<void> _exportDashboard(
+  BuildContext context, {
+  required DashboardModel? dashboard,
+}) async {
+  final practitioners =
+      context.read<PractionerBloc>().state.practioners?.data ?? [];
+  final saved = await AppExporter.export(
+    document: buildDashboardExportDocument(
+      dashboard: dashboard,
+      practitioners: practitioners,
+    ),
+  );
+  if (!context.mounted) return;
+  if (saved) {
+    SnackbarUtil.showSnackbar(context, message: 'Report exported successfully');
+  }
+}
+
 class TitleSection extends StatelessWidget {
-  const TitleSection({super.key});
+  final VoidCallback onExportTapped;
+
+  const TitleSection({super.key, required this.onExportTapped});
 
   @override
   Widget build(BuildContext context) {
@@ -240,39 +268,39 @@ class TitleSection extends StatelessWidget {
             ),
             SizedBox(height: 4),
             Text(
-              'Real-time overview of RespiLink ecosystem and provider engagement.',
+              'RespiLink ecosystem and provider engagement.',
               style: TextStyle(fontSize: 13, color: AppColors.textMuted),
             ),
           ],
         ),
         Row(
           children: [
-            OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.calendar_today_outlined,
-                size: 14,
-                color: AppColors.textDark,
-              ),
-              label: const Text(
-                'Last 30 Days',
-                style: TextStyle(color: AppColors.textDark, fontSize: 13),
-              ),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: AppColors.borderLight),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
+            // OutlinedButton.icon(
+            //   onPressed: () {},
+            //   icon: const Icon(
+            //     Icons.calendar_today_outlined,
+            //     size: 14,
+            //     color: AppColors.textDark,
+            //   ),
+            //   label: const Text(
+            //     'Last 30 Days',
+            //     style: TextStyle(color: AppColors.textDark, fontSize: 13),
+            //   ),
+            //   style: OutlinedButton.styleFrom(
+            //     backgroundColor: Colors.white,
+            //     side: const BorderSide(color: AppColors.borderLight),
+            //     padding: const EdgeInsets.symmetric(
+            //       horizontal: 16,
+            //       vertical: 16,
+            //     ),
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(8),
+            //     ),
+            //   ),
+            // ),
+            // const SizedBox(width: 12),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: onExportTapped,
               icon: const Icon(
                 Icons.file_download_outlined,
                 size: 16,

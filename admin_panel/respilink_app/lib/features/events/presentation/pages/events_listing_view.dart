@@ -12,6 +12,8 @@ import 'package:respilink_app/features/events/data/model/event_participants_mode
 import 'package:respilink_app/features/events/presentation/bloc/events_bloc.dart';
 import 'package:respilink_app/features/events/presentation/bloc/events_event.dart';
 import 'package:respilink_app/features/events/presentation/bloc/events_state.dart';
+import 'package:respilink_app/core/utils/export/app_exporter.dart';
+import 'package:respilink_app/core/utils/export/events_export_builder.dart';
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
 
 class EventManagementContent extends StatefulWidget {
@@ -196,6 +198,18 @@ class _EventManagementContentState extends State<EventManagementContent> {
     );
   }
 
+  Future<void> _exportEvents(BuildContext context) async {
+    final events = context.read<EventsBloc>().state.events;
+    final doc = buildEventsExportDocument(events: events);
+    final ok = await AppExporter.export(document: doc);
+    if (!context.mounted) return;
+    if (ok) {
+      SnackbarUtil.showSnackbar(context, message: 'Events report exported successfully');
+    } else {
+      SnackbarUtil.showSnackbar(context, message: 'Export cancelled', isError: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<EventsBloc, EventsState>(
@@ -226,6 +240,7 @@ class _EventManagementContentState extends State<EventManagementContent> {
               const SizedBox(height: 32),
               _EventTitleRowSection(
                 onCreateEventClicked: widget.onCreateEventClicked,
+                onExportTapped: () => _exportEvents(context),
               ),
               const SizedBox(height: 24),
               const _EventMetricsSection(),
@@ -310,9 +325,13 @@ class _EventSearchBarHeader extends StatelessWidget {
 // =========================================================================
 
 class _EventTitleRowSection extends StatelessWidget {
-  const _EventTitleRowSection({required this.onCreateEventClicked});
+  const _EventTitleRowSection({
+    required this.onCreateEventClicked,
+    required this.onExportTapped,
+  });
 
   final VoidCallback onCreateEventClicked;
+  final VoidCallback onExportTapped;
 
   @override
   Widget build(BuildContext context) {
@@ -345,14 +364,14 @@ class _EventTitleRowSection extends StatelessWidget {
         Row(
           children: [
             OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: onExportTapped,
               icon: const Icon(
                 Icons.file_download_outlined,
                 size: 16,
                 color: AppColors.textDark,
               ),
               label: const Text(
-                'Export',
+                'Export Report',
                 style: TextStyle(color: AppColors.textDark, fontSize: 13),
               ),
               style: OutlinedButton.styleFrom(

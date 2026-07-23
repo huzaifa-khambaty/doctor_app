@@ -9,6 +9,8 @@ import 'package:respilink_app/features/content/data/models/content_model.dart';
 import 'package:respilink_app/features/content/presentation/bloc/content_bloc.dart';
 import 'package:respilink_app/features/content/presentation/bloc/content_event.dart';
 import 'package:respilink_app/features/content/presentation/bloc/content_state.dart';
+import 'package:respilink_app/core/utils/export/app_exporter.dart';
+import 'package:respilink_app/core/utils/export/content_export_builder.dart';
 import 'package:respilink_app/shared/widgets/app_popup_menu_button.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -510,7 +512,10 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
         children: [
           const _SystemLogsSection(),
           const SizedBox(height: 24),
-          _ContentMixSection(state: state),
+          _ContentMixSection(
+            state: state,
+            onExportTapped: () => _exportContent(context, state),
+          ),
         ],
       );
     }
@@ -519,9 +524,25 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
       children: [
         Expanded(flex: 2, child: const _SystemLogsSection()),
         const SizedBox(width: 24),
-        Expanded(child: _ContentMixSection(state: state)),
+        Expanded(
+          child: _ContentMixSection(
+            state: state,
+            onExportTapped: () => _exportContent(context, state),
+          ),
+        ),
       ],
     );
+  }
+
+  Future<void> _exportContent(BuildContext context, ContentState state) async {
+    final doc = buildContentExportDocument(contentData: state.contentData);
+    final ok = await AppExporter.export(document: doc);
+    if (!context.mounted) return;
+    if (ok) {
+      SnackbarUtil.showSnackbar(context, message: 'Content audit report exported successfully');
+    } else {
+      SnackbarUtil.showSnackbar(context, message: 'Export cancelled', isError: true);
+    }
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -877,7 +898,8 @@ class _SystemLogsSection extends StatelessWidget {
 
 class _ContentMixSection extends StatelessWidget {
   final ContentState state;
-  const _ContentMixSection({required this.state});
+  final VoidCallback onExportTapped;
+  const _ContentMixSection({required this.state, required this.onExportTapped});
 
   @override
   Widget build(BuildContext context) {
@@ -911,13 +933,13 @@ class _ContentMixSection extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: onExportTapped,
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.borderLight),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: const Text('View Full Audit Report', style: TextStyle(color: AppColors.textDark, fontSize: 13, fontWeight: FontWeight.bold)),
+              child: const Text('Export Full Audit Report', style: TextStyle(color: AppColors.textDark, fontSize: 13, fontWeight: FontWeight.bold)),
             ),
           ),
         ],

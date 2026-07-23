@@ -793,7 +793,7 @@ class _ScheduleEventContentState extends State<ScheduleEventContent> {
                                 )
                               : const Icon(Icons.rocket_launch_outlined, size: 14, color: Colors.white),
                           label: Text(
-                            state.isCreating ? 'Publishing...' : 'Publish Event',
+                            state.isCreating ? 'Drafting...' : 'Draft Event',
                             style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                           style: ElevatedButton.styleFrom(

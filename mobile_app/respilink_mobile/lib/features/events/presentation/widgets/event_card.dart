@@ -136,7 +136,7 @@ class EventCard extends StatelessWidget {
                       if (_timeLabel.isNotEmpty)
                         _MetaItem(icon: Icons.access_time, label: _timeLabel),
                       if (event.location != null)
-                        _MetaItem(icon: Icons.location_on_outlined, label: event.location!),
+                        _MetaItem(icon: Icons.location_on_outlined, label: event.type?.toLowerCase() == 'webinar' ? 'Online' : event.location!),
                     ],
                   ),
                 ],
