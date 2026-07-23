@@ -38,4 +38,7 @@ class ApiEndpoints {
 
   ///Content
   static const String content = '/content';
+
+  ///Dashboard
+  static const String dashboard = '/dashboard';
 }

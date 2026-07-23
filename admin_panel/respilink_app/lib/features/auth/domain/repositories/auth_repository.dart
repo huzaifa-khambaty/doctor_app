@@ -1,4 +1,5 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
+import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
 import 'package:respilink_app/features/auth/data/models/requests/edit_profile_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/forget_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/login_request.dart';
@@ -19,4 +20,6 @@ abstract class AuthRepository {
   Future<ApiResponse<void>> resetPassword(ResetPasswordRequest request);
 
   Future<ApiResponse<Admin>> me();
+
+  Future<ApiResponse<DashboardModel>> dashboard();
 }

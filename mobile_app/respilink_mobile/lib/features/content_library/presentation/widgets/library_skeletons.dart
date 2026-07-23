@@ -7,13 +7,16 @@ class LibraryResultsSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: 4,
-      separatorBuilder: (context, index) => SizedBox(height: 16.h),
-      itemBuilder: (context, index) => index.isEven
-          ? const _MediaCardSkeleton()
-          : const _DocumentCardSkeleton(),
+    return Column(
+      children: [
+        for (var index = 0; index < 4; index++)
+          Padding(
+            padding: EdgeInsets.only(bottom: index == 3 ? 0 : 16.h),
+            child: index.isEven
+                ? const _MediaCardSkeleton()
+                : const _DocumentCardSkeleton(),
+          ),
+      ],
     );
   }
 }

@@ -37,4 +37,10 @@ class QuizTopicModel {
     data['updated_at'] = updatedAt;
     return data;
   }
+
+  @override
+  bool operator ==(Object other) => other is QuizTopicModel && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

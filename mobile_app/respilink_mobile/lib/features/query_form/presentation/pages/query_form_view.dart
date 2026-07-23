@@ -36,7 +36,9 @@ const _recentQueries = [
 ];
 
 class QueryFormView extends StatefulWidget {
-  const QueryFormView({super.key});
+  final bool showBackButton;
+
+  const QueryFormView({super.key, this.showBackButton = true});
 
   @override
   State<QueryFormView> createState() => _QueryFormViewState();
@@ -71,7 +73,7 @@ class _QueryFormViewState extends State<QueryFormView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: const RespiLinkAppBar(),
+      appBar: RespiLinkAppBar(showBackButton: widget.showBackButton),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(

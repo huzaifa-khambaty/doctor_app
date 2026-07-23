@@ -4,6 +4,7 @@ import 'package:respilink_mobile/features/auth/presentation/pages/edit_profile_v
 import 'package:respilink_mobile/features/auth/presentation/pages/forgot_password_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/login_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/otp_verification_view.dart';
+import 'package:respilink_mobile/features/auth/presentation/pages/profile_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/register_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/reset_password_view.dart';
 import 'package:respilink_mobile/features/auth/presentation/pages/settings_view.dart';
@@ -139,6 +140,10 @@ class RouterConfiguration {
         path: RouterStrings.articleReaderView,
         builder: (context, state) =>
             ArticleReaderView(contentId: state.extra as int),
+      ),
+      GoRoute(
+        path: RouterStrings.profileView,
+        builder: (context, state) => const ProfileView(),
       ),
     ],
   );

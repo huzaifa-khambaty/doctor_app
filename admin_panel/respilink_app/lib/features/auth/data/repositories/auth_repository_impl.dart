@@ -1,6 +1,7 @@
 import 'package:respilink_app/core/constants/app_constants.dart';
 import 'package:respilink_app/core/network/models/api_response.dart';
 import 'package:respilink_app/core/utils/global_notifiers.dart';
+import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
 import 'package:respilink_app/features/auth/data/models/requests/edit_profile_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/forget_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/login_request.dart';
@@ -96,5 +97,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<ApiResponse<Admin>> me() async {
     final response = await _remoteDataSource.me();
     return response;
+  }
+
+  @override
+  Future<ApiResponse<DashboardModel>> dashboard() async {
+    return _remoteDataSource.dashboard();
   }
 }

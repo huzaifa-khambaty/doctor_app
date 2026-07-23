@@ -7,6 +7,8 @@ import 'package:respilink_app/features/content/data/models/content_model.dart';
 import 'package:respilink_app/features/content/presentation/bloc/content_bloc.dart';
 import 'package:respilink_app/features/content/presentation/pages/add_content_view.dart';
 import 'package:respilink_app/features/content/presentation/pages/content_repository_view.dart';
+import 'package:respilink_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:respilink_app/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:respilink_app/features/dashboard/presentation/widgets/desktop_dashboard_main_content.dart';
 import 'package:respilink_app/features/dashboard/presentation/widgets/mobile_dashboard_view.dart';
 import 'package:respilink_app/features/dashboard/presentation/widgets/tablet_dashboard_view.dart';
@@ -61,6 +63,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   Practioners? _selectedPractioner;
   bool get _showPractionerDetails => _selectedPractioner != null;
 
+  late final DashboardBloc _dashboardBloc = locator<DashboardBloc>()
+    ..add(FetchDashboardRequested());
+
   // Single BLoC instance shared across the management list and detail view.
   late final PractionerBloc _practionerBloc = locator<PractionerBloc>()
     ..add(FetchSpecialtiesRequested())
@@ -83,6 +88,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
 
   @override
   void dispose() {
+    _dashboardBloc.close();
     _practionerBloc.close();
     _eventsBloc.close();
     _settingsBloc.close();
@@ -95,8 +101,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     switch (index) {
       case 0:
         if (!_hasPerm('users.view')) return const _AccessDeniedContent();
-        return BlocProvider<PractionerBloc>.value(
-          value: _practionerBloc,
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<PractionerBloc>.value(value: _practionerBloc),
+            BlocProvider<DashboardBloc>.value(value: _dashboardBloc),
+          ],
           child: _showNotificationHistory
               ? NotificationHistoryView(
                   onBackToUsers: () =>
@@ -217,8 +226,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       case 10:
         return UserAccountContent();
       default:
-        return BlocProvider<PractionerBloc>.value(
-          value: _practionerBloc,
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<PractionerBloc>.value(value: _practionerBloc),
+            BlocProvider<DashboardBloc>.value(value: _dashboardBloc),
+          ],
           child: DesktopDashboardMainContent(
             onNotificationTapped: () =>
                 setState(() => _showNotificationHistory = true),

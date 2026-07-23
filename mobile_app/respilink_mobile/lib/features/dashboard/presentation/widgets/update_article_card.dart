@@ -8,16 +8,8 @@ class UpdateArticleCard extends StatelessWidget {
 
   const UpdateArticleCard({super.key, required this.article, this.onTap});
 
-  (String, Color) get _categoryStyle => switch (article.category) {
-    ArticleCategory.research => ('RESEARCH', AppColors.tertiary),
-    ArticleCategory.pharma => ('PHARMA', AppColors.purpleAccent),
-    ArticleCategory.tech => ('TECH', AppColors.primary),
-  };
-
   @override
   Widget build(BuildContext context) {
-    final (label, color) = _categoryStyle;
-
     return GestureDetector(
       onTap: onTap,
       child: Padding(
@@ -27,12 +19,15 @@ class UpdateArticleCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12.r),
-              child: AppNetworkImage(
-                imageUrl: "${AppConstants.imagePath}${article.image}",
-                width: 56.r,
-                height: 56.r,
-                fit: BoxFit.cover,
-              ),
+              child: article.thumbnailUrl != null && article.thumbnailUrl!.isNotEmpty
+                  ? AppNetworkImage(
+                      imageUrl: article.thumbnailUrl!,
+                      width: 56.r,
+                      height: 56.r,
+                      fit: BoxFit.cover,
+                      errorWidget: _FallbackThumbnail(color: article.typeColor),
+                    )
+                  : _FallbackThumbnail(color: article.typeColor),
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -40,8 +35,8 @@ class UpdateArticleCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppText.small(
-                    label: label,
-                    color: color,
+                    label: article.typeLabel.toUpperCase(),
+                    color: article.typeColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 10.sp,
                   ),
@@ -65,6 +60,23 @@ class UpdateArticleCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FallbackThumbnail extends StatelessWidget {
+  final Color color;
+
+  const _FallbackThumbnail({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56.r,
+      height: 56.r,
+      color: color.withValues(alpha: 0.12),
+      alignment: Alignment.center,
+      child: Icon(Icons.article_outlined, color: color, size: 22.sp),
     );
   }
 }

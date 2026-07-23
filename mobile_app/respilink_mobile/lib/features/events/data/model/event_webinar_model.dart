@@ -6,7 +6,7 @@ class EventWebinarModel {
   String? date;
   String? startTime;
   String? endTime;
-  double? cmeCredits;
+  int? cmeCredits;
   String? format;
   String? description;
   String? syllabus;

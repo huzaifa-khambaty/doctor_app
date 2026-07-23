@@ -1,6 +1,13 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:respilink_mobile/core/network/api_endpoints.dart';
 import 'package:respilink_mobile/core/utils/global_notifiers.dart';
+import 'package:respilink_mobile/core/utils/handlers.dart';
 import 'package:respilink_mobile/features/auth/domain/models/user_model.dart';
+import 'package:respilink_mobile/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:respilink_mobile/features/auth/presentation/bloc/auth_event.dart';
+import 'package:respilink_mobile/features/auth/presentation/bloc/auth_state.dart';
+import 'package:respilink_mobile/shared/widgets/app_loader.dart';
 import 'package:respilink_mobile/shared/widgets/app_notification_bell.dart';
 
 import '../../../../exports.dart';
@@ -122,19 +129,47 @@ class ProfileView extends StatelessWidget {
                         onTap: () {
                           // TODO: navigate to the support center once it exists.
                         },
-                      ),
-                      _ProfileMenuItem(
-                        icon: Icons.question_mark_outlined,
-                        label: 'Submit a Query',
-                        onTap: () {
-                          locator<NavigationService>().navigate(
-                            RouterStrings.queryForm,
-                          );
-                        },
                         isLast: true,
                       ),
                     ],
                   ),
+
+                  SizedBox(height: 24.h),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => _showLogoutDialog(context),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: AppColors.white,
+                        side: BorderSide(color: AppColors.error, width: 1.5),
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14.r),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.logout,
+                            color: AppColors.error,
+                            size: 18.sp,
+                          ),
+                          SizedBox(width: 8.w),
+                          AppText.medium(
+                            label: 'Log Out',
+                            color: AppColors.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 20.h),
+
+                  const Center(child: _AppVersionLabel()),
 
                   SizedBox(height: 16.h),
                 ],
@@ -143,6 +178,80 @@ class ProfileView extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+void _showLogoutDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) => BlocConsumer<AuthBloc, AuthState>(
+      bloc: BlocProvider.of<AuthBloc>(context),
+      listener: (context, state) {
+        if (state is AuthLogoutSuccess) {
+          if (Navigator.canPop(dialogContext)) Navigator.pop(dialogContext);
+          Handlers.onLogout(context);
+          return;
+        }
+
+        if (state is Unauthenticated || state is AuthFailed) {
+          if (Navigator.canPop(dialogContext)) Navigator.pop(dialogContext);
+          Handlers.onLogout(context);
+        }
+      },
+      builder: (context, state) {
+        return AlertDialog(
+          backgroundColor: AppColors.white,
+          title: AppText.medium(label: 'Log Out', color: AppColors.black),
+          content: AppText.small(
+            label: 'Are you sure you want to log out?',
+            color: AppColors.black,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: AppText.small(label: 'CANCEL', color: AppColors.black),
+            ),
+            state is AuthLoading
+                ? AppLoader()
+                : TextButton(
+                    onPressed: () => BlocProvider.of<AuthBloc>(
+                      context,
+                    ).add(LogoutRequested()),
+                    child: Text(
+                      'LOG OUT',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: AppConstants.fontFamily,
+                      ),
+                    ),
+                  ),
+          ],
+        );
+      },
+    ),
+  );
+}
+
+class _AppVersionLabel extends StatelessWidget {
+  const _AppVersionLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        final info = snapshot.data;
+        if (info == null) return const SizedBox.shrink();
+
+        return AppText.small(
+          label: 'Version ${info.version} (${info.buildNumber})',
+          color: AppColors.grey,
+          fontSize: 11.sp,
+        );
+      },
     );
   }
 }

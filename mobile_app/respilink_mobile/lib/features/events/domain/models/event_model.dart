@@ -11,6 +11,7 @@ class EventModel {
   final bool isLive;
   final bool isFeatured;
   final String? featuredSubtitle;
+  final String? externalJoinLink;
 
   const EventModel({
     required this.id,
@@ -23,6 +24,7 @@ class EventModel {
     this.isLive = false,
     this.isFeatured = false,
     this.featuredSubtitle,
+    this.externalJoinLink,
   });
 
   String get typeLabel => switch (type) {

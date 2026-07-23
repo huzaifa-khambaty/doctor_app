@@ -42,40 +42,40 @@ class ArticleEngagementBar extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(width: 18.w),
-        GestureDetector(
-          onTap: onCommentTap,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.mode_comment_outlined, color: AppColors.grey, size: 16.sp),
-              SizedBox(width: 4.w),
-              AppText.small(
-                label: commentCount,
-                color: AppColors.grey,
-                fontWeight: FontWeight.w600,
-                fontSize: 12.sp,
-              ),
-            ],
-          ),
-        ),
-        const Spacer(),
-        GestureDetector(
-          onTap: onSaveTap,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.add_circle_outline, color: AppColors.primary, size: 16.sp),
-              SizedBox(width: 4.w),
-              AppText.small(
-                label: 'Save to Collection',
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: 12.sp,
-              ),
-            ],
-          ),
-        ),
+        // SizedBox(width: 18.w),
+        // GestureDetector(
+        //   onTap: onCommentTap,
+        //   child: Row(
+        //     mainAxisSize: MainAxisSize.min,
+        //     children: [
+        //       Icon(Icons.mode_comment_outlined, color: AppColors.grey, size: 16.sp),
+        //       SizedBox(width: 4.w),
+        //       AppText.small(
+        //         label: commentCount,
+        //         color: AppColors.grey,
+        //         fontWeight: FontWeight.w600,
+        //         fontSize: 12.sp,
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        // const Spacer(),
+        // GestureDetector(
+        //   onTap: onSaveTap,
+        //   child: Row(
+        //     mainAxisSize: MainAxisSize.min,
+        //     children: [
+        //       Icon(Icons.add_circle_outline, color: AppColors.primary, size: 16.sp),
+        //       SizedBox(width: 4.w),
+        //       AppText.small(
+        //         label: 'Save to Collection',
+        //         color: AppColors.primary,
+        //         fontWeight: FontWeight.w600,
+        //         fontSize: 12.sp,
+        //       ),
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }

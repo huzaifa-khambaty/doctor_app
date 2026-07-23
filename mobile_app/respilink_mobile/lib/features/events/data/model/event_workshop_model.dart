@@ -12,6 +12,8 @@ class EventWorkshopModel {
   String? description;
   List<String>? prerequisites;
   bool? isRegistered;
+  bool? isLive;
+  String? externalJoinLink;
 
   EventWorkshopModel(
       {this.id,
@@ -26,7 +28,9 @@ class EventWorkshopModel {
       this.currency,
       this.description,
       this.prerequisites,
-      this.isRegistered});
+      this.isRegistered,
+      this.isLive,
+      this.externalJoinLink});
 
   EventWorkshopModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -49,6 +53,8 @@ class EventWorkshopModel {
         ? List<String>.from(json['prerequisites'])
         : null;
     isRegistered = json['is_registered'];
+    isLive = json['is_live'];
+    externalJoinLink = json['external_join_link'];
   }
 
   Map<String, dynamic> toJson() {
@@ -68,6 +74,8 @@ class EventWorkshopModel {
     data['description'] = description;
     data['prerequisites'] = prerequisites;
     data['is_registered'] = isRegistered;
+    data['is_live'] = isLive;
+    data['external_join_link'] = externalJoinLink;
     return data;
   }
 }

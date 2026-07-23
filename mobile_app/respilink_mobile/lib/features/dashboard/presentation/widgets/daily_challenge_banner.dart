@@ -7,12 +7,14 @@ class DailyChallengeBanner extends StatelessWidget {
   final DailyChallengeSummaryModel summary;
   final VoidCallback onStart;
   final VoidCallback? onLeaderboardTap;
+  final bool isLoading;
 
   const DailyChallengeBanner({
     super.key,
     required this.summary,
     required this.onStart,
     this.onLeaderboardTap,
+    this.isLoading = false,
   });
 
   @override
@@ -60,7 +62,9 @@ class DailyChallengeBanner extends StatelessWidget {
                   onTap: onLeaderboardTap,
                   child: RichText(
                     text: TextSpan(
-                      text: 'Your Rank: #${summary.globalRank}  ',
+                      text: summary.globalRank != null
+                          ? 'Your Rank: #${summary.globalRank}  '
+                          : 'Not Ranked Yet  ',
                       style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
@@ -76,7 +80,13 @@ class DailyChallengeBanner extends StatelessWidget {
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
-                          recognizer: TapGestureRecognizer()..onTap = () => locator<NavigationService>().navigate(RouterStrings.leaderboard, arguments: 2),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = summary.quizId != null
+                                ? () => locator<NavigationService>().navigate(
+                                    RouterStrings.leaderboard,
+                                    arguments: summary.quizId,
+                                  )
+                                : null,
                         ),
                       ],
                     ),
@@ -87,7 +97,7 @@ class DailyChallengeBanner extends StatelessWidget {
           ),
           SizedBox(width: 12.w),
           GestureDetector(
-            onTap: onStart,
+            onTap: isLoading ? null : onStart,
             child: Container(
               width: 48.r,
               height: 48.r,
@@ -95,11 +105,19 @@ class DailyChallengeBanner extends StatelessWidget {
                 color: AppColors.purpleAccent,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.play_arrow_rounded,
-                color: AppColors.white,
-                size: 26.r,
-              ),
+              child: isLoading
+                  ? Padding(
+                      padding: EdgeInsets.all(14.r),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : Icon(
+                      Icons.play_arrow_rounded,
+                      color: AppColors.white,
+                      size: 26.r,
+                    ),
             ),
           ),
         ],

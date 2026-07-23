@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:respilink_mobile/features/auth/presentation/pages/profile_view.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/dashboard_state.dart';
@@ -8,6 +7,7 @@ import 'package:respilink_mobile/features/dashboard/presentation/pages/quiz_tab_
 import 'package:respilink_mobile/features/content_library/presentation/pages/library_view.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/widgets/dashboard_bottom_nav_bar.dart';
 import 'package:respilink_mobile/features/events/presentation/pages/events_list_view.dart';
+import 'package:respilink_mobile/features/query_form/presentation/pages/query_form_view.dart';
 import 'package:respilink_mobile/shared/widgets/respilink_app_bar.dart';
 
 import '../../../../exports.dart';
@@ -16,7 +16,7 @@ const int _homeTabIndex = 0;
 const int _eventsTabIndex = 1;
 const int _quizTabIndex = 2;
 const int _libraryTabIndex = 3;
-const int _profileTabIndex = 4;
+const int _queryTabIndex = 4;
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
@@ -27,7 +27,7 @@ class DashboardView extends StatelessWidget {
       _quizTabIndex => const QuizTabView(),
       _eventsTabIndex => const EventsListView(),
       _libraryTabIndex => const LibraryView(),
-      _profileTabIndex => const ProfileView(showBackButton: false),
+      _queryTabIndex => const QueryFormView(showBackButton: false),
       _ => const HomeTabView(),
     };
   }

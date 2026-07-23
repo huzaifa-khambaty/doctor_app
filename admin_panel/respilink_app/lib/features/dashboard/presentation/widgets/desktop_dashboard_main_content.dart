@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/global_notifiers.dart';
+import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:respilink_app/features/dashboard/data/model/engagement_data.dart';
+import 'package:respilink_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:respilink_app/features/dashboard/presentation/bloc/dashboard_state.dart';
 import 'package:respilink_app/features/dashboard/presentation/widgets/engagement_chart.dart';
 import 'package:respilink_app/routes/router_strings.dart';
 import 'package:respilink_app/shared/model/admin_mode.dart';
@@ -40,24 +43,36 @@ class DesktopDashboardMainContent extends StatelessWidget {
       },
       child: Padding(
         padding: const EdgeInsets.all(32.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              HeaderBar(onNotificationTapped: onNotificationTapped),
-              const SizedBox(height: 32),
-              const TitleSection(),
-              const SizedBox(height: 24),
-              const MetricsGrid(),
-              const SizedBox(height: 24),
-              const _MiddleRowSection(),
-              const SizedBox(height: 24),
-              VerificationQueueSection(
-                onPractitionerTapped: onPractitionerTapped,
-                onViewAllTapped: onViewAllPractitionersTapped,
+        child: BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, dashState) {
+            final trend = dashState.data?.engagementTrend;
+            final engagementPoints = trend != null
+                ? EngagementDataPoint.fromTrend(trend)
+                : EngagementDataPoint.mockWeeklyData;
+
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HeaderBar(onNotificationTapped: onNotificationTapped),
+                  const SizedBox(height: 32),
+                  const TitleSection(),
+                  const SizedBox(height: 24),
+                  MetricsGrid(
+                    dashboard: dashState.data,
+                    isLoading: dashState.isLoading,
+                  ),
+                  const SizedBox(height: 24),
+                  _MiddleRowSection(engagementPoints: engagementPoints),
+                  const SizedBox(height: 24),
+                  VerificationQueueSection(
+                    onPractitionerTapped: onPractitionerTapped,
+                    onViewAllTapped: onViewAllPractitionersTapped,
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -289,11 +304,32 @@ class TitleSection extends StatelessWidget {
   }
 }
 
+String _fmtCount(int? v) {
+  if (v == null) return '—';
+  if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
+  if (v >= 1000) return '${v ~/ 1000},${(v % 1000).toString().padLeft(3, '0')}';
+  return v.toString();
+}
+
+String _changeBadge(int? pct) {
+  if (pct == null || pct == 0) return '● No change';
+  return pct > 0 ? '▲ +$pct%' : '▼ $pct%';
+}
+
+Color _changeBadgeColor(int? pct) {
+  if (pct == null || pct == 0) return AppColors.textMuted;
+  return pct > 0 ? AppColors.successGreen : AppColors.errorRed;
+}
+
 class MetricsGrid extends StatelessWidget {
-  const MetricsGrid({super.key});
+  final DashboardModel? dashboard;
+  final bool isLoading;
+
+  const MetricsGrid({super.key, this.dashboard, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
+    final stats = dashboard?.statCounts;
     return LayoutBuilder(
       builder: (context, constraints) {
         double cardWidth = (constraints.maxWidth - (3 * 16)) / 4;
@@ -307,33 +343,37 @@ class MetricsGrid extends StatelessWidget {
               width: cardWidth,
               icon: Icons.medical_services_outlined,
               title: 'ACTIVE DOCTORS',
-              value: '1,284',
-              badgeLabel: '▲ +12%',
-              badgeColor: AppColors.successGreen,
+              value: _fmtCount(stats?.activeDoctors?.count),
+              badgeLabel: _changeBadge(stats?.activeDoctors?.changePercent),
+              badgeColor: _changeBadgeColor(stats?.activeDoctors?.changePercent),
+              isLoading: isLoading,
             ),
             MetricCard(
               width: cardWidth,
               icon: Icons.shield_outlined,
               title: 'PENDING VERIFICATIONS',
-              value: '42',
-              badgeLabel: '● 18 critical',
+              value: _fmtCount(stats?.pendingVerifications?.count),
+              badgeLabel: '● ${stats?.pendingVerifications?.critical ?? 0} critical',
               badgeColor: AppColors.errorRed,
+              isLoading: isLoading,
             ),
             MetricCard(
               width: cardWidth,
               icon: Icons.emoji_events_outlined,
               title: 'QUIZ PARTICIPATION',
-              value: '86%',
-              badgeLabel: '▲ +5.4%',
-              badgeColor: AppColors.successGreen,
+              value: '${stats?.quizParticipation?.percentage ?? 0}%',
+              badgeLabel: _changeBadge(stats?.quizParticipation?.changePercent),
+              badgeColor: _changeBadgeColor(stats?.quizParticipation?.changePercent),
+              isLoading: isLoading,
             ),
             MetricCard(
               width: cardWidth,
               icon: Icons.menu_book_outlined,
               title: 'LIBRARY VIEWS',
-              value: '45,902',
-              badgeLabel: '12.4k views',
+              value: _fmtCount(stats?.libraryViews?.total),
+              badgeLabel: '${_fmtCount(stats?.libraryViews?.recent)} recent',
               badgeColor: AppColors.textMuted,
+              isLoading: isLoading,
             ),
           ],
         );
@@ -349,6 +389,7 @@ class MetricCard extends StatelessWidget {
   final String value;
   final String badgeLabel;
   final Color badgeColor;
+  final bool isLoading;
 
   const MetricCard({
     super.key,
@@ -358,7 +399,21 @@ class MetricCard extends StatelessWidget {
     required this.value,
     required this.badgeLabel,
     required this.badgeColor,
+    this.isLoading = false,
   });
+
+  Widget _shimmer(double w, double h) => Shimmer.fromColors(
+        baseColor: Colors.grey.shade200,
+        highlightColor: Colors.grey.shade50,
+        child: Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -377,14 +432,16 @@ class MetricCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Icon(icon, color: AppColors.primary, size: 22),
-              Text(
-                badgeLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: badgeColor,
-                ),
-              ),
+              isLoading
+                  ? _shimmer(60, 14)
+                  : Text(
+                      badgeLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: badgeColor,
+                      ),
+                    ),
             ],
           ),
           const SizedBox(height: 16),
@@ -398,14 +455,16 @@ class MetricCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
-            ),
-          ),
+          isLoading
+              ? _shimmer(80, 28)
+              : Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                ),
         ],
       ),
     );
@@ -413,12 +472,13 @@ class MetricCard extends StatelessWidget {
 }
 
 class _MiddleRowSection extends StatelessWidget {
-  const _MiddleRowSection();
+  final List<EngagementDataPoint> engagementPoints;
+
+  const _MiddleRowSection({required this.engagementPoints});
 
   @override
   Widget build(BuildContext context) {
-    final List<EngagementDataPoint> myApiDataList =
-        EngagementDataPoint.mockWeeklyData;
+    final List<EngagementDataPoint> myApiDataList = engagementPoints;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

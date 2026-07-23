@@ -824,7 +824,7 @@ class _EventDataTable extends StatelessWidget {
                   1: FlexColumnWidth(1.2),
                   2: FlexColumnWidth(2.0),
                   3: FlexColumnWidth(1.3),
-                  4: FlexColumnWidth(1.5),
+                  4: FlexColumnWidth(1.8),
                 },
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [

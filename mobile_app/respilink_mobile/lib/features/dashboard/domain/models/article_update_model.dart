@@ -1,15 +1,21 @@
-enum ArticleCategory { research, pharma, tech }
+import 'package:flutter/widgets.dart' show Color;
 
 class ArticleUpdateModel {
-  final ArticleCategory category;
+  final int id;
+  final String typeSlug;
+  final String typeLabel;
+  final Color typeColor;
   final String title;
   final String meta;
-  final String image;
+  final String? thumbnailUrl;
 
   const ArticleUpdateModel({
-    required this.category,
+    required this.id,
+    required this.typeSlug,
+    required this.typeLabel,
+    required this.typeColor,
     required this.title,
     required this.meta,
-    required this.image,
+    this.thumbnailUrl,
   });
 }

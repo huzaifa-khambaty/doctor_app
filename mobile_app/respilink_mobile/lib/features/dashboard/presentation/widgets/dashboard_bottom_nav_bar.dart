@@ -71,12 +71,14 @@ class _NavBarItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AppNetworkImage(
-              imageUrl: "${AppConstants.svgPath}${item.svgIcon}",
-              width: 20.r,
-              height: 20.r,
-              color: color,
-            ),
+            item.svgIcon != null
+                ? AppNetworkImage(
+                    imageUrl: "${AppConstants.svgPath}${item.svgIcon}",
+                    width: 20.r,
+                    height: 20.r,
+                    color: color,
+                  )
+                : Icon(item.icon, size: 20.r, color: color),
             SizedBox(height: 4.h),
             AppText.small(label: item.label, color: color, fontSize: 10.sp),
           ],
