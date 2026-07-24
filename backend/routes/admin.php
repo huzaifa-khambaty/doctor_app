@@ -13,6 +13,7 @@ use App\Domain\Admin\Http\Controllers\Api\AdminQuizController;
 use App\Domain\Admin\Http\Controllers\Api\AdminTopicController;
 use App\Domain\Admin\Http\Controllers\Api\ContentLibraryController;
 use App\Domain\Admin\Http\Controllers\Api\DashboardController;
+use App\Domain\Admin\Http\Controllers\Api\EngagementAnalyticsController;
 
 Route::prefix('admin/v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -91,5 +92,6 @@ Route::prefix('admin/v1')->group(function () {
         Route::get('specialties', [SpecialtyController::class, 'index']);
 
         Route::get('dashboard', [DashboardController::class, 'index']);
+        Route::get('analytics/engagement', [EngagementAnalyticsController::class, 'index']);
     });
 });

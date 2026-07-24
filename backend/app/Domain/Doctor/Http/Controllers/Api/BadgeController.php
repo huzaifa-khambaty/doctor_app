@@ -25,11 +25,12 @@ class BadgeController extends Controller
         $user = $request->user();
         $earnedBadgeIds = $user->badges()->pluck('badges.id');
 
-        $categories = BadgeCategory::with(['badges' => function ($query) {
-            $query->where('is_active', true);
-        }, 'badges.userBadges' => function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        }])->orderBy('display_order')->get();
+       $categories = BadgeCategory::whereIn('name', ['Quiz Mastery'])->with(['badges' => function ($query) use ($user) {
+        $query->where('is_active', true);
+        $query->with(['userBadges' => function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        }]);
+    }])->orderBy('display_order')->get();
 
         $totalBadges = Badge::where('is_active', true)->count();
         $earnedBadges = $earnedBadgeIds->count();
@@ -65,7 +66,7 @@ class BadgeController extends Controller
         });
 
         return response()->json([
-            'total_badges' => $earnedBadges,
+            'total_badges' => $totalBadges ,
             'earned_badges' => $earnedBadges,
             'total_available' => $totalBadges,
             'categories' => $categoriesData,
