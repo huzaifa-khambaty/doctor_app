@@ -1,11 +1,13 @@
+import 'package:respilink_mobile/features/auth/data/models/specialities_model.dart';
 import 'package:respilink_mobile/features/events/domain/models/event_detail_model.dart';
 import 'package:respilink_mobile/features/events/domain/models/event_model.dart';
 
 class SpeakerModel {
   final String name;
   final String? avatarUrl;
+  final List<SpecialitiesModel>? specialties;
 
-  const SpeakerModel({required this.name, this.avatarUrl});
+  const SpeakerModel({required this.name, this.avatarUrl, this.specialties});
 }
 
 class AgendaItemModel {

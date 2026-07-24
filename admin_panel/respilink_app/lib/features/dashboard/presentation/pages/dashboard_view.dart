@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
+import 'package:respilink_app/features/analytics/presentation/bloc/analytics_bloc.dart';
+import 'package:respilink_app/features/analytics/presentation/bloc/analytics_event.dart';
 import 'package:respilink_app/features/analytics/presentation/pages/engagement_analytics_view.dart';
 import 'package:respilink_app/features/auth/presentation/pages/user_account_content.dart';
 import 'package:respilink_app/features/content/data/models/content_model.dart';
@@ -86,6 +88,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
 
   late final ContentBloc _contentBloc = locator<ContentBloc>();
 
+  late final AnalyticsBloc _analyticsBloc = locator<AnalyticsBloc>()
+    ..add(FetchAnalyticsRequested());
+
   @override
   void dispose() {
     _dashboardBloc.close();
@@ -94,6 +99,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     _settingsBloc.close();
     _quizBloc.close();
     _contentBloc.close();
+    _analyticsBloc.close();
     super.dispose();
   }
 
@@ -207,7 +213,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
         return QueryInboxContent();
       case 6:
         if (!_hasAnyPerm(['admins.view', 'users.view'])) return const _AccessDeniedContent();
-        return EngagementAnalyticsContent();
+        return BlocProvider<AnalyticsBloc>.value(
+          value: _analyticsBloc,
+          child: const EngagementAnalyticsContent(),
+        );
       case 7:
         if (!_hasAnyPerm(['admins.view', 'roles.manage'])) return const _AccessDeniedContent();
         return BlocProvider<SettingsBloc>.value(

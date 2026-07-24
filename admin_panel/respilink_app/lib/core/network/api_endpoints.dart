@@ -45,4 +45,7 @@ class ApiEndpoints {
 
   ///Dashboard
   static const String dashboard = '/dashboard';
+
+  ///Analytics
+    static const String analytics = '/analytics';
 }

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:respilink_app/core/network/dio_client.dart';
+import 'package:respilink_app/features/analytics/analytics_injections.dart';
 import 'package:respilink_app/features/auth/auth_injections.dart';
 import 'package:respilink_app/features/content/content_injections.dart';
 import 'package:respilink_app/features/events/events_injections.dart';
@@ -19,6 +20,7 @@ void initDependencies() {
     () => const FlutterSecureStorage(),
   );
 
+  AnalyticsInjections.setupAnalyticsInjections();
   AuthInjections.setupAuthInjections();
   PractionerInjections.setupPractionerInjections();
   EventsInjections.setupEventsInjections();

@@ -21,6 +21,8 @@ import 'package:respilink_mobile/features/quiz/presentation/pages/leaderboard_vi
 import 'package:respilink_mobile/features/quiz/presentation/pages/quiz_play_view.dart';
 import 'package:respilink_mobile/features/quiz/presentation/pages/quiz_results_view.dart';
 import 'package:respilink_mobile/features/quiz/presentation/pages/quiz_review_view.dart';
+import 'package:respilink_mobile/features/query_form/domain/models/query_item_model.dart';
+import 'package:respilink_mobile/features/query_form/presentation/pages/query_chat_view.dart';
 import 'package:respilink_mobile/features/query_form/presentation/pages/query_form_view.dart';
 
 import '../exports.dart';
@@ -135,6 +137,11 @@ class RouterConfiguration {
       GoRoute(
         path: RouterStrings.queryForm,
         builder: (context, state) => const QueryFormView(),
+      ),
+      GoRoute(
+        path: RouterStrings.queryChat,
+        builder: (context, state) =>
+            QueryChatView(query: state.extra as QueryItemModel),
       ),
       GoRoute(
         path: RouterStrings.articleReaderView,

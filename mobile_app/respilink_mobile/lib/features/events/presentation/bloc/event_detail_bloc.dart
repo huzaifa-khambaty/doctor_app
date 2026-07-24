@@ -229,7 +229,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       ],
       speakers: [
         for (final speaker in model.speakers ?? const <Speakers>[])
-          SpeakerModel(name: speaker.name ?? '', avatarUrl: speaker.image),
+          SpeakerModel(name: speaker.name ?? '', avatarUrl: speaker.image, specialties: speaker.specialties),
       ],
       agendaByDay: _groupAgenda(model.agenda),
       priceLabel: price > 0 ? '$currency$price / person' : 'Free',

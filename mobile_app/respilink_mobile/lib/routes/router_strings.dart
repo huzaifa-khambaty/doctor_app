@@ -22,6 +22,7 @@ class RouterStrings {
   static String quizResults = '/quizResults';
   static String leaderboard = '/leaderboard';
   static String queryForm = '/queryForm';
+  static String queryChat = '/queryChat';
   static String articleReaderView = '/articleReaderView';
   static String profileView = '/profileView';
 }

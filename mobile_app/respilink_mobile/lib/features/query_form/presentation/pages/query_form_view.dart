@@ -102,7 +102,10 @@ class _QueryFormViewState extends State<QueryFormView> {
                   // TODO: navigate to the full query history screen once it exists.
                 },
                 onQueryTap: (query) {
-                  // TODO: navigate to the query detail screen once it exists.
+                  locator<NavigationService>().navigate(
+                    RouterStrings.queryChat,
+                    arguments: query,
+                  );
                 },
               ),
             ],

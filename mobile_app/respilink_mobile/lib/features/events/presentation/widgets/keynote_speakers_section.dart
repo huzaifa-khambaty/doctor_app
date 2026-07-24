@@ -25,14 +25,14 @@ class KeynoteSpeakersSection extends StatelessWidget {
               fontWeight: FontWeight.bold,
               fontSize: 15.sp,
             ),
-            GestureDetector(
-              onTap: onViewAll,
-              child: AppText.small(
-                label: 'View All',
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: onViewAll,
+            //   child: AppText.small(
+            //     label: 'View All',
+            //     color: AppColors.primary,
+            //     fontWeight: FontWeight.w600,
+            //   ),
+            // ),
           ],
         ),
         SizedBox(height: 14.h),
@@ -58,28 +58,87 @@ class _SpeakerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    // return Column(
+    //   crossAxisAlignment: CrossAxisAlignment.start,
+    //   children: [
+    //     speaker.avatarUrl != null
+    //         ? AppNetworkImage(
+    //             imageUrl: speaker.avatarUrl!,
+    //             width: 48.r,
+    //             height: 48.r,
+    //             isCircle: true,
+    //           )
+    //         : CircleAvatar(
+    //             radius: 24.r,
+    //             backgroundColor: AppColors.fieldColor,
+    //             child: Icon(Icons.person, color: AppColors.grey, size: 24.sp),
+    //           ),
+    //     SizedBox(height: 6.h),
+    //     AppText.small(
+    //       label: speaker.name,
+    //       fontWeight: FontWeight.w600,
+    //       fontSize: 11.sp,
+    //       textAlign: TextAlign.start,
+    //       maxLines: 2,
+    //       overflow: TextOverflow.ellipsis,
+    //     ),
+    //   ],
+    // );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         speaker.avatarUrl != null
             ? AppNetworkImage(
                 imageUrl: speaker.avatarUrl!,
-                width: 48.r,
-                height: 48.r,
+                width: 40.r,
+                height: 40.r,
                 isCircle: true,
               )
             : CircleAvatar(
-                radius: 24.r,
+                radius: 20.r,
                 backgroundColor: AppColors.fieldColor,
-                child: Icon(Icons.person, color: AppColors.grey, size: 24.sp),
+                child: Icon(Icons.person, color: AppColors.grey, size: 22.sp),
               ),
-        SizedBox(height: 6.h),
-        AppText.small(
-          label: speaker.name,
-          fontWeight: FontWeight.w600,
-          fontSize: 11.sp,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        SizedBox(width: 10.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppText.medium(
+                label: speaker.name,
+                fontWeight: FontWeight.bold,
+                fontSize: 14.sp,
+              ),
+             
+              if (speaker.specialties?.isNotEmpty ?? false) ...[
+                SizedBox(height: 6.h),
+                Wrap(
+                  spacing: 6.w,
+                  runSpacing: 6.h,
+                  children: speaker.specialties?.map(
+                        (specialty) => Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 3.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(999.r),
+                          ),
+                          child: AppText.small(
+                            label: specialty.name ?? "",
+                            color: AppColors.primary,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                      .toList() ?? [],
+                ),
+              ],
+            ],
+          ),
         ),
       ],
     );

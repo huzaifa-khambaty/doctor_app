@@ -1,3 +1,5 @@
+import 'package:respilink_mobile/features/auth/data/models/specialities_model.dart';
+
 class EventConferenceModel {
   int? id;
   String? title;
@@ -84,18 +86,28 @@ class EventConferenceModel {
 class Speakers {
   String? name;
   String? image;
+  List<SpecialitiesModel>? specialties;
 
-  Speakers({this.name, this.image});
+  Speakers({this.name, this.image, this.specialties});
 
   Speakers.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     image = json['image'];
+    if (json['specialties'] != null) {
+      specialties = <SpecialitiesModel>[];
+      json['specialties'].forEach((v) {
+        specialties!.add(SpecialitiesModel.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['name'] = name;
     data['image'] = image;
+    if (specialties != null) {
+      data['specialties'] = specialties!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 }
