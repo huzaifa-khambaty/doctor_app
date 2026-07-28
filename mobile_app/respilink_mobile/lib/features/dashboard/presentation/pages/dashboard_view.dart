@@ -16,7 +16,7 @@ const int _homeTabIndex = 0;
 const int _eventsTabIndex = 1;
 const int _quizTabIndex = 2;
 const int _libraryTabIndex = 3;
-const int _queryTabIndex = 4;
+//const int _queryTabIndex = 4;
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
@@ -27,7 +27,7 @@ class DashboardView extends StatelessWidget {
       _quizTabIndex => const QuizTabView(),
       _eventsTabIndex => const EventsListView(),
       _libraryTabIndex => const LibraryView(),
-      _queryTabIndex => const QueryFormView(showBackButton: false),
+      // _queryTabIndex => const QueryFormView(showBackButton: false),
       _ => const HomeTabView(),
     };
   }

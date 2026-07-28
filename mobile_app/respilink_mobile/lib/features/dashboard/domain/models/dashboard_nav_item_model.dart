@@ -19,5 +19,5 @@ const List<DashboardNavItemModel> dashboardNavItems = [
   DashboardNavItemModel(label: 'Events', svgIcon: 'events.svg'),
   DashboardNavItemModel(label: 'Quiz', svgIcon: 'quiz.svg'),
   DashboardNavItemModel(label: 'Library', svgIcon: 'library.svg'),
-  DashboardNavItemModel(label: 'Query', icon: Icons.chat_bubble_outline_rounded),
+  //DashboardNavItemModel(label: 'Query', icon: Icons.chat_bubble_outline_rounded),
 ];
