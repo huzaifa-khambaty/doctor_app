@@ -7,6 +7,9 @@ import 'package:respilink_mobile/features/dashboard/presentation/bloc/home_bloc.
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_home_bloc.dart';
 import 'package:respilink_mobile/features/content_library/presentation/bloc/library_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_list_bloc.dart';
+import 'package:respilink_mobile/features/query_form/presentation/bloc/query_categories_bloc.dart';
+import 'package:respilink_mobile/features/query_form/presentation/bloc/recent_queries_bloc.dart';
+import 'package:respilink_mobile/features/query_form/presentation/bloc/submit_query_bloc.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/event_detail_bloc.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/event_register_bloc.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/events_bloc.dart';
@@ -58,5 +61,14 @@ class Providers {
     ),
     BlocProvider<BadgesBloc>(create: (context) => BadgesBloc(locator())),
     BlocProvider<LibraryBloc>(create: (context) => LibraryBloc(locator())),
+    BlocProvider<QueryCategoriesBloc>(
+      create: (context) => QueryCategoriesBloc(locator()),
+    ),
+    BlocProvider<SubmitQueryBloc>(
+      create: (context) => SubmitQueryBloc(locator()),
+    ),
+    BlocProvider<RecentQueriesBloc>(
+      create: (context) => RecentQueriesBloc(locator()),
+    ),
   ];
 }

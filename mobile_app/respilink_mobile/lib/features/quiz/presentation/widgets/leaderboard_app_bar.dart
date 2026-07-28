@@ -19,12 +19,12 @@ class LeaderboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         fontWeight: FontWeight.bold,
         color: AppColors.black,
       ),
-      actions: [
-        Padding(
-          padding: EdgeInsets.only(right: 16.w),
-          child: Icon(Icons.open_in_full, size: 18.sp, color: AppColors.black),
-        ),
-      ],
+      // actions: [
+      //   Padding(
+      //     padding: EdgeInsets.only(right: 16.w),
+      //     child: Icon(Icons.open_in_full, size: 18.sp, color: AppColors.black),
+      //   ),
+      // ],
     );
   }
 

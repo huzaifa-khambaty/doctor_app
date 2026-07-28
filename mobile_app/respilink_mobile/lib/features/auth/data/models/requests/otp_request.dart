@@ -9,7 +9,7 @@ class OtpRequest {
     return {
       'identifier': email,
       'code': otp,
-      'channel': "email",
+      'channel': "phone",
       'purpose': purpose,
     };
   }

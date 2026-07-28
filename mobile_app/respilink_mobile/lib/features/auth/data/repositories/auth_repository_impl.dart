@@ -55,7 +55,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<ApiResponse<Doctor>> register(RegisterRequest request) async {
+  Future<ApiResponse<Doctor?>> register(RegisterRequest request) async {
     final response = await _remoteDataSource.register(request);
 
     if (response.success && response.token != null) {

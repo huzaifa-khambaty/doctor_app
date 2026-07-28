@@ -55,7 +55,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final res = await _repository.register(event.request);
 
     if (res.success) {
-      emit(AuthSuccess(model: res.data));
+      emit(RegisterSuccess(model: res.data));
     } else {
       emit(AuthFailed(message: res.fullErrorMessage));
     }

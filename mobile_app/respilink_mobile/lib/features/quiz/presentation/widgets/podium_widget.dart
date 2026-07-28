@@ -123,7 +123,7 @@ class PodiumItemWidget extends StatelessWidget {
                 SizedBox(height: 2.h),
                 AppText.small(
                   label: 'PTS',
-                  color: const Color(0xFF0F4C5C).withOpacity(0.6),
+                  color: const Color(0xFF0F4C5C).withValues(alpha: 0.6),
                   fontWeight: FontWeight.w600,
                 ),
               ],

@@ -23,11 +23,11 @@ class RegisterRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      'its_number': itsNumber,
-      'name': name,
+      //'its_number': itsNumber,
+      'full_name': name,
       'email': email,
       'phone': phone,
-      'specialties[]': specialtyIds,
+      'specialties': specialtyIds,
       'hospital_affiliation': hospitalAffiliation,
       'password': password,
       'password_confirmation': passwordConfirmation,

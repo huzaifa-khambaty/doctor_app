@@ -16,11 +16,13 @@ class Handlers {
     locator<NavigationService>().navigateAndRemove(RouterStrings.dashboard);
   }
 
-  static void onRegister(Doctor? model) {
+  static void onRegister(Doctor? model, {String? fallbackEmail}) {
     GlobalNotifiers.userNotifier.value = model;
     locator<NavigationService>().navigateAndRemove(
       RouterStrings.otpVerificationView,
-      arguments: {"email": model?.email, "purpose": "register"},
+      // Registration may not return a doctor object yet (pending OTP
+      // verification) — fall back to the email the user just typed.
+      arguments: {"email": model?.email ?? fallbackEmail, "purpose": "register"},
     );
   }
 

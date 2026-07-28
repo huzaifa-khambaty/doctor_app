@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_mobile/features/quiz/domain/models/quiz_result_model.dart';
-import 'package:respilink_mobile/features/quiz/domain/models/reinforce_content_model.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_results_bloc.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_results_event.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_results_state.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_results_app_bar.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_skeletons.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/quiz_stat_card.dart';
+// ignore: unused_import
 import 'package:respilink_mobile/features/quiz/presentation/widgets/reinforce_knowledge_section.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/score_gauge.dart';
 import 'package:respilink_mobile/features/quiz/presentation/widgets/streak_badge_banner.dart';
@@ -14,20 +14,6 @@ import 'package:respilink_mobile/features/quiz/presentation/widgets/view_leaderb
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 
 import '../../../../exports.dart';
-
-// Not returned by the quiz-results API; kept as curated static suggestions.
-const _reinforceContent = [
-  ReinforceContentModel(
-    type: ReinforceContentType.article,
-    title: 'Advanced COPD Management in 2024',
-    image: 'copd.png',
-  ),
-  ReinforceContentModel(
-    type: ReinforceContentType.video,
-    title: 'Pathophysiology of Respiratory Failure',
-    image: 'respiratory.png',
-  ),
-];
 
 class QuizResultsView extends StatefulWidget {
   final int quizId;

@@ -19,6 +19,15 @@ class AuthSuccess extends AuthState {
   AuthSuccess({this.model});
 }
 
+/// Distinct from [AuthSuccess] so a still-mounted LoginView (Login -> Register
+/// is a push, not a stack replace) never mistakes a registration for a login
+/// and races RegisterView's own navigation to the OTP screen.
+class RegisterSuccess extends AuthState {
+  final Doctor? model;
+
+  RegisterSuccess({this.model});
+}
+
 class ForgetPasswordSuccess extends AuthState {
   final String message;
 

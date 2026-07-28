@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:respilink_mobile/features/content_library/data/models/content_details_model.dart';
 import 'package:respilink_mobile/features/content_library/domain/models/related_article_model.dart';
 import 'package:respilink_mobile/features/content_library/presentation/bloc/content_details_bloc.dart';
@@ -15,6 +16,7 @@ import 'package:respilink_mobile/features/content_library/presentation/widgets/a
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_title.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/article_video_preview.dart';
 import 'package:respilink_mobile/features/content_library/presentation/widgets/library_skeletons.dart';
+import 'package:respilink_mobile/shared/utils/html_utils.dart';
 import 'package:respilink_mobile/shared/widgets/app_html_text.dart';
 import 'package:respilink_mobile/shared/widgets/request_failed.dart';
 import 'package:respilink_mobile/shared/widgets/respilink_app_bar.dart';
@@ -51,6 +53,40 @@ class _ArticleReaderBody extends StatelessWidget {
       categoryColor: AppColors.primary,
       title: related.title ?? '',
     );
+  }
+
+  Future<void> _shareArticle(ContentDetailsModel details) async {
+    final title = (details.title ?? '').trim();
+    final excerpt = HtmlUtils.stripTags(details.body);
+    final link = (details.externalUrl ?? '').trim();
+
+    final text = StringBuffer(title.isNotEmpty ? title : 'RespiLink Article');
+    if (excerpt.isNotEmpty) {
+      final preview = excerpt.length > 200
+          ? '${excerpt.substring(0, 200)}...'
+          : excerpt;
+      text
+        ..writeln()
+        ..writeln()
+        ..write(preview);
+    }
+    if (link.isNotEmpty) {
+      text
+        ..writeln()
+        ..writeln()
+        ..write(link);
+    }
+
+    try {
+      await SharePlus.instance.share(
+        ShareParams(text: text.toString(), subject: title.isNotEmpty ? title : null),
+      );
+    } catch (_) {
+      SnackbarUtil.showSnackbar(
+        message: 'Unable to share this article.',
+        isError: true,
+      );
+    }
   }
 
   @override
@@ -201,9 +237,9 @@ class _ArticleReaderBody extends StatelessWidget {
                       ),
                       3.h.addHeight,
                       ArticleShareFab(
-                        onTap: () {
-                          // TODO: wire to the native share sheet once it exists.
-                        },
+                        onTap: state is ContentDetailsLoaded
+                            ? () => _shareArticle(state.details)
+                            : null,
                       ),
                     ],
                   );

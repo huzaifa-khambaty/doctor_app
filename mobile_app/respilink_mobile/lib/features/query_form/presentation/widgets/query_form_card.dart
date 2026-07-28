@@ -1,4 +1,4 @@
-import 'package:respilink_mobile/features/query_form/domain/models/query_category.dart';
+import 'package:respilink_mobile/features/query_form/data/model/query_category_model.dart';
 import 'package:respilink_mobile/features/query_form/presentation/widgets/query_category_field.dart';
 import 'package:respilink_mobile/features/query_form/presentation/widgets/query_message_field.dart';
 import 'package:respilink_mobile/features/query_form/presentation/widgets/query_subject_field.dart';
@@ -7,19 +7,25 @@ import 'package:respilink_mobile/features/query_form/presentation/widgets/submit
 import '../../../../exports.dart';
 
 class QueryFormCard extends StatelessWidget {
-  final QueryCategory category;
-  final ValueChanged<QueryCategory?> onCategoryChanged;
+  final List<QueryCategoryModel> categories;
+  final QueryCategoryModel? category;
+  final bool categoriesLoading;
+  final ValueChanged<QueryCategoryModel?> onCategoryChanged;
   final TextEditingController subjectController;
   final TextEditingController messageController;
   final VoidCallback? onSubmit;
+  final bool isSubmitting;
 
   const QueryFormCard({
     super.key,
+    required this.categories,
     required this.category,
     required this.onCategoryChanged,
     required this.subjectController,
     required this.messageController,
+    this.categoriesLoading = false,
     this.onSubmit,
+    this.isSubmitting = false,
   });
 
   @override
@@ -34,13 +40,18 @@ class QueryFormCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          QueryCategoryField(value: category, onChanged: onCategoryChanged),
+          QueryCategoryField(
+            categories: categories,
+            value: category,
+            isLoading: categoriesLoading,
+            onChanged: onCategoryChanged,
+          ),
           SizedBox(height: 16.h),
           QuerySubjectField(controller: subjectController),
           SizedBox(height: 16.h),
           QueryMessageField(controller: messageController),
           SizedBox(height: 18.h),
-          SubmitQueryButton(onTap: onSubmit),
+          SubmitQueryButton(onTap: onSubmit, isLoading: isSubmitting),
         ],
       ),
     );

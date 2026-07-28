@@ -17,7 +17,7 @@ import '../../domain/models/user_model.dart';
 abstract class AuthRemoteDataSource {
   Future<ApiResponse<Doctor>> login(LoginRequest request);
 
-  Future<ApiResponse<Doctor>> register(RegisterRequest request);
+  Future<ApiResponse<Doctor?>> register(RegisterRequest request);
 
   Future<ApiResponse<Doctor>> verifyOtp(OtpRequest request);
 
@@ -50,24 +50,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<ApiResponse<Doctor>> register(RegisterRequest request) async {
+  Future<ApiResponse<Doctor?>> register(RegisterRequest request) async {
     return _client.post(
       ApiEndpoints.register,
       data: request.toJson(),
-      fromJson: (json) =>
-          Doctor.fromJson(json['doctor'] as Map<String, dynamic>),
+      // Registration may only return {message, test_otps} while the account
+      // awaits OTP verification — no doctor object yet in that case.
+      fromJson: (json) {
+        final doctor = (json as Map<String, dynamic>)['doctor'];
+        return doctor != null
+            ? Doctor.fromJson(doctor as Map<String, dynamic>)
+            : null;
+      },
     );
   }
 
   @override
   Future<ApiResponse<Doctor>> verifyOtp(OtpRequest request) async {
+    print(request.toJson());
     return _client.post(
       ApiEndpoints.otpVerify,
       data: request.toJson(),
       fromJson: request.purpose == "reset"
           ? null
           : (json) => Doctor.fromJson(
-              (json as Map<String, dynamic>)['doctor'] as Map<String, dynamic>,
+              (json as Map<String, dynamic>)['user'] as Map<String, dynamic>,
             ),
     );
   }

@@ -6,6 +6,7 @@ import 'package:respilink_mobile/features/content_library/content_library_inject
 import 'package:respilink_mobile/features/dashboard/dashboard_injections.dart';
 import 'package:respilink_mobile/features/events/events_injections.dart';
 import 'package:respilink_mobile/features/onboarding/data/onboarding_local_manager.dart';
+import 'package:respilink_mobile/features/query_form/query_form_injections.dart';
 import 'package:respilink_mobile/services/biometric_auth_service.dart';
 import 'package:respilink_mobile/services/pusher_service.dart';
 import 'exports.dart';
@@ -27,6 +28,7 @@ void initDependencies() {
   DashboardInjections.setupDashboardInjections();
   EventsInjections.setupEventsInjections();
   ContentLibraryInjections.setupContentLibraryInjections();
+  QueryFormInjections.setupQueryFormInjections();
 
   locator.registerLazySingleton<OnboardingLocalManager>(
     () => OnboardingLocalManagerImpl(locator()),

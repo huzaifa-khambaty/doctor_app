@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:respilink_mobile/app.dart';
 import 'package:respilink_mobile/exports.dart';
 import 'package:respilink_mobile/firebase_options.dart';
+import 'package:respilink_mobile/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,9 +12,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
 );
   initDependencies();
-
-  //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   //await NotificationService.initialize();
 
   SystemChrome.setPreferredOrientations([.portraitUp]);

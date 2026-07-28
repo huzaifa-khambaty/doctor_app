@@ -15,7 +15,7 @@ abstract class AuthRepository {
 
   Future<ApiResponse<Doctor>> login(LoginRequest request);
 
-  Future<ApiResponse<Doctor>> register(RegisterRequest request);
+  Future<ApiResponse<Doctor?>> register(RegisterRequest request);
 
   Future<ApiResponse<Doctor>> verifyOtp(OtpRequest request);
 

@@ -56,8 +56,8 @@ class _RegisterViewState extends State<RegisterView> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthSuccess) {
-          Handlers.onRegister(state.model);
+        if (state is RegisterSuccess) {
+          Handlers.onRegister(state.model, fallbackEmail: _emailCtrl.text.trim());
         }
         else if(state is AuthFailed) {
           SnackbarUtil.showSnackbar(message: state.message);
