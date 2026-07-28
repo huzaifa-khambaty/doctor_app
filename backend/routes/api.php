@@ -10,6 +10,7 @@ use App\Domain\Doctor\Http\Controllers\Api\BadgeController;
 use App\Domain\Doctor\Http\Controllers\Api\QuizHomeController;
 use App\Domain\Doctor\Http\Controllers\Api\ContentLibraryController;
 use App\Domain\Doctor\Http\Controllers\Api\HomeController;
+use App\Domain\Doctor\Http\Controllers\Api\QueryController as DoctorQueryController;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -82,4 +83,11 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::get('specialties', [SpecialtyController::class, 'index']);
+
+   Route::prefix('queries')->middleware(['auth:sanctum', 'ability:doctor'])->controller(DoctorQueryController::class)->group(function () {
+        Route::get('categories', 'categories');
+        Route::post('/', 'store');
+        Route::get('/', 'myQueries');
+        Route::get('{query}', 'show');
+    }); 
 });

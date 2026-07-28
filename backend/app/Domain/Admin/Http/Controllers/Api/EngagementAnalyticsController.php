@@ -9,6 +9,7 @@ use App\Domain\Shared\Models\ContentLike;
 use App\Domain\Shared\Models\EventRegistration;
 use App\Domain\Shared\Models\QuizAttempt;
 use App\Domain\Shared\Models\Specialty;
+use App\Domain\Shared\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,7 @@ class EngagementAnalyticsController extends Controller
             'engagement_trends' => $this->getEngagementTrends($period),
             'growth_by_specialty' => $this->getGrowthBySpecialty(),
             'top_performing_content' => $this->getTopPerformingContent(),
+            'activity_stream' => $this->getActivityStream(),
         ]);
     }
 
@@ -212,5 +214,65 @@ class EngagementAnalyticsController extends Controller
                 'likes_count' => $content->likes_count,
             ])
             ->toArray();
+    }
+
+    private function getActivityStream(): array
+    {
+        $activities = Activity::with('causer')
+            ->latest()
+            ->limit(20)
+            ->get();
+
+        return $activities->map(function ($activity) {
+            $causer = $activity->causer;
+            $properties = $activity->properties?->toArray() ?? [];
+
+            $icon = match (true) {
+                str_contains($activity->description, 'registered an account') => 'person',
+                str_contains($activity->description, 'logged in') => 'login',
+                str_contains($activity->description, 'logged out') => 'logout',
+                str_contains($activity->description, 'registered for event') => 'event_available',
+                str_contains($activity->description, 'cancelled event') => 'event_busy',
+                str_contains($activity->description, 'quiz') => 'quiz',
+                str_contains($activity->description, 'content') => 'description',
+                default => 'info',
+            };
+
+            $iconBg = match ($icon) {
+                'person' => 'teal-100',
+                'login', 'logout' => 'surface-container-highest',
+                'event_available' => 'gold-100',
+                'event_busy' => 'error-container',
+                'quiz' => 'tertiary-fixed',
+                default => 'secondary-container',
+            };
+
+            $iconColor = match ($icon) {
+                'person' => 'teal-700',
+                'login', 'logout' => 'secondary',
+                'event_available' => 'gold-500',
+                'event_busy' => 'error',
+                'quiz' => 'tertiary',
+                default => 'secondary',
+            };
+
+            return [
+                'id' => $activity->id,
+                'user' => $causer ? [
+                    'id' => $causer->id,
+                    'name' => $causer->full_name ?? $causer->name ?? 'Unknown',
+                    'specialty' => $causer->specialty->name ?? null,
+                ] : null,
+                'description' => $activity->description,
+                'icon' => $icon,
+                'icon_bg' => $iconBg,
+                'icon_color' => $iconColor,
+                'subject_type' => $activity->subject_type,
+                'subject_id' => $activity->subject_id,
+                'properties' => $properties,
+                'created_at' => $activity->created_at->toISOString(),
+                'time_ago' => $activity->created_at->diffForHumans(),
+            ];
+        })->toArray();
     }
 }

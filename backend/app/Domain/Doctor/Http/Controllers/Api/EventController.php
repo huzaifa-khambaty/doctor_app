@@ -154,7 +154,7 @@ class EventController extends Controller
             return response()->json(['message' => 'Event not found.'], 404);
         }
 
-        $event->load('conferenceDetail.agendaItems', 'speakers');
+        $event->load('conferenceDetail.agendaItems', 'speakers.specialties');
 
         $user = $request->user();
         $isRegistered = $event->registrations()->where('user_id', $user->id)->where('status', '!=', 'cancelled')->exists();
@@ -168,13 +168,19 @@ class EventController extends Controller
             'duration' => $detail?->duration,
             'date_from' => $event->starts_at?->format('Y-m-d'),
             'date_to' => $event->ends_at?->format('Y-m-d'),
-            'time' => $detail?->time,
+            'time' => $detail?->time ?? ($event->starts_at?->format('H:i') . ' - ' . $event->ends_at?->format('H:i')),
             'format' => $detail?->format,
             'venue' => $detail?->venue ?? $event->location,
-            'speakers' => $event->speakers->map(fn ($s) => [
-                'name' => $s->full_name,
-                'image' => $s->photo_url,
+                    'speakers' => $event->speakers->map(fn ($s) => [
+            'name' => $s->full_name,
+            'image' => $s->photo_url,
+            'specialties' => $s->specialties->map(fn ($sp) => [
+                'id' => $sp->id,
+                'name' => $sp->name,
+                'slug' => $sp->slug,
             ]),
+        ]),
+
             'agenda' => $detail?->agendaItems->map(fn ($item) => [
                 'day' => $item->day,
                 'time' => $item->time,
