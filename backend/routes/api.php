@@ -84,10 +84,13 @@ Route::prefix('v1')->group(function () {
 
     Route::get('specialties', [SpecialtyController::class, 'index']);
 
-   Route::prefix('queries')->middleware(['auth:sanctum', 'ability:doctor'])->controller(DoctorQueryController::class)->group(function () {
+    Route::prefix('queries')->middleware(['auth:sanctum', 'ability:doctor'])->controller(DoctorQueryController::class)->group(function () {
         Route::get('categories', 'categories');
         Route::post('/', 'store');
-        Route::get('/', 'myQueries');
+        Route::get('/', 'myThreads');
         Route::get('{query}', 'show');
+        Route::get('{query}/messages', 'messages');
+        Route::post('{query}/messages', 'sendMessage');
+        Route::post('{query}/read', 'markRead');
     }); 
 });
