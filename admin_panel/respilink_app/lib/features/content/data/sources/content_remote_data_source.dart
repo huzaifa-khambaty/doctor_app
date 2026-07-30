@@ -5,6 +5,7 @@ import 'package:respilink_app/features/content/data/models/content_model.dart';
 import 'package:respilink_app/features/content/data/models/content_specialty_model.dart';
 import 'package:respilink_app/features/content/data/models/quiz_summary_model.dart';
 import 'package:respilink_app/features/content/data/models/requests/create_content_request.dart';
+import 'package:respilink_app/features/content/data/models/system_logs_model.dart';
 
 abstract class ContentRemoteDataSource {
   Future<ApiResponse<List<ContentSpecialtyModel>>> getSpecialties();
@@ -14,6 +15,7 @@ abstract class ContentRemoteDataSource {
   Future<ApiResponse<dynamic>> updateContent(int id, UpdateContentRequest request);
   Future<ApiResponse<dynamic>> deleteContent(int id);
   Future<ApiResponse<dynamic>> updateStatus(int id, String status);
+  Future<ApiResponse<SystemLogsModel>> getSystemLogs();
 }
 
 class ContentRemoteDataSourceImpl implements ContentRemoteDataSource {
@@ -79,5 +81,13 @@ class ContentRemoteDataSourceImpl implements ContentRemoteDataSource {
   @override
   Future<ApiResponse<dynamic>> updateStatus(int id, String status) async {
     return _client.patch('${ApiEndpoints.content}/$id/status', data: {'status': status});
+  }
+
+  @override
+  Future<ApiResponse<SystemLogsModel>> getSystemLogs() async {
+    return _client.get(
+      ApiEndpoints.systemLogs,
+      fromJson: (json) => SystemLogsModel.fromJson(json as Map<String, dynamic>),
+    );
   }
 }

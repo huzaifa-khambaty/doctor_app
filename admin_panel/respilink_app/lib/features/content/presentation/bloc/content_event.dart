@@ -34,3 +34,5 @@ class UpdateContentStatusRequested extends ContentEvent {
   final String status;
   UpdateContentStatusRequested(this.contentId, this.status);
 }
+
+class FetchSystemLogsRequested extends ContentEvent {}

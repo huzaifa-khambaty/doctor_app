@@ -3,6 +3,7 @@ import 'package:respilink_app/features/content/data/models/content_model.dart';
 import 'package:respilink_app/features/content/data/models/content_specialty_model.dart';
 import 'package:respilink_app/features/content/data/models/quiz_summary_model.dart';
 import 'package:respilink_app/features/content/data/models/requests/create_content_request.dart';
+import 'package:respilink_app/features/content/data/models/system_logs_model.dart';
 
 abstract class ContentRepository {
   Future<ApiResponse<List<ContentSpecialtyModel>>> getSpecialties();
@@ -12,4 +13,5 @@ abstract class ContentRepository {
   Future<ApiResponse<dynamic>> updateContent(int id, UpdateContentRequest request);
   Future<ApiResponse<dynamic>> deleteContent(int id);
   Future<ApiResponse<dynamic>> updateStatus(int id, String status);
+  Future<ApiResponse<SystemLogsModel>> getSystemLogs();
 }

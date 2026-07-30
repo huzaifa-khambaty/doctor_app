@@ -1,6 +1,7 @@
 import 'package:respilink_app/features/content/data/models/content_model.dart';
 import 'package:respilink_app/features/content/data/models/content_specialty_model.dart';
 import 'package:respilink_app/features/content/data/models/quiz_summary_model.dart';
+import 'package:respilink_app/features/content/data/models/system_logs_model.dart';
 
 class ContentState {
   final List<ContentSpecialtyModel> specialties;
@@ -11,6 +12,9 @@ class ContentState {
 
   final ContentModel? contentData;
   final bool isLoadingContents;
+
+  final List<SystemLogData> systemLogs;
+  final bool isLoadingSystemLogs;
 
   final bool isSubmitting;
   final bool submitSuccess;
@@ -25,6 +29,8 @@ class ContentState {
     this.isLoadingQuizzes = false,
     this.contentData,
     this.isLoadingContents = false,
+    this.systemLogs = const [],
+    this.isLoadingSystemLogs = false,
     this.isSubmitting = false,
     this.submitSuccess = false,
     this.actioningContentId,
@@ -38,6 +44,8 @@ class ContentState {
     bool? isLoadingQuizzes,
     ContentModel? contentData,
     bool? isLoadingContents,
+    List<SystemLogData>? systemLogs,
+    bool? isLoadingSystemLogs,
     bool? isSubmitting,
     bool? submitSuccess,
     int? actioningContentId,
@@ -51,6 +59,8 @@ class ContentState {
       isLoadingQuizzes: isLoadingQuizzes ?? this.isLoadingQuizzes,
       contentData: contentData ?? this.contentData,
       isLoadingContents: isLoadingContents ?? this.isLoadingContents,
+      systemLogs: systemLogs ?? this.systemLogs,
+      isLoadingSystemLogs: isLoadingSystemLogs ?? this.isLoadingSystemLogs,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       submitSuccess: submitSuccess ?? false,
       actioningContentId: clearActioningId ? null : (actioningContentId ?? this.actioningContentId),

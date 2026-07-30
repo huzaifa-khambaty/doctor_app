@@ -2,13 +2,13 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // Base Url
- static const String baseUrl = 'http://192.168.100.115:8000/api/admin/v1';
+  //static const String baseUrl = 'http://192.168.100.115:8000/api/admin/v1';
 
- static const String imageUrl = "http://192.168.100.115:8000/storage/";
-  
-  //static const String baseUrl = 'https://doctorapp.bharmalsystems.net/api/admin/v1';
+  //static const String imageUrl = "http://192.168.100.115:8000/storage/";
 
-  //static const String imageUrl = "https://doctorapp.bharmalsystems.net/storage/";
+  static const String baseUrl = 'https://doctorapp.bharmalsystems.net/api/admin/v1';
+
+  static const String imageUrl = "https://doctorapp.bharmalsystems.net/storage/";
 
   /// Auth
   static const String login = '/auth/login';
@@ -32,8 +32,8 @@ class ApiEndpoints {
   static const String permissions = '/permissions';
 
   ///User Management
-  static const String admins = '/admins'; //same endpoint for create and listing. For update and delete (pass /adminId)
-
+  static const String admins =
+      '/admins'; //same endpoint for create and listing. For update and delete (pass /adminId)
 
   ///Quiz
   static const String topics = '/topics';
@@ -43,10 +43,11 @@ class ApiEndpoints {
 
   ///Content
   static const String content = '/content';
+  static const String systemLogs = '/system-logs';
 
   ///Dashboard
   static const String dashboard = '/dashboard';
 
   ///Analytics
-    static const String analytics = '/analytics';
+  static const String analytics = '/analytics';
 }

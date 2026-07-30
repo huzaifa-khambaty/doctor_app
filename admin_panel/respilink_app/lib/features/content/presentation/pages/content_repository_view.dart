@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/content/data/models/content_model.dart';
+import 'package:respilink_app/features/content/data/models/system_logs_model.dart';
 import 'package:respilink_app/features/content/presentation/bloc/content_bloc.dart';
 import 'package:respilink_app/features/content/presentation/bloc/content_event.dart';
 import 'package:respilink_app/features/content/presentation/bloc/content_state.dart';
@@ -38,7 +39,9 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
     super.initState();
     _searchCtrl.addListener(_onSearchChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _fetch();
+      if (!mounted) return;
+      _fetch();
+      context.read<ContentBloc>().add(FetchSystemLogsRequested());
     });
   }
 
@@ -510,7 +513,7 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SystemLogsSection(),
+          _SystemLogsSection(logs: state.systemLogs, isLoading: state.isLoadingSystemLogs),
           const SizedBox(height: 24),
           _ContentMixSection(
             state: state,
@@ -522,7 +525,10 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(flex: 2, child: const _SystemLogsSection()),
+        Expanded(
+          flex: 2,
+          child: _SystemLogsSection(logs: state.systemLogs, isLoading: state.isLoadingSystemLogs),
+        ),
         const SizedBox(width: 24),
         Expanded(
           child: _ContentMixSection(
@@ -841,7 +847,20 @@ class _PageNumBtn extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _SystemLogsSection extends StatelessWidget {
-  const _SystemLogsSection();
+  final List<SystemLogData> logs;
+  final bool isLoading;
+
+  const _SystemLogsSection({required this.logs, required this.isLoading});
+
+  Color _parseColor(String? hex) {
+    if (hex == null || hex.isEmpty) return AppColors.primary;
+    try {
+      final cleaned = hex.replaceAll('#', '');
+      return Color(int.parse('FF$cleaned', radix: 16));
+    } catch (_) {
+      return AppColors.primary;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -863,14 +882,62 @@ class _SystemLogsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          _logItem('New Quiz Published', '"Pharmacological Interventions in Asthma" was moved to published.', '14 MINUTES AGO', AppColors.primary),
-          const Divider(color: AppColors.borderLight, height: 24),
-          _logItem('PDF Upload Failed', '"Invasive Ventilation Protocol.pdf" failed validation due to file size limits.', '2 HOURS AGO', AppColors.errorRed),
-          const Divider(color: AppColors.borderLight, height: 24),
-          _logItem('Event Registration Peak', '"Pulmonology Summit 2024" reached 85% capacity in the Geneva venue.', '4 HOURS AGO', AppColors.warningOrange),
+          if (isLoading) ..._skeletonItems()
+          else if (logs.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text('No recent logs', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+              ),
+            )
+          else
+            ...List.generate(logs.length, (i) {
+              final log = logs[i];
+              return Column(
+                children: [
+                  _logItem(
+                    log.title ?? '',
+                    log.description ?? '',
+                    log.timeAgo ?? '',
+                    _parseColor(log.color),
+                  ),
+                  if (i < logs.length - 1) const Divider(color: AppColors.borderLight, height: 24),
+                ],
+              );
+            }),
         ],
       ),
     );
+  }
+
+  List<Widget> _skeletonItems() {
+    return List.generate(3, (i) => Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 4),
+              child: _Shimmer(child: SizedBox(width: 8, height: 8)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Shimmer(child: Container(height: 12, width: 140, decoration: _shBox)),
+                  const SizedBox(height: 6),
+                  _Shimmer(child: Container(height: 10, width: double.infinity, decoration: _shBox)),
+                  const SizedBox(height: 4),
+                  _Shimmer(child: Container(height: 8, width: 80, decoration: _shBox)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (i < 2) const Divider(color: AppColors.borderLight, height: 24),
+      ],
+    ));
   }
 
   Widget _logItem(String title, String detail, String time, Color color) {

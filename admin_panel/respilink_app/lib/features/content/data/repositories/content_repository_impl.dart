@@ -3,6 +3,7 @@ import 'package:respilink_app/features/content/data/models/content_model.dart';
 import 'package:respilink_app/features/content/data/models/content_specialty_model.dart';
 import 'package:respilink_app/features/content/data/models/quiz_summary_model.dart';
 import 'package:respilink_app/features/content/data/models/requests/create_content_request.dart';
+import 'package:respilink_app/features/content/data/models/system_logs_model.dart';
 import 'package:respilink_app/features/content/data/sources/content_remote_data_source.dart';
 import 'package:respilink_app/features/content/domain/repositories/content_repository.dart';
 
@@ -38,4 +39,8 @@ class ContentRepositoryImpl implements ContentRepository {
   @override
   Future<ApiResponse<dynamic>> updateStatus(int id, String status) =>
       _remoteDataSource.updateStatus(id, status);
+
+  @override
+  Future<ApiResponse<SystemLogsModel>> getSystemLogs() =>
+      _remoteDataSource.getSystemLogs();
 }

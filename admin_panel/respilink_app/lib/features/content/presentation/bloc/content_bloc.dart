@@ -14,6 +14,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
     on<UpdateContentRequested>(_updateContent);
     on<DeleteContentRequested>(_deleteContent);
     on<UpdateContentStatusRequested>(_updateContentStatus);
+    on<FetchSystemLogsRequested>(_fetchSystemLogs);
   }
 
   Future<void> _fetchContents(
@@ -108,6 +109,22 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
       emit(state.copyWith(isSubmitting: false, submitSuccess: true, clearActioningId: true));
     } else {
       emit(state.copyWith(isSubmitting: false, error: res.fullErrorMessage, clearActioningId: true));
+    }
+  }
+
+  Future<void> _fetchSystemLogs(
+    FetchSystemLogsRequested event,
+    Emitter<ContentState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingSystemLogs: true));
+    final res = await _repository.getSystemLogs();
+    if (res.success && res.data != null) {
+      emit(state.copyWith(
+        systemLogs: res.data!.data ?? [],
+        isLoadingSystemLogs: false,
+      ));
+    } else {
+      emit(state.copyWith(isLoadingSystemLogs: false));
     }
   }
 }
