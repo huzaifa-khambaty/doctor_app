@@ -1,10 +1,13 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_ai_response_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_analytics_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_detail_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_topic_model.dart';
 import 'package:respilink_app/features/quiz/data/models/requests/add_questions_request.dart';
 import 'package:respilink_app/features/quiz/data/models/requests/create_quiz_request.dart';
+import 'package:respilink_app/features/quiz/data/models/requests/generate_quiz_ai_request.dart';
+import 'package:respilink_app/features/quiz/data/models/requests/link_quiz_ai_request.dart';
 
 abstract class QuizRepository {
   Future<ApiResponse<List<QuizTopicModel>>> getTopics();
@@ -18,4 +21,6 @@ abstract class QuizRepository {
   Future<ApiResponse<dynamic>> unpublishQuiz(int quizId);
   Future<ApiResponse<dynamic>> deleteQuiz(int quizId);
   Future<ApiResponse<QuizAnalyticsModel>> quizAnalytics(int quizId);
+  Future<ApiResponse<QuizAiResponseModel>> generateQuizAI(GenerateQuizAiRequest request);
+  Future<ApiResponse<dynamic>> linkQuizAI(LinkQuizAiRequest request);
 }

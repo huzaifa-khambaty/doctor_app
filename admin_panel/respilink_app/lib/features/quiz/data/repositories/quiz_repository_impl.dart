@@ -1,10 +1,13 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_ai_response_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_analytics_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_detail_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_topic_model.dart';
 import 'package:respilink_app/features/quiz/data/models/requests/add_questions_request.dart';
 import 'package:respilink_app/features/quiz/data/models/requests/create_quiz_request.dart';
+import 'package:respilink_app/features/quiz/data/models/requests/generate_quiz_ai_request.dart';
+import 'package:respilink_app/features/quiz/data/models/requests/link_quiz_ai_request.dart';
 import 'package:respilink_app/features/quiz/data/sources/quiz_remote_data_source.dart';
 import 'package:respilink_app/features/quiz/domain/repositories/quiz_repository.dart';
 
@@ -59,4 +62,14 @@ class QuizRepositoryImpl implements QuizRepository {
   @override
   Future<ApiResponse<QuizAnalyticsModel>> quizAnalytics(int quizId) =>
       _remoteDataSource.quizAnalytics(quizId);
+
+  @override
+  Future<ApiResponse<QuizAiResponseModel>> generateQuizAI(
+    GenerateQuizAiRequest request,
+  ) =>
+      _remoteDataSource.generateQuizAI(request);
+
+  @override
+  Future<ApiResponse<dynamic>> linkQuizAI(LinkQuizAiRequest request) =>
+      _remoteDataSource.linkQuizAI(request);
 }

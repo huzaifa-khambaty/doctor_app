@@ -2,12 +2,15 @@ import 'package:dio/dio.dart';
 import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/network/dio_client.dart';
 import 'package:respilink_app/core/network/models/api_response.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_ai_response_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_analytics_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_detail_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_list_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_topic_model.dart';
 import 'package:respilink_app/features/quiz/data/models/requests/add_questions_request.dart';
 import 'package:respilink_app/features/quiz/data/models/requests/create_quiz_request.dart';
+import 'package:respilink_app/features/quiz/data/models/requests/generate_quiz_ai_request.dart';
+import 'package:respilink_app/features/quiz/data/models/requests/link_quiz_ai_request.dart';
 
 abstract class QuizRemoteDataSource {
   Future<ApiResponse<List<QuizTopicModel>>> getTopics();
@@ -21,6 +24,8 @@ abstract class QuizRemoteDataSource {
   Future<ApiResponse<dynamic>> unpublishQuiz(int quizId);
   Future<ApiResponse<dynamic>> deleteQuiz(int quizId);
   Future<ApiResponse<QuizAnalyticsModel>> quizAnalytics(int quizId);
+  Future<ApiResponse<QuizAiResponseModel>> generateQuizAI(GenerateQuizAiRequest request);
+  Future<ApiResponse<dynamic>> linkQuizAI(LinkQuizAiRequest request);
 }
 
 class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
@@ -119,7 +124,6 @@ class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
       (q) => q.imageBytes != null || q.existingImagePath != null,
     );
 
-    // Use the same POST endpoint as create — backend syncs by question id.
     if (!hasImages) {
       return _client.post(
         '${ApiEndpoints.quizzes}/$quizId/questions',
@@ -148,7 +152,40 @@ class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
     return _client.delete('${ApiEndpoints.quizzes}/$quizId');
   }
 
-  // Shared multipart builder for add and update question flows.
+  @override
+  Future<ApiResponse<QuizAnalyticsModel>> quizAnalytics(int quizId) async {
+    return _client.get(
+      '${ApiEndpoints.quizzes}/$quizId/analytics',
+      fromJson: (json) {
+        final map = json as Map<String, dynamic>;
+        if (map.containsKey('quiz_id')) return QuizAnalyticsModel.fromJson(map);
+        final nested = map['data'] ?? map;
+        return QuizAnalyticsModel.fromJson(nested as Map<String, dynamic>);
+      },
+    );
+  }
+
+  @override
+  Future<ApiResponse<QuizAiResponseModel>> generateQuizAI(
+    GenerateQuizAiRequest request,
+  ) async {
+    return _client.post(
+      '${ApiEndpoints.quizAI}/generate',
+      data: request.toJson(),
+      fromJson: (json) {
+        final map = json as Map<String, dynamic>;
+        if (map.containsKey('generation_id')) {
+          return QuizAiResponseModel.fromJson(map);
+        }
+        final nested = map['data'];
+        if (nested is Map<String, dynamic>) {
+          return QuizAiResponseModel.fromJson(nested);
+        }
+        return QuizAiResponseModel.fromJson(map);
+      },
+    );
+  }
+
   FormData _buildQuestionsFormData(
     AddQuestionsRequest request, {
     bool includeExistingPaths = false,
@@ -188,16 +225,11 @@ class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
     return formData;
   }
 
-    @override
-  Future<ApiResponse<QuizAnalyticsModel>> quizAnalytics(int quizId) async {
-    return _client.get(
-      '${ApiEndpoints.quizzes}/$quizId/analytics',
-      fromJson: (json) {
-        final map = json as Map<String, dynamic>;
-        if (map.containsKey('quiz_id')) return QuizAnalyticsModel.fromJson(map);
-        final nested = map['data'] ?? map;
-        return QuizAnalyticsModel.fromJson(nested as Map<String, dynamic>);
-      },
+  @override
+  Future<ApiResponse<dynamic>> linkQuizAI(LinkQuizAiRequest request) async {
+    return _client.post(
+      "${ApiEndpoints.quizAI}/${request.generationId}/link-quiz/${request.quizId}",
+      data: request.toJson(),
     );
   }
 }

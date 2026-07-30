@@ -13,10 +13,12 @@ class FetchQuizzesRequested extends QuizEvent {
 class PublishQuizRequested extends QuizEvent {
   final CreateQuizRequest createRequest;
   final AddQuestionsRequest questionsRequest;
+  final int? generationId;
 
   PublishQuizRequested({
     required this.createRequest,
     required this.questionsRequest,
+    this.generationId,
   });
 }
 

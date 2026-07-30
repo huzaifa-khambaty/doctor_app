@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
+import 'package:respilink_app/features/quiz/data/models/quiz_ai_response_model.dart';
 import 'package:respilink_app/features/quiz/data/models/quiz_topic_model.dart';
 import 'package:respilink_app/features/quiz/data/models/requests/add_questions_request.dart';
 import 'package:respilink_app/features/quiz/data/models/requests/create_quiz_request.dart';
+import 'package:respilink_app/features/quiz/data/models/requests/generate_quiz_ai_request.dart';
+import 'package:respilink_app/features/quiz/domain/repositories/quiz_repository.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_bloc.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_event.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_state.dart';
+import 'package:respilink_app/injections.dart';
 import 'package:respilink_app/service/image_picker_service.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -79,6 +84,12 @@ class _CreateQuizContentState extends State<CreateQuizContent> {
 
   // ── Questions ──────────────────────────────────────────────────────────────
   final List<_QuestionDraft> _questions = [_QuestionDraft()];
+
+  // Used to scroll to the questions section after AI generation
+  final _questionsKey = GlobalKey();
+
+  // Stored for potential later use (e.g. linking quiz to AI generation)
+  int? _generationId;
 
   @override
   void initState() {
@@ -276,8 +287,87 @@ class _CreateQuizContentState extends State<CreateQuizContent> {
           PublishQuizRequested(
             createRequest: createRequest,
             questionsRequest: AddQuestionsRequest(questionRequests),
+            generationId: _generationId,
           ),
         );
+  }
+
+  // ── AI generator dialog ────────────────────────────────────────────────────
+
+  void _showAiGeneratorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (_) => _AiGeneratorDialog(
+        onGenerated: (generationId, result, promptTitle) =>
+            _applyGeneratedQuestions(generationId, result, promptTitle),
+      ),
+    );
+  }
+
+  void _applyGeneratedQuestions(
+    int generationId,
+    QuizAiResponseModel result,
+    String promptTitle,
+  ) {
+    if (_titleController.text.trim().isEmpty) {
+      _titleController.text = promptTitle;
+    }
+    // Dispose all current drafts before replacing
+    for (final q in _questions) {
+      q.dispose();
+    }
+
+    final newQuestions = result.questions.map((aiQ) {
+      final draft = _QuestionDraft()
+        ..questionController.text = aiQ.questionText ?? ''
+        ..isMultiple = aiQ.isMultiple;
+
+      // Dispose the 4 default blank options that _QuestionDraft() creates
+      for (final o in draft.options) {
+        o.dispose();
+      }
+      draft.options.clear();
+
+      for (final aiOpt in aiQ.options) {
+        final optDraft = _OptionDraft()
+          ..isCorrect = aiOpt.isCorrect;
+        optDraft.textController.text = aiOpt.optionText ?? '';
+        optDraft.explanationController.text = aiOpt.explanation ?? '';
+        draft.options.add(optDraft);
+      }
+
+      // Guarantee at least 2 options to satisfy validation
+      while (draft.options.length < 2) {
+        draft.options.add(_OptionDraft());
+      }
+
+      return draft;
+    }).toList();
+
+    setState(() {
+      _generationId = generationId;
+      _questions
+        ..clear()
+        ..addAll(newQuestions.isNotEmpty ? newQuestions : [_QuestionDraft()]);
+    });
+
+    SnackbarUtil.showSnackbar(
+      context,
+      message: result.message ?? 'Quiz generated successfully!',
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _questionsKey.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+          alignment: 0.0,
+        );
+      }
+    });
   }
 
   // ── Input decoration ───────────────────────────────────────────────────────
@@ -340,6 +430,7 @@ class _CreateQuizContentState extends State<CreateQuizContent> {
                   // ── Breadcrumbs ──────────────────────────────────────────
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,6 +488,7 @@ class _CreateQuizContentState extends State<CreateQuizContent> {
                           ),
                         ],
                       ),
+                      _CreateWithAiButton(onPressed: () => _showAiGeneratorDialog(context)),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -543,6 +635,7 @@ class _CreateQuizContentState extends State<CreateQuizContent> {
 
                   // ── Questions header ─────────────────────────────────────
                   Row(
+                    key: _questionsKey,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
@@ -1135,4 +1228,497 @@ class _ConfigSectionCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Create with AI button
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CreateWithAiButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _CreateWithAiButton({required this.onPressed});
+
+  @override
+  State<_CreateWithAiButton> createState() => _CreateWithAiButtonState();
+}
+
+class _CreateWithAiButtonState extends State<_CreateWithAiButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _shimmerCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _shimmerCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onPressed,
+      child: AnimatedBuilder(
+        animation: _shimmerCtrl,
+        builder: (_, child) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: const [Color(0xFF0A5C5A), Color(0xFF0E8F8C), Color(0xFF0A5C5A)],
+                stops: [
+                  (_shimmerCtrl.value - 0.3).clamp(0.0, 1.0),
+                  _shimmerCtrl.value.clamp(0.0, 1.0),
+                  (_shimmerCtrl.value + 0.3).clamp(0.0, 1.0),
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0A5C5A).withValues(alpha: 0.35),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.auto_awesome_rounded, size: 16, color: Colors.white),
+                const SizedBox(width: 8),
+                const Text(
+                  'Create with AI',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Generator Dialog
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AiGeneratorDialog extends StatefulWidget {
+  final void Function(int generationId, QuizAiResponseModel result, String promptTitle) onGenerated;
+
+  const _AiGeneratorDialog({required this.onGenerated});
+
+  @override
+  State<_AiGeneratorDialog> createState() => _AiGeneratorDialogState();
+}
+
+class _AiGeneratorDialogState extends State<_AiGeneratorDialog> {
+  final _promptCtrl = TextEditingController();
+  int _questionCount = 10;
+  String _difficulty = 'Intermediate';
+  bool _isGenerating = false;
+
+  static const _topics = [
+    'COPD Management',
+    'Pulmonology Basics',
+    'Respiratory Infections',
+    'Asthma Treatment',
+    'Spirometry Interpretation',
+    'Critical Care',
+  ];
+
+  static const _difficulties = ['Beginner', 'Intermediate', 'Advanced'];
+  static const _counts = [5, 10, 15, 20];
+
+  @override
+  void dispose() {
+    _promptCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _generate() async {
+    final promptText = _promptCtrl.text.trim();
+    if (promptText.isEmpty) {
+      SnackbarUtil.showSnackbar(
+        context,
+        message: 'Please describe the quiz you want to generate.',
+        isError: true,
+      );
+      return;
+    }
+
+    // Compose a full prompt that includes the UI selections
+    final fullPrompt =
+        '$promptText, $_questionCount questions, difficulty ${_difficulty.toLowerCase()}';
+
+    setState(() => _isGenerating = true);
+
+    final repo = locator<QuizRepository>();
+    final res = await repo.generateQuizAI(
+      GenerateQuizAiRequest(prompt: fullPrompt),
+    );
+
+    if (!mounted) return;
+    setState(() => _isGenerating = false);
+
+    if (res.success && res.data != null) {
+      final result = res.data!;
+      Navigator.of(context).pop();
+      widget.onGenerated(result.generationId ?? 0, result, promptText);
+    } else {
+      SnackbarUtil.showSnackbar(
+        context,
+        message: res.fullErrorMessage,
+        isError: true,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 640),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Header ─────────────────────────────────────────────────────
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF063D3C), Color(0xFF0A5C5A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.auto_awesome_rounded, size: 22, color: Colors.white),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'AI Quiz Generator',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Describe your quiz and let AI do the heavy lifting.',
+                                style: TextStyle(fontSize: 12, color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: _isGenerating ? null : () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Body ───────────────────────────────────────────────────────
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Prompt input
+                    _sectionLabel('DESCRIBE YOUR QUIZ'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _promptCtrl,
+                      maxLines: 4,
+                      enabled: !_isGenerating,
+                      style: const TextStyle(fontSize: 13, color: Color(0xFF2D3748)),
+                      decoration: InputDecoration(
+                        hintText: 'e.g., "Create a quiz on COPD management for respiratory specialists, focusing on diagnosis and treatment protocols..."',
+                        hintStyle: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+                        filled: true,
+                        fillColor: const Color(0xFFF5F8FA),
+                        contentPadding: const EdgeInsets.all(14),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: AppColors.borderLight),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: AppColors.borderLight),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Quick topic suggestions
+                    _sectionLabel('QUICK TOPICS'),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _topics.map((topic) {
+                        return GestureDetector(
+                          onTap: _isGenerating
+                              ? null
+                              : () {
+                                  final current = _promptCtrl.text.trim();
+                                  _promptCtrl.text = current.isEmpty ? topic : '$current, $topic';
+                                  _promptCtrl.selection = TextSelection.fromPosition(
+                                    TextPosition(offset: _promptCtrl.text.length),
+                                  );
+                                },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE6F2F2),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: const Color(0xFF0A5C5A).withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.add, size: 12, color: AppColors.primary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  topic,
+                                  style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Options row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Question count
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _sectionLabel('NUMBER OF QUESTIONS'),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F8FA),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.borderLight),
+                                ),
+                                child: Row(
+                                  children: _counts.map((n) {
+                                    final active = n == _questionCount;
+                                    return Expanded(
+                                      child: GestureDetector(
+                                        onTap: _isGenerating ? null : () => setState(() => _questionCount = n),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 150),
+                                          padding: const EdgeInsets.symmetric(vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: active ? AppColors.primary : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            '$n',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: active ? Colors.white : AppColors.textMuted,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Difficulty
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _sectionLabel('DIFFICULTY LEVEL'),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F8FA),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.borderLight),
+                                ),
+                                child: Row(
+                                  children: _difficulties.map((d) {
+                                    final active = d == _difficulty;
+                                    return Expanded(
+                                      child: GestureDetector(
+                                        onTap: _isGenerating ? null : () => setState(() => _difficulty = d),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 150),
+                                          padding: const EdgeInsets.symmetric(vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: active ? AppColors.primary : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            d,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: active ? Colors.white : AppColors.textMuted,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Action buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _isGenerating ? null : () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              side: const BorderSide(color: AppColors.borderLight),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w600, fontSize: 13),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: GestureDetector(
+                            onTap: _isGenerating ? null : _generate,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                gradient: _isGenerating
+                                    ? const LinearGradient(colors: [Color(0xFF6B8E8E), Color(0xFF6B8E8E)])
+                                    : const LinearGradient(
+                                        colors: [Color(0xFF063D3C), Color(0xFF0E8F8C)],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                      ),
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: _isGenerating
+                                    ? []
+                                    : [
+                                        BoxShadow(
+                                          color: const Color(0xFF0A5C5A).withValues(alpha: 0.3),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (_isGenerating)
+                                    const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  else
+                                    const Icon(Icons.auto_awesome_rounded, size: 16, color: Colors.white),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _isGenerating ? 'Generating…' : 'Generate Quiz',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _sectionLabel(String text) => Text(
+        text,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textDark,
+          letterSpacing: 0.5,
+        ),
+      );
 }

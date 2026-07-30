@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_app/features/quiz/data/models/requests/link_quiz_ai_request.dart';
 import 'package:respilink_app/features/quiz/domain/repositories/quiz_repository.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_event.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_state.dart';
@@ -102,27 +103,29 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
 
     final createRes = await _repository.createQuiz(event.createRequest);
     if (!createRes.success || createRes.data == null) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        error: createRes.fullErrorMessage,
-      ));
+      emit(state.copyWith(isSubmitting: false, error: createRes.fullErrorMessage));
       return;
     }
 
     final quizId = createRes.data!;
-    final questionsRes = await _repository.addQuizQuestions(
-      quizId,
-      event.questionsRequest,
-    );
 
-    if (questionsRes.success) {
-      emit(state.copyWith(isSubmitting: false, submitSuccess: true));
-    } else {
-      emit(state.copyWith(
-        isSubmitting: false,
-        error: questionsRes.fullErrorMessage,
-      ));
+    final questionsRes = await _repository.addQuizQuestions(quizId, event.questionsRequest);
+    if (!questionsRes.success) {
+      emit(state.copyWith(isSubmitting: false, error: questionsRes.fullErrorMessage));
+      return;
     }
+
+    if (event.generationId != null) {
+      final linkRes = await _repository.linkQuizAI(
+        LinkQuizAiRequest(quizId: quizId, generationId: event.generationId!),
+      );
+      if (!linkRes.success) {
+        emit(state.copyWith(isSubmitting: false, error: linkRes.fullErrorMessage));
+        return;
+      }
+    }
+
+    emit(state.copyWith(isSubmitting: false, submitSuccess: true));
   }
 
   Future<void> _toggleStatus(
