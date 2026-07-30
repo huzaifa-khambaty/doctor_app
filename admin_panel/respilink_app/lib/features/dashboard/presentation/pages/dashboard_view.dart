@@ -209,8 +209,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                       onEventTapped: (e) => setState(() => _selectedEvent = e),
                     ),
         );
-      case 5:
-        return QueryInboxContent();
+      // case 5:
+      //   return QueryInboxContent();
       case 6:
         if (!_hasAnyPerm(['admins.view', 'users.view'])) return const _AccessDeniedContent();
         return BlocProvider<AnalyticsBloc>.value(

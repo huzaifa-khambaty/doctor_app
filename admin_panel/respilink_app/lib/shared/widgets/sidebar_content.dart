@@ -107,14 +107,14 @@ class MySidebarContent extends StatelessWidget {
                         onTap: (v) => onDestinationSelected?.call(v),
                         index: 4,
                       ),
-                    _SidebarItem(
-                      icon: Icons.help_outline_rounded,
-                      title: 'Queries',
-                      isCollapsed: isCollapsed,
-                      isActive: selectedIndex == 5,
-                      onTap: (v) => onDestinationSelected?.call(v),
-                      index: 5,
-                    ),
+                    // _SidebarItem(
+                    //   icon: Icons.help_outline_rounded,
+                    //   title: 'Queries',
+                    //   isCollapsed: isCollapsed,
+                    //   isActive: selectedIndex == 5,
+                    //   onTap: (v) => onDestinationSelected?.call(v),
+                    //   index: 5,
+                    // ),
                     if (hasAnyPerm(['admins.view', 'users.view']))
                       _SidebarItem(
                         icon: Icons.analytics_outlined,

@@ -60,10 +60,8 @@ class DesktopDashboardMainContent extends StatelessWidget {
                   HeaderBar(onNotificationTapped: onNotificationTapped),
                   const SizedBox(height: 32),
                   TitleSection(
-                    onExportTapped: () => _exportDashboard(
-                      context,
-                      dashboard: dashState.data,
-                    ),
+                    onExportTapped: () =>
+                        _exportDashboard(context, dashboard: dashState.data),
                   ),
                   const SizedBox(height: 24),
                   MetricsGrid(
@@ -373,7 +371,9 @@ class MetricsGrid extends StatelessWidget {
               title: 'ACTIVE DOCTORS',
               value: _fmtCount(stats?.activeDoctors?.count),
               badgeLabel: _changeBadge(stats?.activeDoctors?.changePercent),
-              badgeColor: _changeBadgeColor(stats?.activeDoctors?.changePercent),
+              badgeColor: _changeBadgeColor(
+                stats?.activeDoctors?.changePercent,
+              ),
               isLoading: isLoading,
             ),
             MetricCard(
@@ -381,7 +381,8 @@ class MetricsGrid extends StatelessWidget {
               icon: Icons.shield_outlined,
               title: 'PENDING VERIFICATIONS',
               value: _fmtCount(stats?.pendingVerifications?.count),
-              badgeLabel: '● ${stats?.pendingVerifications?.critical ?? 0} critical',
+              badgeLabel:
+                  '● ${stats?.pendingVerifications?.critical ?? 0} critical',
               badgeColor: AppColors.errorRed,
               isLoading: isLoading,
             ),
@@ -391,7 +392,9 @@ class MetricsGrid extends StatelessWidget {
               title: 'QUIZ PARTICIPATION',
               value: '${stats?.quizParticipation?.percentage ?? 0}%',
               badgeLabel: _changeBadge(stats?.quizParticipation?.changePercent),
-              badgeColor: _changeBadgeColor(stats?.quizParticipation?.changePercent),
+              badgeColor: _changeBadgeColor(
+                stats?.quizParticipation?.changePercent,
+              ),
               isLoading: isLoading,
             ),
             MetricCard(
@@ -431,17 +434,17 @@ class MetricCard extends StatelessWidget {
   });
 
   Widget _shimmer(double w, double h) => Shimmer.fromColors(
-        baseColor: Colors.grey.shade200,
-        highlightColor: Colors.grey.shade50,
-        child: Container(
-          width: w,
-          height: h,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-      );
+    baseColor: Colors.grey.shade200,
+    highlightColor: Colors.grey.shade50,
+    child: Container(
+      width: w,
+      height: h,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
