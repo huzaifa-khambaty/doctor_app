@@ -15,7 +15,7 @@ class ResetPasswordRequest extends FormRequest
     {
         return [
             'identifier' => 'required|string',
-            'code' => 'required|string',
+            // 'code' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ];
     }

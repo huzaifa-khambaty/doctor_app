@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             AdminSeeder::class,
             SpecialtySeeder::class,
+            QueryCategorySeeder::class,
             BadgeCategorySeeder::class,
             BadgeSeeder::class,
             LeaderboardSeeder::class,

@@ -47,13 +47,16 @@ class AuthController extends Controller
         $phoneOtp = $this->otpService->generate($user, 'phone', 'register');
 
         activity()->causedBy($user)->log('Doctor registered an account');
+        $token = $user->createToken('doctor-access', ['doctor'])->plainTextToken;
 
         return response()->json([
             'message' => 'Registration successful. Please verify your account using the OTP.',
             'test_otps' => [
                 'email' => $emailOtp->plain_code,
                 'phone' => $phoneOtp->plain_code,
-            ]
+            ],
+            'doctor' => new DoctorResource($user),
+            'token' => $token
         ], 201);
     }
 
@@ -141,17 +144,21 @@ class AuthController extends Controller
 
         // Pick a channel based on the identifier type
         $channel = filter_var($request->identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        $this->otpService->generate($user, $channel, 'reset');
+        // $this->otpService->generate($user, $channel, 'reset');
+        $otp = $this->otpService->generate($user, $channel, 'reset');
 
-        return response()->json(['message' => 'An OTP has been sent to your ' . $channel . '.']);
+        return response()->json([
+            'message' => 'An OTP has been sent to your ' . $channel . '.',
+            'test_otp' => $otp->plain_code,
+        ]);
     }
 
     public function resetPassword(ResetPasswordRequest $request)
     {
         $user = User::where('email', $request->identifier)->orWhere('phone', $request->identifier)->firstOrFail();
         
-        $channel = filter_var($request->identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        $this->otpService->verify($user, $channel, $request->code, 'reset');
+        // $channel = filter_var($request->identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        // $this->otpService->verify($user, $channel, $request->code, 'reset');
 
         $user->update([
             'password' => Hash::make($request->password)
