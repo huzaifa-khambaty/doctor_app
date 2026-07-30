@@ -3,6 +3,7 @@
 namespace App\Domain\Admin\Http\Controllers\Api;
 
 use App\Domain\Shared\Models\Event;
+use App\Domain\Shared\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
@@ -67,6 +68,14 @@ class EventController extends Controller
         }
 
         $event->load('speakers:id,full_name');
+
+        SystemLog::log(
+            'event',
+            'Event Created',
+            '"' . $event->title . '" was created and is now in draft.',
+            $request->user()->name ?? null,
+            ['event_id' => $event->id, 'type' => $event->type]
+        );
 
         return response()->json(['message' => 'Event created successfully.', 'event' => $event], 201);
     }
@@ -140,7 +149,24 @@ class EventController extends Controller
             Gate::authorize('update', $event);
         }
 
+        $oldStatus = $event->status;
         $event->update(['status' => $status]);
+
+        $statusLabel = match($status) {
+            'published' => 'Published',
+            'review' => 'Submitted for Review',
+            'unpublished' => 'Unpublished',
+            'draft' => 'Moved to Draft',
+            default => ucfirst($status),
+        };
+
+        SystemLog::log(
+            'event',
+            'Event Status Updated',
+            '"' . $event->title . '" was ' . strtolower($statusLabel) . '.',
+            $request->user()->name ?? null,
+            ['event_id' => $event->id, 'old_status' => $oldStatus, 'new_status' => $status]
+        );
 
         return response()->json(['message' => 'Event status updated successfully.']);
     }
