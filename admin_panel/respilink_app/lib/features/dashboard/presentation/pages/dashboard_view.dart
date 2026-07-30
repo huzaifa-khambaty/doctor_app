@@ -27,7 +27,6 @@ import 'package:respilink_app/features/practioner/presentation/pages/practioner_
 import 'package:respilink_app/features/practioner/presentation/pages/practioner_management_view.dart';
 import 'package:respilink_app/injections.dart';
 import 'package:respilink_app/features/query/presentation/pages/notification_history_view.dart';
-import 'package:respilink_app/features/query/presentation/pages/query_inbox_view.dart';
 import 'package:respilink_app/features/quiz/presentation/pages/create_quiz_content.dart';
 import 'package:respilink_app/features/quiz/presentation/pages/edit_quiz_content.dart';
 import 'package:respilink_app/features/quiz/presentation/pages/quiz_directory_view.dart';
