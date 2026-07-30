@@ -6,6 +6,7 @@ use App\Domain\Shared\Models\Quiz;
 use App\Domain\Shared\Models\QuizQuestion;
 use App\Domain\Shared\Models\QuizAttempt;
 use App\Domain\Shared\Models\QuizAttemptAnswer;
+use App\Domain\Shared\Models\SystemLog;
 use App\Domain\Shared\Services\BadgeAwardService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -63,6 +64,14 @@ class AdminQuizController extends Controller
             'status' => 'draft',
             'created_by' => $request->user()->id,
         ]);
+
+        SystemLog::log(
+            'quiz',
+            'Quiz Created',
+            '"' . $quiz->title . '" was created as a draft.',
+            $request->user()->name ?? null,
+            ['quiz_id' => $quiz->id]
+        );
 
         return response()->json(['message' => 'Quiz created successfully.', 'quiz' => $quiz], 201);
     }
@@ -369,6 +378,14 @@ $validated = $request->validate([
 
         $quiz->update(['status' => 'published']);
 
+        SystemLog::log(
+            'quiz',
+            'Quiz Published',
+            '"' . $quiz->title . '" was published and is now live.',
+            $request->user()->name ?? null,
+            ['quiz_id' => $quiz->id]
+        );
+
         return response()->json(['message' => 'Quiz published successfully.']);
     }
 
@@ -472,6 +489,14 @@ $validated = $request->validate([
         }
 
         $quiz->update(['status' => 'draft']);
+
+        SystemLog::log(
+            'quiz',
+            'Quiz Unpublished',
+            '"' . $quiz->title . '" was moved to draft.',
+            $request->user()->name ?? null,
+            ['quiz_id' => $quiz->id]
+        );
 
         return response()->json(['message' => 'Quiz unpublished successfully.']);
     }

@@ -15,6 +15,8 @@ use App\Domain\Admin\Http\Controllers\Api\ContentLibraryController;
 use App\Domain\Admin\Http\Controllers\Api\DashboardController;
 use App\Domain\Admin\Http\Controllers\Api\EngagementAnalyticsController;
 use App\Domain\Admin\Http\Controllers\Api\QueryController as AdminQueryController;
+use App\Domain\Admin\Http\Controllers\Api\AdminAIQuizController;
+use App\Domain\Admin\Http\Controllers\Api\SystemLogController;
 
 Route::prefix('admin/v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -71,6 +73,14 @@ Route::prefix('admin/v1')->group(function () {
             Route::get('{quiz}/analytics', 'quizAnalytics');
         });
 
+        // AI Quiz Generation
+        Route::prefix('quizzes/ai')->controller(AdminAIQuizController::class)->group(function () {
+            Route::post('generate', 'generate');
+            Route::post('{generation}/link-quiz/{quiz}', 'linkQuiz');
+            Route::get('history', 'history');
+            Route::delete('{generation}', 'destroyGeneration');
+        });
+
         Route::apiResource('events', EventController::class);
         
         Route::prefix('events')->controller(EventController::class)->group(function () {
@@ -92,6 +102,7 @@ Route::prefix('admin/v1')->group(function () {
 
         Route::get('specialties', [SpecialtyController::class, 'index']);
 
+        Route::get('system-logs', [SystemLogController::class, 'index']);
         Route::get('dashboard', [DashboardController::class, 'index']);
         Route::get('analytics/engagement', [EngagementAnalyticsController::class, 'index']);
 

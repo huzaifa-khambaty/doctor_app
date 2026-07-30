@@ -7,6 +7,7 @@ use App\Domain\Shared\Models\ContentType;
 use App\Domain\Shared\Models\Specialty;
 use App\Domain\Shared\Models\Event;
 use App\Domain\Shared\Models\Quiz;
+use App\Domain\Shared\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
@@ -112,6 +113,14 @@ class ContentLibraryController extends Controller
                 ]);
             }
         }
+
+        SystemLog::log(
+            'content',
+            'Content Created',
+            '"' . $content->title . '" was added to the content library.',
+            $request->user()->name ?? null,
+            ['content_id' => $content->id, 'type_id' => $content->type_id]
+        );
 
         return response()->json([
             'message' => 'Content created successfully.',
@@ -235,10 +244,28 @@ class ContentLibraryController extends Controller
             'status' => 'required|in:draft,in_review,published',
         ]);
 
+        $oldStatus = $content->status;
+        $newStatus = $validated['status'];
+
         $content->update([
-            'status' => $validated['status'],
-            'published_at' => $validated['status'] === 'published' ? ($content->published_at ?? now()) : $content->published_at,
+            'status' => $newStatus,
+            'published_at' => $newStatus === 'published' ? ($content->published_at ?? now()) : $content->published_at,
         ]);
+
+        $statusLabel = match($newStatus) {
+            'published' => 'Published',
+            'in_review' => 'Submitted for Review',
+            'draft' => 'Moved to Draft',
+            default => ucfirst($newStatus),
+        };
+
+        SystemLog::log(
+            'content',
+            'Content Status Updated',
+            '"' . $content->title . '" was ' . strtolower($statusLabel) . '.',
+            $request->user()->name ?? null,
+            ['content_id' => $content->id, 'old_status' => $oldStatus, 'new_status' => $newStatus]
+        );
 
         return response()->json([
             'message' => 'Content status updated successfully.',
