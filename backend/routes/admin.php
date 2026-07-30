@@ -14,6 +14,7 @@ use App\Domain\Admin\Http\Controllers\Api\AdminTopicController;
 use App\Domain\Admin\Http\Controllers\Api\ContentLibraryController;
 use App\Domain\Admin\Http\Controllers\Api\DashboardController;
 use App\Domain\Admin\Http\Controllers\Api\EngagementAnalyticsController;
+use App\Domain\Admin\Http\Controllers\Api\QueryController as AdminQueryController;
 
 Route::prefix('admin/v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -93,5 +94,23 @@ Route::prefix('admin/v1')->group(function () {
 
         Route::get('dashboard', [DashboardController::class, 'index']);
         Route::get('analytics/engagement', [EngagementAnalyticsController::class, 'index']);
+
+        // Queries
+        Route::prefix('queries')->controller(AdminQueryController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::get('{query}', 'show');
+            Route::get('{query}/messages', 'messages');
+            Route::post('{query}/messages', 'sendMessage');
+            Route::patch('{query}/status', 'updateStatus');
+            Route::post('{query}/read', 'markRead');
+        });
+
+        // Query Categories
+        Route::prefix('query-categories')->controller(AdminQueryController::class)->group(function () {
+            Route::get('/', 'categories');
+            Route::post('/', 'storeCategory');
+            Route::put('{category}', 'updateCategory');
+            Route::delete('{category}', 'deleteCategory');
+        });
     });
 });

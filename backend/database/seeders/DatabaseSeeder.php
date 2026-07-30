@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             SpecialtySeeder::class,
             QueryCategorySeeder::class,
+            QueryMessageSeeder::class,
             BadgeCategorySeeder::class,
             BadgeSeeder::class,
             LeaderboardSeeder::class,
