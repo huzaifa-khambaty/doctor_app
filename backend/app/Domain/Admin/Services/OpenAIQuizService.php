@@ -4,9 +4,6 @@ namespace App\Domain\Admin\Services;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use PhpOffice\PhpWord\IOFactory as PhpWordIO;
-use Spatie\PdfToText\Pdf;
-use Symfony\Component\Process\Process;
 use RuntimeException;
 
 class OpenAIQuizService
@@ -28,7 +25,7 @@ class OpenAIQuizService
     public function generateQuiz(
         string $prompt,
         ?string $topic = null,
-        int $questionCount = 10,
+        ?int $questionCount = null,
         string $difficulty = 'medium',
         array $questionTypes = ['single', 'multiple'],
         ?UploadedFile $document = null
@@ -180,7 +177,7 @@ class OpenAIQuizService
     /**
      * Build system prompt for quiz generation
      */
-    protected function buildSystemPrompt(int $questionCount, string $difficulty, array $questionTypes): string
+    protected function buildSystemPrompt(?int $questionCount, string $difficulty, array $questionTypes): string
     {
         $difficultyGuide = match ($difficulty) {
             'easy' => 'Focus on basic recall and understanding. Use simple, straightforward language. Test fundamental concepts.',
@@ -193,9 +190,17 @@ class OpenAIQuizService
             ? 'Include a mix of single-choice (exactly 1 correct answer) and multiple-choice (2-3 correct answers) questions. Clearly mark which type each question is.'
             : 'All questions must be single-choice with exactly 1 correct answer.';
 
+        if ($questionCount !== null) {
+            $countInstruction = "Your task is to generate exactly {$questionCount} multiple-choice questions.";
+            $countRule = "1. Generate exactly {$questionCount} questions.";
+        } else {
+            $countInstruction = "Your task is to generate the number of questions as specified by the user in their prompt. If the user has not specified a number, generate 5 questions.";
+            $countRule = "1. Generate the number of questions as specified by the user. If not specified, generate 5 questions.";
+        }
+
         return "You are an expert medical educator creating high-quality quiz questions for healthcare professionals.
 
-Your task is to generate exactly {$questionCount} multiple-choice questions.
+{$countInstruction}
 
 DIFFICULTY LEVEL: {$difficulty}
 {$difficultyGuide}
@@ -203,7 +208,7 @@ DIFFICULTY LEVEL: {$difficulty}
 QUESTION TYPES: {$typeGuide}
 
 RULES:
-1. Generate exactly {$questionCount} questions.
+{$countRule}
 2. Each question MUST have exactly 4 options.
 3. Each option must have a clear explanation.
 4. Mark the correct answer(s) with is_correct: true.
@@ -273,8 +278,12 @@ Return ONLY the JSON object, no additional text.";
      */
     protected function extractPdfText(UploadedFile $file): string
     {
+        if (!class_exists(\Spatie\PdfToText\Pdf::class)) {
+            throw new RuntimeException('PDF support requires spatie/pdf-to-text package. Run: composer require spatie/pdf-to-text');
+        }
+
         try {
-            $pdf = new Pdf();
+            $pdf = new \Spatie\PdfToText\Pdf();
             $text = $pdf->text($file->getRealPath());
 
             if (empty(trim($text))) {
@@ -294,8 +303,12 @@ Return ONLY the JSON object, no additional text.";
      */
     protected function extractWordText(UploadedFile $file): string
     {
+        if (!class_exists(\PhpOffice\PhpWord\IOFactory::class)) {
+            throw new RuntimeException('Word document support requires phpoffice/phpword package. Run: composer require phpoffice/phpword');
+        }
+
         try {
-            $phpWord = PhpWordIO::load($file->getRealPath());
+            $phpWord = \PhpOffice\PhpWord\IOFactory::load($file->getRealPath());
             $text = '';
 
             foreach ($phpWord->getSections() as $section) {

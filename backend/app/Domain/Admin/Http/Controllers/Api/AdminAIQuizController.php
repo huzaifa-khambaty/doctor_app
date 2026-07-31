@@ -31,14 +31,14 @@ class AdminAIQuizController extends Controller
             $result = $this->aiService->generateQuiz(
                 prompt: $validated['prompt'],
                 topic: $validated['topic'] ?? null,
-                questionCount: $validated['question_count'] ?? 10,
+                questionCount: $validated['question_count'] ?? null,
                 difficulty: $validated['difficulty'] ?? 'medium',
                 questionTypes: $validated['question_types'] ?? ['single', 'multiple'],
                 document: $request->file('document'),
             );
 
             $generationParams = [
-                'question_count' => $validated['question_count'] ?? 10,
+                'question_count' => $validated['question_count'] ?? null,
                 'difficulty' => $validated['difficulty'] ?? 'medium',
                 'question_types' => $validated['question_types'] ?? ['single', 'multiple'],
             ];
