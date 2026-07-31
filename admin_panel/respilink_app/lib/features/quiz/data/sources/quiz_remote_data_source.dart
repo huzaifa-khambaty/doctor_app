@@ -171,7 +171,7 @@ class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
   ) async {
     return _client.post(
       '${ApiEndpoints.quizAI}/generate',
-      data: request.toJson(),
+      data: request.hasDocument ? request.toFormData() : request.toJson(),
       fromJson: (json) {
         final map = json as Map<String, dynamic>;
         if (map.containsKey('generation_id')) {

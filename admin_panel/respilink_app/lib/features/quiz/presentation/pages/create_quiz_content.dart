@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -1325,6 +1326,9 @@ class _AiGeneratorDialogState extends State<_AiGeneratorDialog> {
   String _difficulty = 'Intermediate';
   bool _isGenerating = false;
 
+  Uint8List? _documentBytes;
+  String? _documentName;
+
   static const _topics = [
     'COPD Management',
     'Pulmonology Basics',
@@ -1343,6 +1347,26 @@ class _AiGeneratorDialogState extends State<_AiGeneratorDialog> {
     super.dispose();
   }
 
+  Future<void> _pickDocument() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.single;
+    if (file.bytes == null) return;
+    setState(() {
+      _documentBytes = file.bytes;
+      _documentName = file.name;
+    });
+  }
+
+  void _clearDocument() => setState(() {
+        _documentBytes = null;
+        _documentName = null;
+      });
+
   Future<void> _generate() async {
     final promptText = _promptCtrl.text.trim();
     if (promptText.isEmpty) {
@@ -1354,15 +1378,18 @@ class _AiGeneratorDialogState extends State<_AiGeneratorDialog> {
       return;
     }
 
-    // Compose a full prompt that includes the UI selections
-    final fullPrompt =
-        '$promptText, $_questionCount questions, difficulty ${_difficulty.toLowerCase()}';
+    final fullPrompt = '$promptText, difficulty ${_difficulty.toLowerCase()}';
 
     setState(() => _isGenerating = true);
 
     final repo = locator<QuizRepository>();
     final res = await repo.generateQuizAI(
-      GenerateQuizAiRequest(prompt: fullPrompt),
+      GenerateQuizAiRequest(
+        prompt: fullPrompt,
+        questionCount: _questionCount,
+        documentBytes: _documentBytes,
+        documentName: _documentName,
+      ),
     );
 
     if (!mounted) return;
@@ -1525,6 +1552,76 @@ class _AiGeneratorDialogState extends State<_AiGeneratorDialog> {
                         );
                       }).toList(),
                     ),
+
+                    const SizedBox(height: 20),
+
+                    // Attachment
+                    _sectionLabel('ATTACH DOCUMENT (OPTIONAL)'),
+                    const SizedBox(height: 8),
+                    _documentName != null
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE6F2F2),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFF0A5C5A).withValues(alpha: 0.35)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.insert_drive_file_outlined, size: 18, color: AppColors.primary),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    _documentName!,
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: _isGenerating ? null : _clearDocument,
+                                  child: const Icon(Icons.close, size: 16, color: AppColors.primary),
+                                ),
+                              ],
+                            ),
+                          )
+                        : GestureDetector(
+                            onTap: _isGenerating ? null : _pickDocument,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F8FA),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: AppColors.borderLight,
+                                  style: BorderStyle.solid,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.upload_file_outlined,
+                                    size: 24,
+                                    color: _isGenerating ? AppColors.textMuted.withValues(alpha: 0.4) : AppColors.primary,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Click to upload PDF, Word, or Excel',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: _isGenerating ? AppColors.textMuted.withValues(alpha: 0.4) : AppColors.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'PDF, DOC, DOCX, XLS, XLSX',
+                                    style: TextStyle(fontSize: 10, color: AppColors.textMuted.withValues(alpha: 0.7)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
 
                     const SizedBox(height: 20),
 

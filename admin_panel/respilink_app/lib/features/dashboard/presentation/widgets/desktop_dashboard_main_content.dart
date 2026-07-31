@@ -69,7 +69,10 @@ class DesktopDashboardMainContent extends StatelessWidget {
                     isLoading: dashState.isLoading,
                   ),
                   const SizedBox(height: 24),
-                  _MiddleRowSection(engagementPoints: engagementPoints),
+                  _MiddleRowSection(
+                    engagementPoints: engagementPoints,
+                    isLoading: dashState.isLoading,
+                  ),
                   const SizedBox(height: 24),
                   VerificationQueueSection(
                     onPractitionerTapped: onPractitionerTapped,
@@ -504,8 +507,9 @@ class MetricCard extends StatelessWidget {
 
 class _MiddleRowSection extends StatelessWidget {
   final List<EngagementDataPoint> engagementPoints;
+  final bool isLoading;
 
-  const _MiddleRowSection({required this.engagementPoints});
+  const _MiddleRowSection({required this.engagementPoints, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -579,6 +583,7 @@ class _MiddleRowSection extends StatelessWidget {
                         return EngagementChart(
                           data: myApiDataList,
                           isMobile: mobileMode,
+                          isLoading: isLoading,
                         );
                       },
                     ),

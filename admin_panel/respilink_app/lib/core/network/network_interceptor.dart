@@ -15,7 +15,11 @@ class NetworkInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
     options.headers['Accept'] = 'application/json';
-    options.headers['Content-Type'] = 'application/json';
+    // Don't override Content-Type for multipart requests — Dio sets the
+    // correct boundary automatically when data is FormData.
+    if (options.data is! FormData) {
+      options.headers['Content-Type'] = 'application/json';
+    }
 
     handler.next(options);
   }

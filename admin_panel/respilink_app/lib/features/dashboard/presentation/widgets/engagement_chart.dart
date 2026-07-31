@@ -3,12 +3,19 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/features/dashboard/data/model/engagement_data.dart';
+import 'package:shimmer/shimmer.dart';
 
 class EngagementChart extends StatelessWidget {
   final List<EngagementDataPoint> data;
   final bool isMobile;
+  final bool isLoading;
 
-  const EngagementChart({super.key, required this.data, this.isMobile = false});
+  const EngagementChart({
+    super.key,
+    required this.data,
+    this.isMobile = false,
+    this.isLoading = false,
+  });
 
   static double _ceilToInterval(double value, double interval) {
     if (value <= 0) return interval;
@@ -17,6 +24,8 @@ class EngagementChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) return _ChartSkeleton(isMobile: isMobile);
+
     if (data.isEmpty) {
       return const Center(child: Text('No analytical data available.'));
     }
@@ -186,6 +195,77 @@ class EngagementChart extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ChartSkeleton extends StatelessWidget {
+  final bool isMobile;
+  const _ChartSkeleton({this.isMobile = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Y-axis labels + bars area
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Y-axis labels
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(
+                    4,
+                    (_) => Container(
+                      width: isMobile ? 24 : 32,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Chart area — horizontal shimmer lines
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(
+                      5,
+                      (i) => Container(
+                        height: 1.5,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          // X-axis labels
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(
+              isMobile ? 4 : 7,
+              (_) => Container(
+                width: isMobile ? 12 : 24,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
