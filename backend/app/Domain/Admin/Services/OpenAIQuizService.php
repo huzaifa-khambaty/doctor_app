@@ -278,13 +278,14 @@ Return ONLY the JSON object, no additional text.";
      */
     protected function extractPdfText(UploadedFile $file): string
     {
-        if (!class_exists(\Spatie\PdfToText\Pdf::class)) {
-            throw new RuntimeException('PDF support requires spatie/pdf-to-text package. Run: composer require spatie/pdf-to-text');
+        if (!class_exists(\Smalot\PdfParser\Parser::class)) {
+            throw new RuntimeException('PDF support requires smalot/pdfparser package. Run: composer require smalot/pdfparser');
         }
 
         try {
-            $pdf = new \Spatie\PdfToText\Pdf();
-            $text = $pdf->text($file->getRealPath());
+            $parser = new \Smalot\PdfParser\Parser();
+            $pdf = $parser->parseFile($file->getRealPath());
+            $text = $pdf->getText();
 
             if (empty(trim($text))) {
                 throw new RuntimeException('PDF appears to be empty or contains only images.');
