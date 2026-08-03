@@ -7,7 +7,7 @@ class AppConstants {
 
   static int timeoutSeconds = 30;
 
-  static String imagePath = "assets/images/";
+  static String imagePath = "assets/";
   static String svgPath = "assets/svg/";
 
   static String fontFamily = "Sora";

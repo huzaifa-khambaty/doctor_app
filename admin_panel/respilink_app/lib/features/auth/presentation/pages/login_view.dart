@@ -22,7 +22,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
-  
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -41,7 +41,11 @@ class _LoginPageState extends State<LoginPage> {
           SnackbarUtil.showSnackbar(context, message: "Success");
         }
         if (state is AuthFailed) {
-          SnackbarUtil.showSnackbar(context, message: state.message, isError: true);
+          SnackbarUtil.showSnackbar(
+            context,
+            message: state.message,
+            isError: true,
+          );
         }
       },
       builder: (context, state) {
@@ -62,35 +66,52 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         // Brand Identity Label Header
                         Row(
-                          children: [
-                            AppNetworkImage(
-                            imageUrl: "${AppConstants.imagePath}launcher.png",
-                            width: 30,
-                            height: 30,
-                          ),
+                          children: const [
+                            Icon(
+                              Icons.local_hospital_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                             SizedBox(width: 10),
                             Text(
                               'MedSynapse Admin',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ],
                         ),
-                        
+
                         // Center Marketing / Value Title Statement block
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-
-                            Icon(Icons.local_hospital_rounded, color: Colors.white, size: 150),
-                            
+                          children: [
+                            AppNetworkImage(
+                              imageUrl: "${AppConstants.imagePath}launcher.png",
+                              width: 150,
+                              height: 150,
+                            ),
+                            SizedBox(height: 24),
                             Text(
                               'Clinical Communication\n& Analytics Platform',
-                              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white, height: 1.3),
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 1.3,
+                              ),
                             ),
                             SizedBox(height: 16),
                             Text(
                               'Secure access terminal for medical administration, credential verification matrix systems, and live broadcast delivery channels.',
-                              style: TextStyle(fontSize: 14, color: Color(0xFFB3D1D1), height: 1.5),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFFB3D1D1),
+                                height: 1.5,
+                              ),
                             ),
                           ],
                         ),
@@ -98,13 +119,16 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-        
+
               // Right Side: Minimalist Focus Sign-In Action Workspace Card View
               Expanded(
                 flex: 4,
                 child: Container(
                   color: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: isCompact ? 32 : 64, vertical: 48),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isCompact ? 32 : 64,
+                    vertical: 48,
+                  ),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 400),
@@ -114,45 +138,92 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Responsive Layout Logo Header Token fallback identifier 
+                            // Responsive Layout Logo Header Token fallback identifier
                             if (isCompact) ...[
                               Row(
                                 children: const [
-                                  Icon(Icons.local_hospital_rounded, color: AppColors.primary, size: 22),
+                                  Icon(
+                                    Icons.local_hospital_rounded,
+                                    color: AppColors.primary,
+                                    size: 22,
+                                  ),
                                   SizedBox(width: 8),
-                                  Text('MedSynapse Admin', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                  Text(
+                                    'MedSynapse Admin',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textDark,
+                                    ),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 32),
                             ],
-        
-                            const Text('Sign In', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+
+                            const Text(
+                              'Sign In',
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
                             const SizedBox(height: 6),
-                            const Text('Enter your enterprise management credentials.', style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+                            const Text(
+                              'Enter your enterprise management credentials.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
                             const SizedBox(height: 32),
-        
+
                             // Username/Email Field Layout Block
-                            const Text('Email Address', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                            const Text(
+                              'Email Address',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
                             const SizedBox(height: 8),
                             TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
-                              style: const TextStyle(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w500),
-                              decoration: _buildInputDecoration(hintText: 'name@medsynapse.com', prefixIcon: Icons.email_outlined),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textDark,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              decoration: _buildInputDecoration(
+                                hintText: 'name@medsynapse.com',
+                                prefixIcon: Icons.email_outlined,
+                              ),
                               validator: (value) {
-                                if (value == null || value.isEmpty || !value.contains('@')) {
+                                if (value == null ||
+                                    value.isEmpty ||
+                                    !value.contains('@')) {
                                   return 'Please enter a valid email';
                                 }
                                 return null;
                               },
                             ),
                             const SizedBox(height: 20),
-        
+
                             // Confidential Password Entry Field Layout Block
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Password', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                const Text(
+                                  'Password',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
                                 // GestureDetector(
                                 //   onTap: () {}, // Handled directly without extra physical buttons cluttering row vectors
                                 //   child: const Text('Forgot password?', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary)),
@@ -163,14 +234,26 @@ class _LoginPageState extends State<LoginPage> {
                             TextFormField(
                               controller: _passwordController,
                               obscureText: _obscurePassword,
-                              style: const TextStyle(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w500),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textDark,
+                                fontWeight: FontWeight.w500,
+                              ),
                               decoration: _buildInputDecoration(
-                                hintText: '••••••••••••', 
+                                hintText: '••••••••••••',
                                 prefixIcon: Icons.lock_outline_rounded,
                                 suffixIcon: IconButton(
-                                  icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 16, color: AppColors.textMuted),
-                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                )
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 16,
+                                    color: AppColors.textMuted,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword,
+                                  ),
+                                ),
                               ),
                               validator: (value) {
                                 if (value == null || value.length < 6) {
@@ -180,7 +263,7 @@ class _LoginPageState extends State<LoginPage> {
                               },
                             ),
                             const SizedBox(height: 32),
-        
+
                             // Direct Execution Confirmation Action Trigger Button Frame
                             SizedBox(
                               width: double.infinity,
@@ -189,23 +272,33 @@ class _LoginPageState extends State<LoginPage> {
                                 onPressed: () {
                                   if (_formKey.currentState!.validate()) {
                                     // Trigger the login event in the AuthBloc
-                                    context.read<AuthBloc>().add(LoginRequested(
-                                      request: LoginRequest(
-                                        email: _emailController.text.trim(),
-                                        password: _passwordController.text,
+                                    context.read<AuthBloc>().add(
+                                      LoginRequested(
+                                        request: LoginRequest(
+                                          email: _emailController.text.trim(),
+                                          password: _passwordController.text,
+                                        ),
                                       ),
-                                    ));
+                                    );
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primary,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                   elevation: 0,
                                 ),
-                                child: state is AuthLoading ? AppLoader() : const Text(
-                                  'Sign In', 
-                                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                                ),
+                                child: state is AuthLoading
+                                    ? AppLoader()
+                                    : const Text(
+                                        'Sign In',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                               ),
                             ),
                           ],
@@ -214,19 +307,27 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         );
-      }
+      },
     );
   }
 
   // Consistent Theme System Input Field Blueprint Layout Generator
-  InputDecoration _buildInputDecoration({required String hintText, required IconData prefixIcon, Widget? suffixIcon}) {
+  InputDecoration _buildInputDecoration({
+    required String hintText,
+    required IconData prefixIcon,
+    Widget? suffixIcon,
+  }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.normal),
+      hintStyle: const TextStyle(
+        color: Color(0xFF94A3B8),
+        fontSize: 13,
+        fontWeight: FontWeight.normal,
+      ),
       filled: true,
       fillColor: const Color(0xFFF8FAFC),
       prefixIcon: Icon(prefixIcon, size: 16, color: AppColors.textMuted),
