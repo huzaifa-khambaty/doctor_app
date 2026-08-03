@@ -49,7 +49,7 @@ ExportDocument buildPractitionerExportDocument({
   );
 
   return ExportDocument(
-    fileName: 'RespiLink_Practitioners_$today',
+    fileName: 'MedSynapse_Practitioners_$today',
     sheets: [summarySheet, listSheet],
   );
 }

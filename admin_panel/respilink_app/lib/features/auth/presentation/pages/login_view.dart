@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:respilink_app/core/constants/app_constants.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/auth/data/models/requests/login_request.dart';
@@ -9,6 +10,7 @@ import 'package:respilink_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:respilink_app/routes/router_strings.dart';
 import 'package:respilink_app/shared/widgets/app_loader.dart';
+import 'package:respilink_app/shared/widgets/app_network_image.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -60,11 +62,15 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         // Brand Identity Label Header
                         Row(
-                          children: const [
-                            Icon(Icons.local_hospital_rounded, color: Colors.white, size: 24),
+                          children: [
+                            AppNetworkImage(
+                            imageUrl: "${AppConstants.imagePath}launcher.png",
+                            width: 30,
+                            height: 30,
+                          ),
                             SizedBox(width: 10),
                             Text(
-                              'RespiLink Admin',
+                              'MedSynapse Admin',
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
                             ),
                           ],
@@ -114,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                                 children: const [
                                   Icon(Icons.local_hospital_rounded, color: AppColors.primary, size: 22),
                                   SizedBox(width: 8),
-                                  Text('RespiLink Admin', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                  Text('MedSynapse Admin', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                                 ],
                               ),
                               const SizedBox(height: 32),
@@ -132,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               style: const TextStyle(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w500),
-                              decoration: _buildInputDecoration(hintText: 'name@respilink.org', prefixIcon: Icons.email_outlined),
+                              decoration: _buildInputDecoration(hintText: 'name@medsynapse.com', prefixIcon: Icons.email_outlined),
                               validator: (value) {
                                 if (value == null || value.isEmpty || !value.contains('@')) {
                                   return 'Please enter a valid email';

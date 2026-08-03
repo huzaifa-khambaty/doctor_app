@@ -105,7 +105,7 @@ class _AnalyticsHeaderActionRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'RESPILINK DASHBOARD',
+              'MEDSYNAPSE DASHBOARD',
               style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textMuted.withValues(alpha: 0.7), letterSpacing: 0.5),
             ),
             const SizedBox(height: 4),

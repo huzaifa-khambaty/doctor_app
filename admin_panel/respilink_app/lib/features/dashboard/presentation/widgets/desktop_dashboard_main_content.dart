@@ -269,7 +269,7 @@ class TitleSection extends StatelessWidget {
             ),
             SizedBox(height: 4),
             Text(
-              'RespiLink ecosystem and provider engagement.',
+              'MedSynapse ecosystem and provider engagement.',
               style: TextStyle(fontSize: 13, color: AppColors.textMuted),
             ),
           ],

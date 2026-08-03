@@ -171,7 +171,7 @@ class _ManualEnrollmentContentState extends State<ManualEnrollmentContent> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Onboard new medical staff manually into the RespiLink system.',
+                      'Onboard new medical staff manually into the MedSynapse system.',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textMuted,

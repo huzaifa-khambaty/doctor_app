@@ -62,7 +62,7 @@ ExportDocument buildEventsExportDocument({
   );
 
   return ExportDocument(
-    fileName: 'RespiLink_Events_$today',
+    fileName: 'MedSynapse_Events_$today',
     sheets: [summarySheet, listSheet],
   );
 }

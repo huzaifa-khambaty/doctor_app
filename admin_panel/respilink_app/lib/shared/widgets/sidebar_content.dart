@@ -40,7 +40,7 @@ class MySidebarContent extends StatelessWidget {
             children: [
               if (!isCollapsed) ...[
                 const Text(
-                  'RespiLink Admin',
+                  'MedSynapse Admin',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,

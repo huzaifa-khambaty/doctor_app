@@ -360,7 +360,7 @@ class _QueryInboxContentState extends State<QueryInboxContent> {
                                     const Text(
                                       'Hello Admin Team,\n\n'
                                       'I am writing regarding the patient management guidelines for pediatric bronchodilator administration. In the latest app update, I noticed the dosage calculator for patients under 12 years old doesn\'t seem to reflect the updated ERS/ATS guidelines published last month.\n\n'
-                                      'Could you please verify if the backend logic for the RespiLink dosage calculator has been updated? I am specifically looking at Patient #4421 who is on a titration schedule.\n\n'
+                                      'Could you please verify if the backend logic for the MedSynapse dosage calculator has been updated? I am specifically looking at Patient #4421 who is on a titration schedule.\n\n'
                                       'Thank you,\nSarah',
                                       style: TextStyle(
                                         fontSize: 13,

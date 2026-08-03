@@ -71,7 +71,7 @@ ExportDocument buildDashboardExportDocument({
   );
 
   return ExportDocument(
-    fileName: 'RespiLink_Dashboard_$today',
+    fileName: 'MedSynapse_Dashboard_$today',
     sheets: [summarySheet, queueSheet],
   );
 }

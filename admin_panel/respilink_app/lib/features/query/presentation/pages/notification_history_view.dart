@@ -160,7 +160,7 @@ class NotificationHistoryView extends StatelessWidget {
                     icon: Icons.send_outlined,
                     iconBg: const Color(0xFFE6F2F2),
                     iconColor: AppColors.primary,
-                    title: 'Weekly RespiLink Insights #24',
+                    title: 'Weekly MedSynapse Insights #24',
                     meta:
                         'Target: All Verified Clinicians • Scheduled: Oct 28, 09:00 AM',
                   ),
@@ -332,7 +332,7 @@ class NotificationHistoryView extends StatelessWidget {
                           ),
                           // Data Row 2
                           _buildHistoryRow(
-                            title: 'RespiLink Conference Invitations',
+                            title: 'MedSynapse Conference Invitations',
                             type: 'In-App Message',
                             badgeText: 'Segment: Verified',
                             badgeBg: const Color(0xFFF3E8FF),

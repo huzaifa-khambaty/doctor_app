@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: Providers.getProviders(context),
       child: MaterialApp.router(
-        title: 'Flutter Demo',
+        title: 'MedSynapse',
         theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
         routerConfig: RouterConfiguration.router,
       ),
