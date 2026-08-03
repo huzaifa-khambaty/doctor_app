@@ -98,7 +98,7 @@ class _RegisterViewState extends State<RegisterView> {
                           ),
                         ),
                         AppText.large(
-                          label: 'RespiLink',
+                          label: 'MedSynapse',
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,

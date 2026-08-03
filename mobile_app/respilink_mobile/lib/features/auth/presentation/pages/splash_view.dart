@@ -45,22 +45,14 @@ class SplashView extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
+                AppNetworkImage(
+                  imageUrl: "${AppConstants.imagePath}launcher.png",
                   width: 90.r,
                   height: 90.r,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.white.withValues(alpha: 0.15),
-                  ),
-                  child: Icon(
-                    Icons.monitor_heart_rounded,
-                    color: AppColors.white,
-                    size: 44.r,
-                  ),
                 ),
                 SizedBox(height: 20.h),
                 AppText.large(
-                  label: 'RespiLink',
+                  label: 'MedSynapse',
                   fontSize: 26.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.white,

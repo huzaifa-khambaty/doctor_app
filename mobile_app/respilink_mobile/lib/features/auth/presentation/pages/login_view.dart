@@ -58,7 +58,8 @@ class _LoginViewState extends State<LoginView> {
       Handlers.onLogin(user);
     } else {
       SnackbarUtil.showSnackbar(
-        message: 'No saved session on this device. Please log in with your credentials once.',
+        message:
+            'No saved session on this device. Please log in with your credentials once.',
         isError: true,
       );
     }
@@ -70,8 +71,7 @@ class _LoginViewState extends State<LoginView> {
       listener: (context, state) async {
         if (state is AuthSuccess) {
           Handlers.onLogin(state.model);
-        }
-        else if(state is AuthFailed) {
+        } else if (state is AuthFailed) {
           SnackbarUtil.showSnackbar(message: state.message, isError: true);
         }
       },
@@ -104,7 +104,7 @@ class _LoginViewState extends State<LoginView> {
                           ),
                         ),
                         AppText.large(
-                          label: 'RespiLink',
+                          label: 'MedSynapse',
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
@@ -118,18 +118,10 @@ class _LoginViewState extends State<LoginView> {
                     Center(
                       child: Column(
                         children: [
-                          Container(
+                          AppNetworkImage(
+                            imageUrl: "${AppConstants.imagePath}launcher.png",
                             width: 64.r,
                             height: 64.r,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(18.r),
-                            ),
-                            child: Icon(
-                              Icons.medical_services_rounded,
-                              color: AppColors.white,
-                              size: 30.r,
-                            ),
                           ),
                           SizedBox(height: 16.h),
                           AppText.large(
@@ -170,10 +162,7 @@ class _LoginViewState extends State<LoginView> {
                             controller: _emailCtrl,
                             hint: 'smith@hospital.org',
                             keyboardType: TextInputType.emailAddress,
-                            prefixIcon: Icon(
-                              Icons.mail_outline,
-                              size: 20.sp,
-                            ),
+                            prefixIcon: Icon(Icons.mail_outline, size: 20.sp),
                             validator: (v) => (v == null || !v.contains('@'))
                                 ? Validators.validEmailRequired
                                 : null,
@@ -190,10 +179,8 @@ class _LoginViewState extends State<LoginView> {
                                 fontWeight: FontWeight.w600,
                               ),
                               GestureDetector(
-                                onTap: () =>
-                                    locator<NavigationService>().navigate(
-                                      RouterStrings.forgetPassword,
-                                    ),
+                                onTap: () => locator<NavigationService>()
+                                    .navigate(RouterStrings.forgetPassword),
                                 child: AppText.small(
                                   label: 'Forgot password?',
                                   color: AppColors.primary,
@@ -207,13 +194,9 @@ class _LoginViewState extends State<LoginView> {
                             controller: _passCtrl,
                             hint: 'Enter your password',
                             obscureText: _obscure,
-                            prefixIcon: Icon(
-                              Icons.lock_outline,
-                              size: 20.sp,
-                            ),
+                            prefixIcon: Icon(Icons.lock_outline, size: 20.sp),
                             suffixIcon: GestureDetector(
-                              onTap: () =>
-                                  setState(() => _obscure = !_obscure),
+                              onTap: () => setState(() => _obscure = !_obscure),
                               child: Icon(
                                 _obscure
                                     ? Icons.visibility_outlined
@@ -262,9 +245,9 @@ class _LoginViewState extends State<LoginView> {
                                         password: _passCtrl.text,
                                         fcmToken: AppConstants.firebaseToken,
                                       );
-                                      BlocProvider.of<AuthBloc>(context).add(
-                                        LoginRequested(request: request),
-                                      );
+                                      BlocProvider.of<AuthBloc>(
+                                        context,
+                                      ).add(LoginRequested(request: request));
                                     }
                                   },
                                 ),
@@ -309,9 +292,18 @@ class _LoginViewState extends State<LoginView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _TrustBadge(icon: Icons.verified_user_outlined, label: 'HIPAA COMPLIANT'),
-                        _TrustBadge(icon: Icons.security, label: 'SECURE SERVER'),
-                        _TrustBadge(icon: Icons.lock_outline, label: 'SSL ENCRYPTED'),
+                        _TrustBadge(
+                          icon: Icons.verified_user_outlined,
+                          label: 'HIPAA COMPLIANT',
+                        ),
+                        _TrustBadge(
+                          icon: Icons.security,
+                          label: 'SECURE SERVER',
+                        ),
+                        _TrustBadge(
+                          icon: Icons.lock_outline,
+                          label: 'SSL ENCRYPTED',
+                        ),
                       ],
                     ),
 
@@ -326,7 +318,9 @@ class _LoginViewState extends State<LoginView> {
                                 width: 52.r,
                                 height: 52.r,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(

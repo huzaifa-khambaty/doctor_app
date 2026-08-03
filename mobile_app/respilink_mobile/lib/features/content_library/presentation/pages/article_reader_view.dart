@@ -60,7 +60,7 @@ class _ArticleReaderBody extends StatelessWidget {
     final excerpt = HtmlUtils.stripTags(details.body);
     final link = (details.externalUrl ?? '').trim();
 
-    final text = StringBuffer(title.isNotEmpty ? title : 'RespiLink Article');
+    final text = StringBuffer(title.isNotEmpty ? title : 'MedSynapse Article');
     if (excerpt.isNotEmpty) {
       final preview = excerpt.length > 200
           ? '${excerpt.substring(0, 200)}...'
@@ -148,7 +148,7 @@ class _ArticleReaderBody extends StatelessWidget {
                       SizedBox(height: 14.h),
 
                       ArticleAuthorRow(
-                        authorName: details.author?.name ?? 'RespiLink',
+                        authorName: details.author?.name ?? 'MedSynapse',
                         publishedLabel: details.publishedAt ?? '',
                       ),
 

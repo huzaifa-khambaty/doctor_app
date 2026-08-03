@@ -11,7 +11,7 @@ class RespiLinkAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   const RespiLinkAppBar({
     super.key,
-    this.title = 'RespiLink',
+    this.title = 'MedSynapse',
     this.showBackButton = true,
     this.showSearchAction = false,
     this.onSearchTap,
