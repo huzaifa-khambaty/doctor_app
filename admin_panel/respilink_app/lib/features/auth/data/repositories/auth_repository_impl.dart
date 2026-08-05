@@ -2,6 +2,7 @@ import 'package:respilink_app/core/constants/app_constants.dart';
 import 'package:respilink_app/core/network/models/api_response.dart';
 import 'package:respilink_app/core/utils/global_notifiers.dart';
 import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
+import 'package:respilink_app/features/auth/data/models/requests/change_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/edit_profile_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/forget_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/login_request.dart';
@@ -75,6 +76,27 @@ class AuthRepositoryImpl implements AuthRepository {
 
     if (response.success && response.data != null) {
       await _localManager.saveUser(response.data?.admin);
+    }
+    return response;
+  }
+
+  @override
+  Future<ApiResponse<Admin>> updateAdmin(int adminId, EditProfileRequest request) async {
+    final response = await _remoteDataSource.updateAdmin(adminId, request);
+    if (response.success && response.data != null) {
+      await _localManager.saveUser(response.data);
+      GlobalNotifiers.adminNotifier.value = response.data;
+    }
+    return response;
+  }
+
+  @override
+  Future<ApiResponse<void>> changeAdminPassword(int adminId, ChangePasswordRequest request) async {
+    final response = await _remoteDataSource.changeAdminPassword(adminId, request);
+    if (response.success) {
+      await _localManager.clearAuthData();
+      AppConstants.apiToken = '';
+      GlobalNotifiers.adminNotifier.value = null;
     }
     return response;
   }

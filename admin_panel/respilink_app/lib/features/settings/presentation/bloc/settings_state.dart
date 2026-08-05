@@ -1,4 +1,5 @@
 import 'package:respilink_app/features/settings/data/model/admin_user_model.dart';
+import 'package:respilink_app/features/settings/data/model/app_settings_model.dart';
 import 'package:respilink_app/features/settings/presentation/pages/data/model/roles_model.dart';
 
 class SettingsState {
@@ -34,6 +35,12 @@ class SettingsState {
   final bool isDeletingAdmin;
   final bool deleteAdminSuccess;
 
+  // App settings
+  final AppSettingsModel? appSettings;
+  final bool isLoadingSettings;
+  final bool isSavingSettings;
+  final bool saveSettingsSuccess;
+
   final String? error;
 
   const SettingsState({
@@ -59,6 +66,10 @@ class SettingsState {
     this.updateAdminSuccess = false,
     this.isDeletingAdmin = false,
     this.deleteAdminSuccess = false,
+    this.appSettings,
+    this.isLoadingSettings = false,
+    this.isSavingSettings = false,
+    this.saveSettingsSuccess = false,
     this.error,
   });
 
@@ -85,6 +96,10 @@ class SettingsState {
     bool? updateAdminSuccess,
     bool? isDeletingAdmin,
     bool? deleteAdminSuccess,
+    AppSettingsModel? appSettings,
+    bool? isLoadingSettings,
+    bool? isSavingSettings,
+    bool? saveSettingsSuccess,
     String? error,
   }) {
     return SettingsState(
@@ -110,6 +125,10 @@ class SettingsState {
       updateAdminSuccess: updateAdminSuccess ?? false,
       isDeletingAdmin: isDeletingAdmin ?? this.isDeletingAdmin,
       deleteAdminSuccess: deleteAdminSuccess ?? false,
+      appSettings: appSettings ?? this.appSettings,
+      isLoadingSettings: isLoadingSettings ?? this.isLoadingSettings,
+      isSavingSettings: isSavingSettings ?? this.isSavingSettings,
+      saveSettingsSuccess: saveSettingsSuccess ?? false,
       error: error,
     );
   }

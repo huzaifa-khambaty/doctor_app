@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
@@ -111,7 +112,7 @@ class _QuizDirectoryContentState extends State<QuizDirectoryContent> {
                   const SizedBox(height: 24),
                   const Text('Score Distribution', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                   const SizedBox(height: 16),
-                  _ScoreBarChart(scores: scores),
+                  _ScoreLineChart(scores: scores),
                 ],
                 const SizedBox(height: 24),
                 Align(
@@ -1209,19 +1210,10 @@ class _AnalyticsTile extends StatelessWidget {
   }
 }
 
-class _ScoreBarChart extends StatelessWidget {
-  const _ScoreBarChart({required this.scores});
+class _ScoreLineChart extends StatelessWidget {
+  const _ScoreLineChart({required this.scores});
 
   final Map<String, int> scores;
-
-  static const _barColors = [
-    AppColors.primary,
-    AppColors.successGreen,
-    AppColors.warningOrange,
-    AppColors.accentBlue,
-    AppColors.errorRed,
-    AppColors.sidebarBg,
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -1232,78 +1224,120 @@ class _ScoreBarChart extends StatelessWidget {
         return ai.compareTo(bi);
       });
 
-    final maxCount = sorted.isEmpty
-        ? 1
-        : sorted.map((e) => e.value).reduce((a, b) => a > b ? a : b);
-    const maxBarH = 100.0;
+    if (sorted.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          height: maxBarH + 24, // bar + count label above it
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: sorted.asMap().entries.map((entry) {
-              final i = entry.key;
-              final e = entry.value;
-              final color = _barColors[i % _barColors.length];
-              final frac = maxCount == 0 ? 0.0 : e.value / maxCount;
-              final barH = (maxBarH * frac).clamp(4.0, maxBarH);
+    final maxY = sorted.map((e) => e.value).reduce((a, b) => a > b ? a : b).toDouble();
+    final interval = maxY <= 5 ? 1.0 : maxY <= 20 ? 5.0 : maxY <= 50 ? 10.0 : 20.0;
+    final ceilY = maxY == 0 ? interval : ((maxY / interval).ceil() * interval).toDouble();
 
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${e.value}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        height: barH,
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(5),
-                            topRight: Radius.circular(5),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
+    final spots = sorted.asMap().entries
+        .map((e) => FlSpot(e.key.toDouble(), e.value.value.toDouble()))
+        .toList();
+
+    return SizedBox(
+      height: 160,
+      child: LineChart(
+        LineChartData(
+          minY: 0,
+          maxY: ceilY,
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (_) => FlLine(
+              color: AppColors.borderLight.withValues(alpha: 0.6),
+              strokeWidth: 1,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: sorted.asMap().entries.map((entry) {
-            final i = entry.key;
-            final e = entry.value;
-            final color = _barColors[i % _barColors.length];
-            return Expanded(
-              child: Text(
-                'Score\n${e.key}',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                  height: 1.3,
+          titlesData: FlTitlesData(
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 28,
+                getTitlesWidget: (value, meta) {
+                  final i = value.toInt();
+                  if (i < 0 || i >= sorted.length) return const SizedBox.shrink();
+                  return SideTitleWidget(
+                    meta: meta,
+                    space: 6,
+                    child: Text(
+                      'Score ${sorted[i].key}',
+                      style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                    ),
+                  );
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 36,
+                interval: interval,
+                getTitlesWidget: (value, meta) {
+                  if (value == 0) return const SizedBox.shrink();
+                  return SideTitleWidget(
+                    meta: meta,
+                    space: 4,
+                    child: Text(
+                      value.toInt().toString(),
+                      style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              curveSmoothness: 0.35,
+              color: AppColors.primary,
+              barWidth: 3,
+              isStrokeCapRound: true,
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+                  radius: 3,
+                  color: Colors.white,
+                  strokeWidth: 2,
+                  strokeColor: AppColors.primary,
                 ),
               ),
-            );
-          }).toList(),
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.2),
+                    AppColors.primary.withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          lineTouchData: LineTouchData(
+            handleBuiltInTouches: true,
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipColor: (_) => AppColors.textDark.withValues(alpha: 0.9),
+              tooltipBorderRadius: const BorderRadius.all(Radius.circular(8)),
+              getTooltipItems: (spots) => spots
+                  .map((s) => LineTooltipItem(
+                        'Count: ${s.y.toInt()}',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ),
         ),
-      ],
+      ),
     );
   }
 }

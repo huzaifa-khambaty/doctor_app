@@ -2,13 +2,13 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // Base Url
-  //static const String baseUrl = 'http://192.168.100.115:8000/api/admin/v1';
+  static const String baseUrl = 'http://192.168.100.115:8000/api/admin/v1';
 
-  //static const String imageUrl = "http://192.168.100.115:8000/storage/";
+  static const String imageUrl = "http://192.168.100.115:8000/storage/";
 
-  static const String baseUrl = 'https://doctorapp.bharmalsystems.net/api/admin/v1';
+  //static const String baseUrl = 'https://doctorapp.bharmalsystems.net/api/admin/v1';
 
-  static const String imageUrl = "https://doctorapp.bharmalsystems.net/storage/";
+  //static const String imageUrl = "https://doctorapp.bharmalsystems.net/storage/";
 
   /// Auth
   static const String login = '/auth/login';
@@ -19,7 +19,7 @@ class ApiEndpoints {
 
   static const String editProfile = '/profile';
   static const String me = '/auth/me';
-
+  static const String changePassword = '/change-password';
   /// Practitioner
   static const String specialties = '/specialties';
   static const String practioners = '/users';
@@ -50,4 +50,7 @@ class ApiEndpoints {
 
   ///Analytics
   static const String analytics = '/analytics';
+
+  ///Settings
+  static const String settings = '/settings';
 }

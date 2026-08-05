@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:respilink_app/core/network/api_endpoints.dart';
 
 class AdminModel {
   String? token;
@@ -51,7 +52,10 @@ class Admin {
     name = json['name'];
     email = json['email'];
     phone = json['phone'];
-    photoUrl = json['photo_url'] ?? json['photo'] ?? json['avatar'];
+    final raw = json['photo_url'] ?? json['photo'] ?? json['avatar'] ?? json['photo_path'];
+    if (raw != null) {
+      photoUrl = (raw as String).startsWith('http') ? raw : '${ApiEndpoints.imageUrl}$raw';
+    }
     status = json['status'];
     lastLoginAt = json['last_login_at'];
     roles = (json['roles'] as List?)?.cast<String>() ?? [];

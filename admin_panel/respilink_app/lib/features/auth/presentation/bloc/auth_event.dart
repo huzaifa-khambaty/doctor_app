@@ -1,3 +1,4 @@
+import 'package:respilink_app/features/auth/data/models/requests/change_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/edit_profile_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/forget_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/login_request.dart';
@@ -36,6 +37,20 @@ class UpdateProfileEvent extends AuthEvent {
   final EditProfileRequest request;
 
   UpdateProfileEvent({required this.request});
+}
+
+class UpdateAdminRequested extends AuthEvent {
+  final int adminId;
+  final EditProfileRequest request;
+
+  UpdateAdminRequested({required this.adminId, required this.request});
+}
+
+class ChangeAdminPasswordRequested extends AuthEvent {
+  final int adminId;
+  final ChangePasswordRequest request;
+
+  ChangeAdminPasswordRequested({required this.adminId, required this.request});
 }
 
 class AuthProfileEvent extends AuthEvent {

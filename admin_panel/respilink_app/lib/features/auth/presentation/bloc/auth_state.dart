@@ -50,3 +50,5 @@ class ProfileSaveFailed extends AuthState {
   final String message;
   ProfileSaveFailed(this.message);
 }
+
+class ChangePasswordSuccess extends AuthState {}

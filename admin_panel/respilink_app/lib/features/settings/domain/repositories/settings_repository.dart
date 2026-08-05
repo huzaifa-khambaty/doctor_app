@@ -1,8 +1,10 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
 import 'package:respilink_app/features/settings/data/model/admin_user_model.dart';
+import 'package:respilink_app/features/settings/data/model/app_settings_model.dart';
 import 'package:respilink_app/features/settings/data/model/requests/assign_permissions_request.dart';
 import 'package:respilink_app/features/settings/data/model/requests/create_admin_request.dart';
 import 'package:respilink_app/features/settings/data/model/requests/create_update_role_request.dart';
+import 'package:respilink_app/features/settings/data/model/requests/update_settings_request.dart';
 import 'package:respilink_app/features/settings/presentation/pages/data/model/roles_model.dart';
 
 abstract class SettingsRepository {
@@ -24,4 +26,7 @@ abstract class SettingsRepository {
   Future<ApiResponse<dynamic>> createAdmin(CreateAdminRequest request);
   Future<ApiResponse<dynamic>> updateAdmin(int adminId, UpdateAdminRequest request);
   Future<ApiResponse<dynamic>> deleteAdmin(int adminId);
+
+  Future<ApiResponse<AppSettingsModel>> getSettings();
+  Future<ApiResponse<AppSettingsModel>> updateSettings(UpdateSettingsRequest request);
 }

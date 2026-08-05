@@ -459,9 +459,9 @@ class _UserProfileFooter extends StatelessWidget {
                   : MainAxisAlignment.start,
               children: [
                 AppNetworkImage(
-                  imageUrl: "",
-                  width: 36,
-                  height: 36,
+                  imageUrl: user?.photoUrl,
+                  width: 40,
+                  height: 40,
                   isCircle: true,
                   errorWidget: CircleAvatar(
                     backgroundColor: AppColors.white,
@@ -490,7 +490,7 @@ class _UserProfileFooter extends StatelessWidget {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          user?.name ?? 'Admin User',
+                          "MedSynapse",
                           style: TextStyle(color: Colors.white54, fontSize: 11),
                           overflow: TextOverflow.ellipsis,
                         ),
