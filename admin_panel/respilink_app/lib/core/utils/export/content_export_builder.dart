@@ -73,7 +73,7 @@ ExportDocument buildContentExportDocument({required ContentModel? contentData}) 
   );
 
   return ExportDocument(
-    fileName: 'RespiLink_Content_$today',
+    fileName: 'MedSynapse_Content_$today',
     sheets: [summarySheet, listSheet, mixSheet],
   );
 }

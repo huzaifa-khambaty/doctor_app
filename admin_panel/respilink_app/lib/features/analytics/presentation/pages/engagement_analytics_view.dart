@@ -5,6 +5,11 @@ import 'package:respilink_app/features/analytics/data/model/analytics_model.dart
 import 'package:respilink_app/features/analytics/presentation/bloc/analytics_bloc.dart';
 import 'package:respilink_app/features/analytics/presentation/bloc/analytics_event.dart';
 import 'package:respilink_app/features/analytics/presentation/bloc/analytics_state.dart';
+import 'package:respilink_app/features/content/data/models/system_logs_model.dart';
+import 'package:respilink_app/features/content/presentation/bloc/content_bloc.dart';
+import 'package:respilink_app/features/content/presentation/bloc/content_event.dart';
+import 'package:respilink_app/features/content/presentation/bloc/content_state.dart';
+import 'package:shimmer/shimmer.dart';
 
 class EngagementAnalyticsContent extends StatelessWidget {
   const EngagementAnalyticsContent({super.key});
@@ -670,58 +675,173 @@ class _TopPerformingContentCard extends StatelessWidget {
 }
 
 // =========================================================================
-// 6. Activity Stream (static — left as-is)
+// 6. Activity Stream (real system logs data)
 // =========================================================================
-class _ActivityStreamCard extends StatelessWidget {
+class _ActivityStreamCard extends StatefulWidget {
   const _ActivityStreamCard();
 
   @override
+  State<_ActivityStreamCard> createState() => _ActivityStreamCardState();
+}
+
+class _ActivityStreamCardState extends State<_ActivityStreamCard> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final bloc = context.read<ContentBloc>();
+      if (bloc.state.systemLogs.isEmpty && !bloc.state.isLoadingSystemLogs) {
+        bloc.add(FetchSystemLogsRequested());
+      }
+    });
+  }
+
+  Color _parseColor(String? hex) {
+    if (hex == null || hex.isEmpty) return AppColors.primary;
+    try {
+      final cleaned = hex.replaceAll('#', '');
+      return Color(int.parse('FF$cleaned', radix: 16));
+    } catch (_) {
+      return AppColors.primary;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Activity Stream', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-          const SizedBox(height: 18),
-          _buildActivityItem('Dr. James Wilson completed\nAsthma Pathway Quiz', 'SCORE: 95%', '2 mins ago', Icons.person_outline, Colors.teal),
-          const Divider(color: AppColors.borderLight, height: 20),
-          _buildActivityItem("Dr. Elena Rodriguez RSVP'd for\nPulmoSummit 2024", 'SPECIALTY: PULMONOLOGY', '15 mins ago', Icons.calendar_today_outlined, Colors.orange),
-          const Divider(color: AppColors.borderLight, height: 20),
-          _buildActivityItem('Dr. Robert Chen logged in from\nHouston, TX', 'RETURNING USER', '1 hr ago', Icons.login_outlined, Colors.blue),
-        ],
-      ),
+    return BlocBuilder<ContentBloc, ContentState>(
+      buildWhen: (prev, curr) =>
+          prev.systemLogs != curr.systemLogs ||
+          prev.isLoadingSystemLogs != curr.isLoadingSystemLogs,
+      builder: (context, state) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.cardBg,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Activity Stream',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
+              ),
+              const SizedBox(height: 18),
+              if (state.isLoadingSystemLogs)
+                ..._buildSkeletonItems()
+              else if (state.systemLogs.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: Text(
+                      'No recent activity',
+                      style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                    ),
+                  ),
+                )
+              else
+                ...List.generate(state.systemLogs.length, (i) {
+                  final log = state.systemLogs[i];
+                  return Column(
+                    children: [
+                      _buildLogItem(log),
+                      if (i < state.systemLogs.length - 1)
+                        const Divider(color: AppColors.borderLight, height: 20),
+                    ],
+                  );
+                }),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildActivityItem(String headline, String subText, String timestamp, IconData icon, Color accent) {
+  Widget _buildLogItem(SystemLogData log) {
+    final color = _parseColor(log.color);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: accent.withValues(alpha: 0.08), shape: BoxShape.circle),
-          child: Icon(icon, size: 16, color: accent),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.08), shape: BoxShape.circle),
+          child: Icon(Icons.fiber_manual_record, size: 8, color: color),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(headline, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark), maxLines: 2),
-              const SizedBox(height: 2),
-              Text(subText, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppColors.textMuted.withValues(alpha: 0.6), letterSpacing: 0.3)),
+              Text(
+                log.title ?? '',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if ((log.description ?? '').isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  log.description!,
+                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ],
           ),
         ),
         const SizedBox(width: 8),
-        Text(timestamp, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+        Text(
+          log.timeAgo ?? '',
+          style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+        ),
       ],
     );
+  }
+
+  List<Widget> _buildSkeletonItems() {
+    final box = BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(4));
+    return List.generate(3, (i) => Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Shimmer.fromColors(
+              baseColor: Colors.grey.shade200,
+              highlightColor: Colors.grey.shade50,
+              child: Container(width: 28, height: 28, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey.shade200,
+                    highlightColor: Colors.grey.shade50,
+                    child: Container(height: 12, width: 160, decoration: box),
+                  ),
+                  const SizedBox(height: 6),
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey.shade200,
+                    highlightColor: Colors.grey.shade50,
+                    child: Container(height: 10, width: double.infinity, decoration: box),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Shimmer.fromColors(
+              baseColor: Colors.grey.shade200,
+              highlightColor: Colors.grey.shade50,
+              child: Container(height: 10, width: 50, decoration: box),
+            ),
+          ],
+        ),
+        if (i < 2) const Divider(color: AppColors.borderLight, height: 20),
+      ],
+    ));
   }
 }

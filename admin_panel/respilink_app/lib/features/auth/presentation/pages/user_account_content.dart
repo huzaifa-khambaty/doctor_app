@@ -276,40 +276,40 @@ class _UserAccountContentState extends State<UserAccountContent> {
                       const Divider(color: AppColors.borderLight, height: 24),
         
                       // Two-Factor Authentication Sub-Toggle Element Block
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Two-Factor Authentication (2FA)',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Secure login verification passes via designated administrative authenticator codes.',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textMuted,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Switch.adaptive(
-                            value: _twoFactorAuth,
-                            activeThumbColor: AppColors.primary,
-                            onChanged: (bool value) =>
-                                setState(() => _twoFactorAuth = value),
-                          ),
-                        ],
-                      ),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //   children: [
+                      //     Expanded(
+                      //       child: Column(
+                      //         crossAxisAlignment: CrossAxisAlignment.start,
+                      //         children: [
+                      //           const Text(
+                      //             'Two-Factor Authentication (2FA)',
+                      //             style: TextStyle(
+                      //               fontSize: 13,
+                      //               fontWeight: FontWeight.bold,
+                      //               color: AppColors.textDark,
+                      //             ),
+                      //           ),
+                      //           const SizedBox(height: 2),
+                      //           Text(
+                      //             'Secure login verification passes via designated administrative authenticator codes.',
+                      //             style: TextStyle(
+                      //               fontSize: 12,
+                      //               color: AppColors.textMuted,
+                      //             ),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //     Switch.adaptive(
+                      //       value: _twoFactorAuth,
+                      //       activeThumbColor: AppColors.primary,
+                      //       onChanged: (bool value) =>
+                      //           setState(() => _twoFactorAuth = value),
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),

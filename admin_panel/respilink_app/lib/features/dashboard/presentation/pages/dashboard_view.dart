@@ -212,8 +212,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       //   return QueryInboxContent();
       case 6:
         if (!_hasAnyPerm(['admins.view', 'users.view'])) return const _AccessDeniedContent();
-        return BlocProvider<AnalyticsBloc>.value(
-          value: _analyticsBloc,
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<AnalyticsBloc>.value(value: _analyticsBloc),
+            BlocProvider<ContentBloc>.value(value: _contentBloc),
+          ],
           child: const EngagementAnalyticsContent(),
         );
       case 7:

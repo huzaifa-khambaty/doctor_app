@@ -56,7 +56,7 @@ class _SettingsContentState extends State<SettingsContent> {
                 children: [
                   const Text('Platform Identity', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                   const SizedBox(height: 4),
-                  Text('Global branding and support information for the RespiLink platform.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                  Text('Global branding and support information for the MedSynapse platform.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
                   const SizedBox(height: 20),
                   
                   // Form Entry Split Double Row Input Layout
@@ -68,12 +68,12 @@ class _SettingsContentState extends State<SettingsContent> {
                         children: [
                           Expanded(
                             flex: isCompact ? 0 : 1,
-                            child: _buildTextFieldBlock(label: 'App Name', initialValue: 'RespiLink Admin'),
+                            child: _buildTextFieldBlock(label: 'App Name', initialValue: 'MedSynapse Admin'),
                           ),
                           SizedBox(width: isCompact ? 0 : 16, height: isCompact ? 16 : 0),
                           Expanded(
                             flex: isCompact ? 0 : 1,
-                            child: _buildTextFieldBlock(label: 'Support Email', initialValue: 'support@respilink.org'),
+                            child: _buildTextFieldBlock(label: 'Support Email', initialValue: 'support@medsynapse.com'),
                           ),
                         ],
                       );
@@ -128,7 +128,7 @@ class _SettingsContentState extends State<SettingsContent> {
                             child: _buildDropdownFieldBlock(
                               label: 'Language',
                               value: _selectedLanguage,
-                              items: ['English', 'Spanish', 'French', 'German'],
+                              items: ['English'],
                               onChanged: (val) => setState(() => _selectedLanguage = val!),
                             ),
                           ),
@@ -142,70 +142,70 @@ class _SettingsContentState extends State<SettingsContent> {
             const SizedBox(height: 20),
       
             // 4. Maintenance Security Status Banner Zone
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.cardBg,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFEE2E2)), // Subtle red stroke alert container bounds
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.warning_amber_rounded, size: 20, color: Color(0xFFEF4444)),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Maintenance Mode', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF991B1B))),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Activating maintenance mode will prevent all non-admin users from accessing the platform. Use this only for critical updates.',
-                              style: TextStyle(fontSize: 13, color: const Color(0xFF991B1B).withValues(alpha: 0.85), height: 1.4),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.borderLight),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Enable Maintenance Status', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textDark)),
-                        Switch.adaptive(
-                          value: _maintenanceStatus,
-                          activeThumbColor: AppColors.primary,
-                          onChanged: (bool val) {
-                            setState(() => _maintenanceStatus = val);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
+            // Container(
+            //   width: double.infinity,
+            //   padding: const EdgeInsets.all(24),
+            //   decoration: BoxDecoration(
+            //     color: AppColors.cardBg,
+            //     borderRadius: BorderRadius.circular(12),
+            //     border: Border.all(color: const Color(0xFFFEE2E2)), // Subtle red stroke alert container bounds
+            //   ),
+            //   child: Column(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Row(
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         children: [
+            //           Container(
+            //             padding: const EdgeInsets.all(8),
+            //             decoration: BoxDecoration(
+            //               color: const Color(0xFFFEF2F2),
+            //               borderRadius: BorderRadius.circular(8),
+            //             ),
+            //             child: const Icon(Icons.warning_amber_rounded, size: 20, color: Color(0xFFEF4444)),
+            //           ),
+            //           const SizedBox(width: 16),
+            //           Expanded(
+            //             child: Column(
+            //               crossAxisAlignment: CrossAxisAlignment.start,
+            //               children: [
+            //                 const Text('Maintenance Mode', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF991B1B))),
+            //                 const SizedBox(height: 4),
+            //                 Text(
+            //                   'Activating maintenance mode will prevent all non-admin users from accessing the platform. Use this only for critical updates.',
+            //                   style: TextStyle(fontSize: 13, color: const Color(0xFF991B1B).withValues(alpha: 0.85), height: 1.4),
+            //                 ),
+            //               ],
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //       const SizedBox(height: 20),
+            //       Container(
+            //         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            //         decoration: BoxDecoration(
+            //           color: const Color(0xFFF8FAFC),
+            //           borderRadius: BorderRadius.circular(10),
+            //           border: Border.all(color: AppColors.borderLight),
+            //         ),
+            //         child: Row(
+            //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //           children: [
+            //             const Text('Enable Maintenance Status', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textDark)),
+            //             Switch.adaptive(
+            //               value: _maintenanceStatus,
+            //               activeThumbColor: AppColors.primary,
+            //               onChanged: (bool val) {
+            //                 setState(() => _maintenanceStatus = val);
+            //               },
+            //             ),
+            //           ],
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            // const SizedBox(height: 32),
       
             // 5. System Form Actions Commit Footer Bar
             Row(
