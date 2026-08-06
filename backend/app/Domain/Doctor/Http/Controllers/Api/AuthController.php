@@ -38,6 +38,7 @@ class AuthController extends Controller
             'hospital_affiliation' => $request->hospital_affiliation,
             'specialty_id' => $request->specialty_id,
             'password' => Hash::make($request->password),
+            'fcm_token' => $request->fcm_token,
             'status' => 'pending',
         ]);
 
@@ -116,6 +117,11 @@ class AuthController extends Controller
 
         if (!$user->email_verified_at && !$user->phone_verified_at) {
             return response()->json(['message' => 'Please verify your account (email or phone).'], 403);
+        }
+
+        // Update FCM token if provided
+        if ($request->fcm_token) {
+            $user->update(['fcm_token' => $request->fcm_token]);
         }
 
         $user->update(['last_active_at' => now()]);

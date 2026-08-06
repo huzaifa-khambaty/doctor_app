@@ -46,6 +46,11 @@ class RolePermissionSeeder extends Seeder
             'content.edit',
             'content.publish',
             'content.delete',
+            'settings.view',
+            'settings.update',
+            'notifications.view',
+            'notifications.create',
+            'notifications.delete',
         ];
 
         foreach ($permissions as $perm) {

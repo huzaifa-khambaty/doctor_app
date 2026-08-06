@@ -14,6 +14,7 @@ class AdminResource extends JsonResource
             'id' => $this->id,
             'uuid' => $this->uuid,
             'name' => $this->name,
+            'photo_path' => $this->photo_path,
             'email' => $this->email,
             'status' => $this->status,
             'last_login_at' => $modelData['last_login_at'] ?? null,

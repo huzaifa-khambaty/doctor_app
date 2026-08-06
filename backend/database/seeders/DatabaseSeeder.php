@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             BadgeCategorySeeder::class,
             BadgeSeeder::class,
             LeaderboardSeeder::class,
+            SettingsSeeder::class,
         ]);
     }
 }

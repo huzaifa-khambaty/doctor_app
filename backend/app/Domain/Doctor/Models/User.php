@@ -30,6 +30,8 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'remember_token',
+        'fcm_token',
         'hospital_affiliation',
         'photo_path',
         'qualifications',
@@ -52,6 +54,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'fcm_token',
     ];
 
     protected $casts = [

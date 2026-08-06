@@ -22,6 +22,7 @@ class RegisterDoctorRequest extends FormRequest
             'specialties.*' => 'exists:specialties,id',
             'hospital_affiliation' => 'required|string|max:255',
             'password' => 'required|string|min:8|confirmed',
+            'fcm_token' => 'nullable|string|max:500',
         ];
     }
 }

@@ -11,6 +11,7 @@ use App\Domain\Doctor\Http\Controllers\Api\QuizHomeController;
 use App\Domain\Doctor\Http\Controllers\Api\ContentLibraryController;
 use App\Domain\Doctor\Http\Controllers\Api\HomeController;
 use App\Domain\Doctor\Http\Controllers\Api\QueryController as DoctorQueryController;
+use App\Domain\Doctor\Http\Controllers\Api\NotificationController as DoctorNotificationController;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -92,5 +93,10 @@ Route::prefix('v1')->group(function () {
         Route::get('{query}/messages', 'messages');
         Route::post('{query}/messages', 'sendMessage');
         Route::post('{query}/read', 'markRead');
-    }); 
+    });
+
+    Route::prefix('notifications')->middleware(['auth:sanctum', 'ability:doctor'])->controller(DoctorNotificationController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::put('{notification}/open', 'markOpened');
+    });
 });

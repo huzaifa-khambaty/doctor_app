@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('quiz:finalize')->hourly();
 Schedule::command('content:publish-scheduled')->everyMinute();
+Schedule::command('notifications:send-scheduled')->everyMinute()->withoutOverlapping();

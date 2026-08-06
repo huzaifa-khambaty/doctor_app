@@ -17,6 +17,8 @@ use App\Domain\Admin\Http\Controllers\Api\EngagementAnalyticsController;
 use App\Domain\Admin\Http\Controllers\Api\QueryController as AdminQueryController;
 use App\Domain\Admin\Http\Controllers\Api\AdminAIQuizController;
 use App\Domain\Admin\Http\Controllers\Api\SystemLogController;
+use App\Domain\Admin\Http\Controllers\Api\SettingsController;
+use App\Domain\Admin\Http\Controllers\Api\NotificationController;
 
 Route::prefix('admin/v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
@@ -51,6 +53,7 @@ Route::prefix('admin/v1')->group(function () {
         });
 
         Route::apiResource('admins', AdminController::class);
+        Route::post('admins/{admin}/change-password', [AdminController::class, 'changePassword']);
         Route::apiResource('roles', RoleController::class);
         Route::apiResource('permissions', PermissionController::class)->only(['index', 'show']);
         
@@ -122,6 +125,21 @@ Route::prefix('admin/v1')->group(function () {
             Route::post('/', 'storeCategory');
             Route::put('{category}', 'updateCategory');
             Route::delete('{category}', 'deleteCategory');
+        });
+
+        // Settings
+        Route::get('settings', [SettingsController::class, 'index']);
+        Route::put('settings', [SettingsController::class, 'update']);
+
+        // Notifications
+        Route::prefix('notifications')->controller(NotificationController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('{notification}', 'show');
+            Route::put('{notification}', 'update');
+            Route::post('{notification}/send', 'send');
+            Route::post('{notification}/cancel', 'cancel');
+            Route::delete('{notification}', 'destroy');
         });
     });
 });
