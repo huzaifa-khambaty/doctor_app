@@ -1502,8 +1502,9 @@ class _RichTextController extends TextEditingController {
             for (int j = stack.length - 1; j >= 0; j--) {
               if (stack[j].$2 == fmt) {
                 final start = stack[j].$1;
-                if (buf.length > start)
+                if (buf.length > start) {
                   ranges.add(_FormatRange(start, buf.length, fmt));
+                }
                 stack.removeAt(j);
                 break;
               }
@@ -1673,8 +1674,9 @@ class _RichTextController extends TextEditingController {
     required bool withComposing,
   }) {
     final plain = text;
-    if (_formats.isEmpty || plain.isEmpty)
+    if (_formats.isEmpty || plain.isEmpty) {
       return TextSpan(style: style, text: plain);
+    }
     final charFmts = List<Set<_Fmt>>.generate(plain.length, (_) => {});
     for (final f in _formats) {
       for (
@@ -1755,12 +1757,14 @@ class _BlockEditorFieldState extends State<_BlockEditorField> {
     if (blocks.isEmpty) return _RichTextController();
     final start = _activeBlockIdx.clamp(0, blocks.length - 1);
     for (int i = start; i >= 0; i--) {
-      if (blocks[i] is _TextEditorBlock)
+      if (blocks[i] is _TextEditorBlock) {
         return (blocks[i] as _TextEditorBlock).ctrl;
+      }
     }
     for (int i = start + 1; i < blocks.length; i++) {
-      if (blocks[i] is _TextEditorBlock)
+      if (blocks[i] is _TextEditorBlock) {
         return (blocks[i] as _TextEditorBlock).ctrl;
+      }
     }
     return _RichTextController();
   }

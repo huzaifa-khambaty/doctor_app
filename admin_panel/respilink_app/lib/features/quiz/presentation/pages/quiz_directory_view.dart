@@ -1299,7 +1299,7 @@ class _ScoreLineChart extends StatelessWidget {
               isStrokeCapRound: true,
               dotData: FlDotData(
                 show: true,
-                getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+                getDotPainter: (spot, percentage, bar, index) => FlDotCirclePainter(
                   radius: 3,
                   color: Colors.white,
                   strokeWidth: 2,
