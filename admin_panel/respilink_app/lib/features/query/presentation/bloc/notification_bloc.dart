@@ -10,8 +10,25 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
   NotificationBloc(this._repository, this._practionerRepository)
       : super(const NotificationState()) {
+    on<FetchNotificationsRequested>(_onFetchNotifications);
     on<FetchVerifiedDoctorsCountRequested>(_onFetchCount);
     on<CreateNotificationRequested>(_onCreate);
+    on<UpdateNotificationRequested>(_onUpdate);
+    on<CancelNotificationRequested>(_onCancel);
+    on<DeleteNotificationRequested>(_onDelete);
+  }
+
+  Future<void> _onFetchNotifications(
+    FetchNotificationsRequested event,
+    Emitter<NotificationState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingNotifications: true));
+    final res = await _repository.getNotifications(page: event.page);
+    if (res.success && res.data != null) {
+      emit(state.copyWith(isLoadingNotifications: false, notifications: res.data));
+    } else {
+      emit(state.copyWith(isLoadingNotifications: false, error: res.fullErrorMessage));
+    }
   }
 
   Future<void> _onFetchCount(
@@ -43,6 +60,53 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       emit(state.copyWith(isSubmitting: false, submitSuccess: true));
     } else {
       emit(state.copyWith(isSubmitting: false, error: res.fullErrorMessage));
+    }
+  }
+
+  Future<void> _onUpdate(
+    UpdateNotificationRequested event,
+    Emitter<NotificationState> emit,
+  ) async {
+    emit(state.copyWith(isSubmitting: true));
+    final res = await _repository.updateNotification(event.id, event.request);
+    if (res.success) {
+      emit(state.copyWith(isSubmitting: false, submitSuccess: true));
+    } else {
+      emit(state.copyWith(isSubmitting: false, error: res.fullErrorMessage));
+    }
+  }
+
+  Future<void> _onCancel(
+    CancelNotificationRequested event,
+    Emitter<NotificationState> emit,
+  ) async {
+    emit(state.copyWith(isActionLoading: true));
+    final res = await _repository.cancelNotification(event.id);
+    if (res.success) {
+      emit(state.copyWith(
+        isActionLoading: false,
+        actionSuccess: true,
+        actionMessage: 'Notification cancelled.',
+      ));
+    } else {
+      emit(state.copyWith(isActionLoading: false, error: res.fullErrorMessage));
+    }
+  }
+
+  Future<void> _onDelete(
+    DeleteNotificationRequested event,
+    Emitter<NotificationState> emit,
+  ) async {
+    emit(state.copyWith(isActionLoading: true));
+    final res = await _repository.deleteNotification(event.id);
+    if (res.success) {
+      emit(state.copyWith(
+        isActionLoading: false,
+        actionSuccess: true,
+        actionMessage: 'Notification deleted.',
+      ));
+    } else {
+      emit(state.copyWith(isActionLoading: false, error: res.fullErrorMessage));
     }
   }
 }

@@ -351,20 +351,22 @@ class _AdminRowState extends State<_AdminRow> {
             Expanded(
               flex: 2,
               child: (widget.admin.roles?.isNotEmpty == true)
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        widget.admin.roles!.first.name ?? '—',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.primary,
+                  ? UnconstrainedBox(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        child: Text(
+                          widget.admin.roles!.first.name ?? '—',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ),
                     )
                   : Text('—', style: TextStyle(fontSize: 13, color: AppColors.textMuted)),

@@ -20,10 +20,12 @@ class QuizDirectoryContent extends StatefulWidget {
     super.key,
     required this.onCreateQuizClicked,
     required this.onEditQuizClicked,
+    this.onNotificationTapped,
   });
 
   final VoidCallback onCreateQuizClicked;
   final void Function(int quizId) onEditQuizClicked;
+  final VoidCallback? onNotificationTapped;
 
   @override
   State<QuizDirectoryContent> createState() => _QuizDirectoryContentState();
@@ -162,7 +164,7 @@ class _QuizDirectoryContentState extends State<QuizDirectoryContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _QuizSearchBarHeader(onSearch: _onSearch),
+              _QuizSearchBarHeader(onSearch: _onSearch, onNotificationTapped: widget.onNotificationTapped),
               const SizedBox(height: 24),
               _QuizTitleActionRow(onCreateQuizClicked: widget.onCreateQuizClicked),
               const SizedBox(height: 24),
@@ -194,9 +196,10 @@ class _QuizDirectoryContentState extends State<QuizDirectoryContent> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _QuizSearchBarHeader extends StatelessWidget {
-  const _QuizSearchBarHeader({required this.onSearch});
+  const _QuizSearchBarHeader({required this.onSearch, this.onNotificationTapped});
 
   final ValueChanged<String> onSearch;
+  final VoidCallback? onNotificationTapped;
 
   @override
   Widget build(BuildContext context) {
@@ -237,15 +240,15 @@ class _QuizSearchBarHeader extends StatelessWidget {
             Icons.notifications_none_outlined,
             color: AppColors.textDark,
           ),
-          onPressed: () {},
+          onPressed: onNotificationTapped,
         ),
-        IconButton(
-          icon: const Icon(
-            Icons.help_outline_rounded,
-            color: AppColors.textMuted,
-          ),
-          onPressed: () {},
-        ),
+        // IconButton(
+        //   icon: const Icon(
+        //     Icons.help_outline_rounded,
+        //     color: AppColors.textMuted,
+        //   ),
+        //   onPressed: () {},
+        // ),
       ],
     );
   }

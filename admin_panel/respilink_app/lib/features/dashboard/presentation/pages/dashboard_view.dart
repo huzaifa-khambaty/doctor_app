@@ -148,6 +148,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                           : null,
                       onUserTapped: (p) =>
                           setState(() => _selectedPractioner = p),
+                      onNotificationTapped: () => setState(() {
+                        _currentNavigationIndex = 0;
+                        _showNotificationHistory = true;
+                      }),
                     ),
         );
       case 2:
@@ -166,6 +170,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                       setState(() => _showAddContentForm = true),
                   onEditContentClicked: (item) =>
                       setState(() => _editingContent = item),
+                  onNotificationTapped: () => setState(() {
+                    _currentNavigationIndex = 0;
+                    _showNotificationHistory = true;
+                  }),
                 ),
         );
       case 3:
@@ -188,6 +196,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                           setState(() => _showCreateQuizForm = true),
                       onEditQuizClicked: (id) =>
                           setState(() => _editingQuizId = id),
+                      onNotificationTapped: () => setState(() {
+                        _currentNavigationIndex = 0;
+                        _showNotificationHistory = true;
+                      }),
                     ),
         );
       case 4:
@@ -206,6 +218,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                   : EventManagementContent(
                       onCreateEventClicked: () => setState(() => _showCreateEventForm = true),
                       onEventTapped: (e) => setState(() => _selectedEvent = e),
+                      onNotificationTapped: () => setState(() {
+                        _currentNavigationIndex = 0;
+                        _showNotificationHistory = true;
+                      }),
                     ),
         );
       // case 5:

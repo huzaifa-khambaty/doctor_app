@@ -18,11 +18,13 @@ import 'package:shimmer/shimmer.dart';
 class ContentRepositoryContent extends StatefulWidget {
   final VoidCallback? onAddContentClicked;
   final void Function(Data)? onEditContentClicked;
+  final VoidCallback? onNotificationTapped;
 
   const ContentRepositoryContent({
     super.key,
     this.onAddContentClicked,
     this.onEditContentClicked,
+    this.onNotificationTapped,
   });
 
   @override
@@ -184,7 +186,7 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
         const Spacer(),
         IconButton(
           icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textDark),
-          onPressed: () {},
+          onPressed: widget.onNotificationTapped,
         ),
       ],
     );

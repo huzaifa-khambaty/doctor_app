@@ -21,10 +21,12 @@ class EventManagementContent extends StatefulWidget {
     super.key,
     required this.onCreateEventClicked,
     required this.onEventTapped,
+    this.onNotificationTapped,
   });
 
   final VoidCallback onCreateEventClicked;
   final void Function(Events) onEventTapped;
+  final VoidCallback? onNotificationTapped;
 
   @override
   State<EventManagementContent> createState() => _EventManagementContentState();
@@ -236,6 +238,7 @@ class _EventManagementContentState extends State<EventManagementContent> {
               _EventSearchBarHeader(
                 onCreateEventClicked: widget.onCreateEventClicked,
                 onSearch: _onSearch,
+                onNotificationTapped: widget.onNotificationTapped,
               ),
               const SizedBox(height: 32),
               _EventTitleRowSection(
@@ -267,10 +270,12 @@ class _EventSearchBarHeader extends StatelessWidget {
   const _EventSearchBarHeader({
     required this.onCreateEventClicked,
     required this.onSearch,
+    this.onNotificationTapped,
   });
 
   final VoidCallback onCreateEventClicked;
   final ValueChanged<String> onSearch;
+  final VoidCallback? onNotificationTapped;
 
   @override
   Widget build(BuildContext context) {
@@ -313,7 +318,7 @@ class _EventSearchBarHeader extends StatelessWidget {
             Icons.notifications_none_outlined,
             color: AppColors.textDark,
           ),
-          onPressed: () {},
+          onPressed: onNotificationTapped,
         ),
       ],
     );

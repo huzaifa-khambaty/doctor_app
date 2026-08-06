@@ -19,10 +19,12 @@ class PractitionerManagementContent extends StatefulWidget {
     super.key,
     this.onManualEnrollmentClicked,
     required this.onUserTapped,
+    this.onNotificationTapped,
   });
 
   final VoidCallback? onManualEnrollmentClicked;
   final Function(Practioners) onUserTapped;
+  final VoidCallback? onNotificationTapped;
 
   @override
   State<PractitionerManagementContent> createState() =>
@@ -84,7 +86,7 @@ class _PractitionerManagementContentState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _PractitionerHeader(onSearch: _onSearch),
+              _PractitionerHeader(onSearch: _onSearch, onNotificationTapped: widget.onNotificationTapped),
               const SizedBox(height: 32),
               _PipelineTitleSection(
                 onManualEnrollmentClicked: widget.onManualEnrollmentClicked,
@@ -117,9 +119,10 @@ class _PractitionerManagementContentState
 // =========================================================================
 
 class _PractitionerHeader extends StatelessWidget {
-  const _PractitionerHeader({required this.onSearch});
+  const _PractitionerHeader({required this.onSearch, this.onNotificationTapped});
 
   final ValueChanged<String> onSearch;
+  final VoidCallback? onNotificationTapped;
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +165,7 @@ class _PractitionerHeader extends StatelessWidget {
             Icons.notifications_none_outlined,
             color: AppColors.textDark,
           ),
-          onPressed: () {},
+          onPressed: onNotificationTapped,
         ),
       ],
     );
