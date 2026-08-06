@@ -24,7 +24,7 @@ class NotificationItemModel {
 
   const NotificationItemModel({
     required this.id,
-    required this.type,
+    this.type = NotificationType.system,
     required this.title,
     required this.body,
     required this.timestamp,

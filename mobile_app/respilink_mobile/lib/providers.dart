@@ -7,6 +7,7 @@ import 'package:respilink_mobile/features/dashboard/presentation/bloc/home_bloc.
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_home_bloc.dart';
 import 'package:respilink_mobile/features/content_library/presentation/bloc/library_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_list_bloc.dart';
+import 'package:respilink_mobile/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:respilink_mobile/features/query_form/presentation/bloc/query_categories_bloc.dart';
 import 'package:respilink_mobile/features/query_form/presentation/bloc/recent_queries_bloc.dart';
 import 'package:respilink_mobile/features/query_form/presentation/bloc/submit_query_bloc.dart';
@@ -69,6 +70,9 @@ class Providers {
     ),
     BlocProvider<RecentQueriesBloc>(
       create: (context) => RecentQueriesBloc(locator()),
+    ),
+    BlocProvider<NotificationsBloc>(
+      create: (context) => NotificationsBloc(locator()),
     ),
   ];
 }
