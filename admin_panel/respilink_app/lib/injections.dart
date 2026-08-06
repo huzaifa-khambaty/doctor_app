@@ -7,6 +7,7 @@ import 'package:respilink_app/features/auth/auth_injections.dart';
 import 'package:respilink_app/features/content/content_injections.dart';
 import 'package:respilink_app/features/events/events_injections.dart';
 import 'package:respilink_app/features/practioner/practioner_injections.dart';
+import 'package:respilink_app/features/query/query_injections.dart';
 import 'package:respilink_app/features/quiz/quiz_injections.dart';
 import 'package:respilink_app/features/settings/settings_injections.dart';
 import 'package:respilink_app/service/pusher_service.dart';
@@ -27,6 +28,7 @@ void initDependencies() {
   SettingsInjections.setupSettingsInjections();
   QuizInjections.setupQuizInjections();
   ContentInjections.setupContentInjections();
+  QueryInjections.setupQueryInjections();
 
   locator.registerFactory<Dio>(() => Dio());
   DioClient.init();

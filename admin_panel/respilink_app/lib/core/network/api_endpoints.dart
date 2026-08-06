@@ -53,4 +53,7 @@ class ApiEndpoints {
 
   ///Settings
   static const String settings = '/settings';
+
+  ///Notification
+  static const String notifications = '/notifications';
 }
