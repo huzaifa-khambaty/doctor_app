@@ -1,8 +1,10 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
 import 'package:respilink_app/features/settings/data/model/admin_user_model.dart';
+import 'package:respilink_app/features/settings/data/model/app_settings_model.dart';
 import 'package:respilink_app/features/settings/data/model/requests/assign_permissions_request.dart';
 import 'package:respilink_app/features/settings/data/model/requests/create_admin_request.dart';
 import 'package:respilink_app/features/settings/data/model/requests/create_update_role_request.dart';
+import 'package:respilink_app/features/settings/data/model/requests/update_settings_request.dart';
 import 'package:respilink_app/features/settings/data/sources/settings_remote_data_source.dart';
 import 'package:respilink_app/features/settings/domain/repositories/settings_repository.dart';
 import 'package:respilink_app/features/settings/presentation/pages/data/model/roles_model.dart';
@@ -59,4 +61,12 @@ class SettingsRepositoryImpl implements SettingsRepository {
   @override
   Future<ApiResponse<dynamic>> deleteAdmin(int adminId) =>
       _remoteDataSource.deleteAdmin(adminId);
+
+  @override
+  Future<ApiResponse<AppSettingsModel>> getSettings() =>
+      _remoteDataSource.getSettings();
+
+  @override
+  Future<ApiResponse<AppSettingsModel>> updateSettings(UpdateSettingsRequest request) =>
+      _remoteDataSource.updateSettings(request);
 }

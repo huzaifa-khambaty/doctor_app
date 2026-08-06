@@ -21,6 +21,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<CreateAdminRequested>(_createAdmin);
     on<UpdateAdminRequested>(_updateAdmin);
     on<DeleteAdminRequested>(_deleteAdmin);
+    on<FetchSettingsRequested>(_fetchSettings);
+    on<UpdateSettingsRequested>(_updateSettings);
   }
 
   Future<void> _fetchRoles(
@@ -210,6 +212,36 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       add(FetchAdminsRequested());
     } else {
       emit(state.copyWith(isDeletingAdmin: false, error: res.fullErrorMessage));
+    }
+  }
+
+  Future<void> _fetchSettings(
+    FetchSettingsRequested event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingSettings: true));
+    final res = await _repository.getSettings();
+    if (res.success && res.data != null) {
+      emit(state.copyWith(appSettings: res.data, isLoadingSettings: false));
+    } else {
+      emit(state.copyWith(isLoadingSettings: false, error: res.fullErrorMessage));
+    }
+  }
+
+  Future<void> _updateSettings(
+    UpdateSettingsRequested event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(state.copyWith(isSavingSettings: true));
+    final res = await _repository.updateSettings(event.request);
+    if (res.success) {
+      emit(state.copyWith(
+        isSavingSettings: false,
+        saveSettingsSuccess: true,
+        appSettings: res.data ?? state.appSettings,
+      ));
+    } else {
+      emit(state.copyWith(isSavingSettings: false, error: res.fullErrorMessage));
     }
   }
 }

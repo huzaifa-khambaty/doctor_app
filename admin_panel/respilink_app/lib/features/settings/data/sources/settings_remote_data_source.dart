@@ -1,10 +1,13 @@
+import 'package:dio/dio.dart';
 import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/network/dio_client.dart';
 import 'package:respilink_app/core/network/models/api_response.dart';
 import 'package:respilink_app/features/settings/data/model/admin_user_model.dart';
+import 'package:respilink_app/features/settings/data/model/app_settings_model.dart';
 import 'package:respilink_app/features/settings/data/model/requests/assign_permissions_request.dart';
 import 'package:respilink_app/features/settings/data/model/requests/create_admin_request.dart';
 import 'package:respilink_app/features/settings/data/model/requests/create_update_role_request.dart';
+import 'package:respilink_app/features/settings/data/model/requests/update_settings_request.dart';
 import 'package:respilink_app/features/settings/presentation/pages/data/model/roles_model.dart';
 
 abstract class SettingsRemoteDataSource {
@@ -23,6 +26,9 @@ abstract class SettingsRemoteDataSource {
   Future<ApiResponse<dynamic>> createAdmin(CreateAdminRequest request);
   Future<ApiResponse<dynamic>> updateAdmin(int adminId, UpdateAdminRequest request);
   Future<ApiResponse<dynamic>> deleteAdmin(int adminId);
+
+  Future<ApiResponse<AppSettingsModel>> getSettings();
+  Future<ApiResponse<AppSettingsModel>> updateSettings(UpdateSettingsRequest request);
 }
 
 class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
@@ -106,6 +112,47 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
     return _client.get(
       '${ApiEndpoints.roles}/$roleId',
       fromJson: (json) => RolesModel.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<AppSettingsModel>> getSettings() async {
+    return _client.get(
+      ApiEndpoints.settings,
+      fromJson: (json) {
+        final map = json as Map<String, dynamic>;
+        final inner = map.containsKey('data') ? map['data'] : map;
+        return AppSettingsModel.fromJson(inner as Map<String, dynamic>);
+      },
+    );
+  }
+
+  @override
+  Future<ApiResponse<AppSettingsModel>> updateSettings(UpdateSettingsRequest request) async {
+    AppSettingsModel parse(dynamic json) {
+      final map = json as Map<String, dynamic>;
+      final inner = map.containsKey('data') ? map['data'] : map;
+      return AppSettingsModel.fromJson(inner as Map<String, dynamic>);
+    }
+
+    if (request.logoBytes != null) {
+      final formData = FormData.fromMap({
+        ...request.toJson(),
+        'app_logo': MultipartFile.fromBytes(
+          request.logoBytes!,
+          filename: request.logoName ?? 'logo.png',
+        ),
+      });
+      return _client.post(
+        ApiEndpoints.settings,
+        data: formData,
+        fromJson: parse,
+      );
+    }
+    return _client.post(
+      ApiEndpoints.settings,
+      data: request.toJson(),
+      fromJson: parse,
     );
   }
 }

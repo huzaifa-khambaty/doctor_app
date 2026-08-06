@@ -1,5 +1,6 @@
 import 'package:respilink_app/core/network/models/api_response.dart';
 import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
+import 'package:respilink_app/features/auth/data/models/requests/change_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/edit_profile_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/forget_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/login_request.dart';
@@ -14,6 +15,10 @@ abstract class AuthRepository {
   Future<ApiResponse<void>> logout();
 
   Future<ApiResponse<AdminModel>> updateProfile(EditProfileRequest request);
+
+  Future<ApiResponse<Admin>> updateAdmin(int adminId, EditProfileRequest request);
+
+  Future<ApiResponse<void>> changeAdminPassword(int adminId, ChangePasswordRequest request);
 
   Future<ApiResponse<void>> forgetPassword(ForgetPasswordRequest request);
 

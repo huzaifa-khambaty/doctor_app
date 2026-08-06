@@ -13,6 +13,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LogoutRequested>(_logout);
 
     on<UpdateProfileEvent>(_updateProfile);
+    on<UpdateAdminRequested>(_updateAdmin);
+    on<ChangeAdminPasswordRequested>(_changeAdminPassword);
 
     on<ForgetPasswordRequested>(_forgetPassword);
     on<ResetPasswordRequested>(_resetPassword);
@@ -49,6 +51,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     await _repository.logout();
     emit(AuthLogoutSuccess());
+  }
+
+  void _changeAdminPassword(ChangeAdminPasswordRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    final res = await _repository.changeAdminPassword(event.adminId, event.request);
+    if (res.success) {
+      emit(ChangePasswordSuccess());
+    } else {
+      emit(AuthFailed(message: res.fullErrorMessage));
+    }
+  }
+
+  void _updateAdmin(UpdateAdminRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    final res = await _repository.updateAdmin(event.adminId, event.request);
+    if (res.success) {
+      emit(AuthSuccess());
+    } else {
+      emit(AuthFailed(message: res.fullErrorMessage));
+    }
   }
 
   void _updateProfile(UpdateProfileEvent event, Emitter<AuthState> emit) async {

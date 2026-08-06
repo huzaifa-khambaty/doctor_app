@@ -1,10 +1,13 @@
+import 'package:dio/dio.dart';
 import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/network/dio_client.dart';
 import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
+import 'package:respilink_app/features/auth/data/models/requests/change_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/edit_profile_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/forget_password_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/login_request.dart';
 import 'package:respilink_app/features/auth/data/models/requests/reset_password_request.dart';
+import 'package:respilink_app/core/utils/global_notifiers.dart';
 import 'package:respilink_app/shared/model/admin_mode.dart';
 
 import '../../../../core/network/models/api_response.dart';
@@ -15,6 +18,10 @@ abstract class AuthRemoteDataSource {
   Future<ApiResponse<void>> logout();
 
   Future<ApiResponse<AdminModel>> updateProfile(EditProfileRequest request);
+
+  Future<ApiResponse<Admin>> updateAdmin(int adminId, EditProfileRequest request);
+
+  Future<ApiResponse<void>> changeAdminPassword(int adminId, ChangePasswordRequest request);
 
   Future<ApiResponse<void>> resetPassword(ResetPasswordRequest request);
 
@@ -54,8 +61,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   ) async {
     return _client.put(
       ApiEndpoints.editProfile,
-      data: request.toJson(),
+      data: {'name': request.name, 'email': request.email},
       fromJson: (json) => AdminModel.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<void>> changeAdminPassword(int adminId, ChangePasswordRequest request) async {
+    return _client.post(
+      '${ApiEndpoints.admins}/$adminId/change-password',
+      data: request.toJson(),
+      fromJson: (json) => ApiResponse.fromJson(json, (val) {}),
     );
   }
 
@@ -79,7 +95,35 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     );
   }
 
-    @override
+  @override
+  Future<ApiResponse<Admin>> updateAdmin(int adminId, EditProfileRequest request) async {
+    final fields = <String, dynamic>{
+      '_method': 'PUT',
+      'name': request.name,
+      'email': request.email,
+    };
+    if (request.photoBytes != null) {
+      fields['photo'] = MultipartFile.fromBytes(
+        request.photoBytes!,
+        filename: request.photoName ?? 'photo.jpg',
+      );
+    }
+    final response = await _client.post(
+      '${ApiEndpoints.admins}/$adminId',
+      data: FormData.fromMap(fields),
+      fromJson: (json) {
+        final map = json as Map<String, dynamic>;
+        final adminJson = map.containsKey('admin') ? map['admin'] : map;
+        return Admin.fromJson(adminJson as Map<String, dynamic>);
+      },
+    );
+    if (response.success && response.data != null) {
+      GlobalNotifiers.adminNotifier.value = response.data;
+    }
+    return response;
+  }
+
+  @override
   Future<ApiResponse<Admin>> me() async {
     return _client.get(
       ApiEndpoints.me,

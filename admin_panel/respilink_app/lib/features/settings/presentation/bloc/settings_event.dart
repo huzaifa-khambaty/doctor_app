@@ -1,3 +1,5 @@
+import 'package:respilink_app/features/settings/data/model/requests/update_settings_request.dart';
+
 abstract class SettingsEvent {}
 
 class FetchRolesRequested extends SettingsEvent {}
@@ -74,4 +76,11 @@ class UpdateAdminRequested extends SettingsEvent {
 class DeleteAdminRequested extends SettingsEvent {
   final int adminId;
   DeleteAdminRequested(this.adminId);
+}
+
+class FetchSettingsRequested extends SettingsEvent {}
+
+class UpdateSettingsRequested extends SettingsEvent {
+  final UpdateSettingsRequest request;
+  UpdateSettingsRequested(this.request);
 }

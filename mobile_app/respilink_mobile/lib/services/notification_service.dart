@@ -17,15 +17,17 @@ Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
   await NotificationService.ensureInitialized();
 
   debugPrint("Background message: ${message.data}");
-  final title =
-      message.notification?.title ?? message.data['title']?.toString() ?? '';
-  final body =
-      message.notification?.body ?? message.data['body']?.toString() ?? '';
+
+  // When the payload includes a `notification` block, Android/iOS already
+  // display it automatically while the app is backgrounded/terminated —
+  // showing it again here would duplicate it. Only data-only messages (no
+  // `notification` block) need to be shown manually.
+  if (message.notification != null) return;
+
+  final title = message.data['title']?.toString() ?? '';
+  final body = message.data['body']?.toString() ?? '';
   final imageUrl =
-      message.notification?.android?.imageUrl ??
-      message.notification?.apple?.imageUrl ??
-      message.data['imageUrl']?.toString() ??
-      message.data['image_url']?.toString();
+      message.data['imageUrl']?.toString() ?? message.data['image_url']?.toString();
 
   if (title.isNotEmpty || body.isNotEmpty) {
     await NotificationService.showLocalNotification(
@@ -198,7 +200,10 @@ class NotificationService {
     );
 
     await _localNotifications.show(
-      id: DateTime.now().millisecond,
+      // millisecond alone only ranges 0-999 and can collide; use a
+      // wrapped epoch-ms value so each notification gets a distinct id
+      // instead of silently replacing an unrelated one.
+      id: DateTime.now().millisecondsSinceEpoch.remainder(0x7FFFFFFF),
       title: title,
       body: body,
       notificationDetails: notificationDetails,

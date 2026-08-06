@@ -773,10 +773,10 @@ class _ScheduleEventContentState extends State<ScheduleEventContent> {
                   builder: (context, state) {
                     return Row(
                       children: [
-                        Icon(Icons.info_outline_rounded, size: 14, color: AppColors.textMuted.withValues(alpha: 0.8)),
-                        const SizedBox(width: 6),
-                        Text('All changes are automatically saved to draft.',
-                            style: TextStyle(fontSize: 12, color: AppColors.textMuted.withValues(alpha: 0.8))),
+                        // Icon(Icons.info_outline_rounded, size: 14, color: AppColors.textMuted.withValues(alpha: 0.8)),
+                        // const SizedBox(width: 6),
+                        // Text('All changes are automatically saved to draft.',
+                        //     style: TextStyle(fontSize: 12, color: AppColors.textMuted.withValues(alpha: 0.8))),
                         const Spacer(),
                         TextButton(
                           onPressed: widget.onBackToEvents,

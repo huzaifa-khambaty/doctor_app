@@ -190,20 +190,19 @@ class HeaderBar extends StatelessWidget {
               child: Row(
                 children: [
                   AppNetworkImage(
-                    imageUrl: "",
-                    width: 30,
-                    height: 30,
-                    isCircle: true,
-                    errorWidget: CircleAvatar(
-                      backgroundColor: AppColors.white,
-                      radius: 16,
-                      child: Icon(
-                        Icons.person,
-                        size: 22,
-                        color: AppColors.primary,
-                      ),
+                  imageUrl: user?.photoUrl,
+                  width: 30,
+                  height: 30,
+                  isCircle: true,
+                  errorWidget: CircleAvatar(
+                    backgroundColor: AppColors.white,
+                    child: Icon(
+                      Icons.person,
+                      size: 32,
+                      color: AppColors.primary,
                     ),
                   ),
+                ),
                   SizedBox(width: 8),
                   Text(
                     user?.name ?? 'Admin',
