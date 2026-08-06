@@ -25,4 +25,5 @@ class RouterStrings {
   static String queryChat = '/queryChat';
   static String articleReaderView = '/articleReaderView';
   static String profileView = '/profileView';
+  static String notifications = '/notifications';
 }

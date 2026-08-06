@@ -16,6 +16,7 @@ import 'package:respilink_mobile/features/dashboard/presentation/pages/topic_qui
 import 'package:respilink_mobile/features/events/presentation/pages/conference_detail_view.dart';
 import 'package:respilink_mobile/features/events/presentation/pages/webinar_detail_view.dart';
 import 'package:respilink_mobile/features/events/presentation/pages/workshop_detail_view.dart';
+import 'package:respilink_mobile/features/notifications/presentation/pages/notifications_view.dart';
 import 'package:respilink_mobile/features/onboarding/presentation/pages/onboarding_view.dart';
 import 'package:respilink_mobile/features/quiz/presentation/pages/leaderboard_view.dart';
 import 'package:respilink_mobile/features/quiz/presentation/pages/quiz_play_view.dart';
@@ -151,6 +152,10 @@ class RouterConfiguration {
       GoRoute(
         path: RouterStrings.profileView,
         builder: (context, state) => const ProfileView(),
+      ),
+      GoRoute(
+        path: RouterStrings.notifications,
+        builder: (context, state) => const NotificationsView(),
       ),
     ],
   );

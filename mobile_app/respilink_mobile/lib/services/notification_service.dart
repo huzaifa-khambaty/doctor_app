@@ -78,7 +78,7 @@ class NotificationService {
     // ✅ 4. App opened from a notification (background → foreground)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint("Notification tapped (from background): ${message.data}");
-      //locator<NavigationService>().navigateAndRemove(RouterStrings.mainView);
+      locator<NavigationService>().navigateAndRemove(RouterStrings.dashboard);
     });
 
     // ✅ 5. App launched from terminated state via notification
@@ -179,8 +179,8 @@ class NotificationService {
     }
 
     final androidDetails = AndroidNotificationDetails(
-      'fayzehusayni',
-      'fayzehusayni Notifications',
+      'medsynapse',
+      'medsynapse Notifications',
       importance: Importance.max,
       priority: Priority.high,
       styleInformation: bigPictureStyle,

@@ -12,9 +12,7 @@ class AppNotificationBell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // TODO: navigate to the notification center once it exists.
-      },
+      onTap: () => locator<NavigationService>().navigate(RouterStrings.notifications),
       child: ValueListenableBuilder(
         valueListenable: GlobalNotifiers.notificationCountNotifier,
         builder: (context, count, child) {
