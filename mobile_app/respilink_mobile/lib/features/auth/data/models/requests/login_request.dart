@@ -13,7 +13,7 @@ class LoginRequest {
     return {
       'identifier': itsNumber,
       'password': password,
-      //'fcm_token': fcmToken,
+      'fcm_token': fcmToken,
     };
   }
 }

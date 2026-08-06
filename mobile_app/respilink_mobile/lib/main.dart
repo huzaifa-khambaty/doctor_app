@@ -12,7 +12,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
 );
   initDependencies();
-  //await NotificationService.initialize();
+  await NotificationService.initialize();
 
   SystemChrome.setPreferredOrientations([.portraitUp]);
   SystemChrome.setEnabledSystemUIMode(
