@@ -22,5 +22,6 @@ class UpdateSettingsRequest {
         if (appEmail != null) 'app_email': appEmail,
         if (timeZone != null) 'time_zone': timeZone,
         if (language != null) 'language': language,
+        '_method': 'PUT', // Indicate that this is an update operation
       };
 }

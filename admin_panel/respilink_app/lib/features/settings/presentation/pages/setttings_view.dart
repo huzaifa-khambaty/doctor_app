@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/settings/data/model/app_settings_model.dart';
@@ -11,7 +12,8 @@ import 'package:respilink_app/features/settings/presentation/bloc/settings_bloc.
 import 'package:respilink_app/features/settings/presentation/bloc/settings_event.dart';
 import 'package:respilink_app/features/settings/presentation/bloc/settings_state.dart';
 import 'package:respilink_app/injections.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:respilink_app/shared/widgets/app_network_image.dart';
+import 'package:respilink_app/shared/widgets/app_skeleton.dart';
 
 class SettingsContent extends StatefulWidget {
   const SettingsContent({super.key});
@@ -29,11 +31,13 @@ class _SettingsContentState extends State<SettingsContent> {
   String _selectedTimezone = 'EST';
   String _selectedLanguage = 'en';
 
+  bool _dataPopulated = false;
+
   Uint8List? _logoBytes;
   String? _logoName;
 
   static const _timezones = ['EST', 'PST', 'GMT', 'UTC', 'CST', 'IST'];
-  static const _languages = ['en', 'fr', 'de', 'es', 'ar'];
+  static const _languages = ['en'];
   static const _timezoneLabels = {
     'EST': 'EST (Eastern Standard Time)',
     'PST': 'PST (Pacific Standard Time)',
@@ -44,10 +48,6 @@ class _SettingsContentState extends State<SettingsContent> {
   };
   static const _languageLabels = {
     'en': 'English',
-    'fr': 'French',
-    'de': 'German',
-    'es': 'Spanish',
-    'ar': 'Arabic',
   };
 
   @override
@@ -113,25 +113,25 @@ class _SettingsContentState extends State<SettingsContent> {
     return BlocConsumer<SettingsBloc, SettingsState>(
       bloc: _bloc,
       listenWhen: (prev, curr) =>
-          (curr.saveSettingsSuccess && !prev.saveSettingsSuccess) ||
-          (curr.appSettings != prev.appSettings &&
-              curr.appSettings != null &&
-              !curr.isLoadingSettings) ||
-          (curr.error != null &&
-              curr.error != prev.error &&
-              !curr.isLoadingSettings &&
-              !curr.isSavingSettings),
+          prev.saveSettingsSuccess != curr.saveSettingsSuccess ||
+          prev.isLoadingSettings != curr.isLoadingSettings ||
+          prev.isSavingSettings != curr.isSavingSettings ||
+          prev.error != curr.error,
       listener: (context, state) {
+        if (!_dataPopulated && state.appSettings != null && !state.isLoadingSettings) {
+          _dataPopulated = true;
+          _populate(state.appSettings!);
+        }
         if (state.saveSettingsSuccess) {
           setState(() => _logoBytes = null);
           SnackbarUtil.showSnackbar(context, message: 'Settings saved successfully');
-        } else if (state.appSettings != null && !state.isLoadingSettings) {
-          _populate(state.appSettings!);
-        } else if (state.error != null) {
+        }
+        if (state.error != null && !state.isLoadingSettings && !state.isSavingSettings) {
           SnackbarUtil.showSnackbar(context, message: state.error!, isError: true);
         }
       },
       builder: (context, state) {
+        final showShimmer = state.isLoadingSettings && state.appSettings == null;
         return Padding(
           padding: const EdgeInsets.all(32.0),
           child: SingleChildScrollView(
@@ -174,9 +174,9 @@ class _SettingsContentState extends State<SettingsContent> {
                 ),
                 const SizedBox(height: 24),
 
-                if (state.isLoadingSettings)
-                  const _SettingsShimmer()
-                else ...[
+                if (showShimmer) ...[
+                  _SettingsShimmer(),
+                ] else ...[
                   // Platform Identity Card
                   Container(
                     width: double.infinity,
@@ -516,11 +516,11 @@ class _SettingsContentState extends State<SettingsContent> {
         onTap: _pickLogo,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            existingLogoUrl,
+          child: AppNetworkImage(
+            imageUrl: "${ApiEndpoints.imageUrl}$existingLogoUrl",
             height: 120,
             fit: BoxFit.contain,
-            errorBuilder: (_, e, s) => _dashedUploadArea(),
+            errorWidget: _dashedUploadArea(),
           ),
         ),
       );
@@ -581,141 +581,116 @@ class _SettingsContentState extends State<SettingsContent> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _SettingsShimmer extends StatelessWidget {
-  const _SettingsShimmer();
-
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade50,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Platform Identity card skeleton
-          _cardSkeleton(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _box(width: 160, height: 16),
-                const SizedBox(height: 8),
-                _box(width: 280, height: 12),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _box(width: 80, height: 12),
-                          const SizedBox(height: 8),
-                          _box(height: 42),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _box(width: 100, height: 12),
-                          const SizedBox(height: 8),
-                          _box(height: 42),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _box(width: 90, height: 12),
-                const SizedBox(height: 8),
-                _box(height: 100),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Regional Settings card skeleton
-          _cardSkeleton(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _box(width: 140, height: 16),
-                const SizedBox(height: 8),
-                _box(width: 260, height: 12),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _box(width: 110, height: 12),
-                          const SizedBox(height: 8),
-                          _box(height: 42),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _box(width: 70, height: 12),
-                          const SizedBox(height: 8),
-                          _box(height: 42),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Footer buttons skeleton
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _box(width: 130, height: 44),
-              const SizedBox(width: 12),
-              _box(width: 120, height: 44),
+              const AppSkeleton.textBar(width: 140, height: 16),
+              const SizedBox(height: 8),
+              const AppSkeleton.textBar(width: 260, height: 12),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppSkeleton.textBar(width: 70, height: 12),
+                        const SizedBox(height: 8),
+                        const AppSkeleton(width: double.infinity, height: 42),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppSkeleton.textBar(width: 90, height: 12),
+                        const SizedBox(height: 8),
+                        const AppSkeleton(width: double.infinity, height: 42),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const AppSkeleton.textBar(width: 80, height: 12),
+              const SizedBox(height: 8),
+              const AppSkeleton(width: double.infinity, height: 120),
             ],
           ),
-          const SizedBox(height: 24),
-        ],
-      ),
+        ),
+        const SizedBox(height: 20),
+        _card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AppSkeleton.textBar(width: 140, height: 16),
+              const SizedBox(height: 8),
+              const AppSkeleton.textBar(width: 300, height: 12),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppSkeleton.textBar(width: 110, height: 12),
+                        const SizedBox(height: 8),
+                        const AppSkeleton(width: double.infinity, height: 42),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppSkeleton.textBar(width: 70, height: 12),
+                        const SizedBox(height: 8),
+                        const AppSkeleton(width: double.infinity, height: 42),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            const AppSkeleton(width: 130, height: 44),
+            const SizedBox(width: 12),
+            const AppSkeleton(width: 120, height: 44),
+          ],
+        ),
+        const SizedBox(height: 24),
+      ],
     );
   }
 
-  Widget _cardSkeleton({required Widget child}) {
+  Widget _card({required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: child,
     );
   }
-
-  Widget _box({double? width, required double height}) {
-    return Container(
-      width: width ?? double.infinity,
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-  }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _DashedRectPainter extends CustomPainter {
   final Color color;

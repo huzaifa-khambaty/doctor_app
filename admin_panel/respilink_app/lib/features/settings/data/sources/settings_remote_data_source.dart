@@ -143,9 +143,9 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
           filename: request.logoName ?? 'logo.png',
         ),
       });
-      return _client.upload(
+      return _client.post(
         ApiEndpoints.settings,
-        formData: formData,
+        data: formData,
         fromJson: parse,
       );
     }
