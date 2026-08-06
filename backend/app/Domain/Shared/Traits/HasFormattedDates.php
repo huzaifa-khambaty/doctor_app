@@ -14,6 +14,6 @@ trait HasFormattedDates
      */
     protected function serializeDate(DateTimeInterface $date)
     {
-        return $date->setTimezone(config('app.timezone'))->format('Y-m-d h:i:s A');
+        return $date->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s');
     }
 }

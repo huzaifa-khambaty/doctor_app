@@ -3,10 +3,12 @@
 namespace App\Domain\Admin\Http\Controllers\Api;
 
 use App\Domain\Admin\Models\Admin;
+use App\Domain\Admin\Http\Resources\AdminResource;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
@@ -50,6 +52,7 @@ class AdminController extends Controller
             'status' => 'nullable|in:active,inactive',
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,name',
+            'photo' => 'nullable|image|max:2048',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -57,18 +60,20 @@ class AdminController extends Controller
             $validated['status'] = 'active';
         }
 
+        if ($request->hasFile('photo')) {
+            $validated['photo_path'] = $request->file('photo')->store('admins', 'public');
+        }
+        unset($validated['photo']);
+
         $admin = Admin::create($validated);
 
         if (!empty($validated['roles'])) {
             $admin->assignRole($validated['roles']);
         }
 
-        $admin->load('roles');
-        $admin->roles->makeHidden('pivot');
-
         return response()->json([
             'message' => 'Admin created successfully.',
-            'admin' => $admin
+            'admin' => new AdminResource($admin->load('roles')),
         ], 201);
     }
 
@@ -76,10 +81,7 @@ class AdminController extends Controller
     {
         Gate::authorize('admins.view');
 
-        $admin->load('roles');
-        $admin->roles->makeHidden('pivot');
-
-        return response()->json($admin);
+        return new AdminResource($admin->load('roles'));
     }
 
     public function update(Request $request, Admin $admin)
@@ -89,17 +91,19 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('admins')->ignore($admin->id)],
-            'password' => 'nullable|string|min:8|confirmed',
             'status' => 'sometimes|required|in:active,inactive',
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,name',
+            'photo' => 'nullable|image|max:2048',
         ]);
 
-        if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        } else {
-            unset($validated['password']);
+        if ($request->hasFile('photo')) {
+            if ($admin->photo_path) {
+                Storage::disk('public')->delete($admin->photo_path);
+            }
+            $validated['photo_path'] = $request->file('photo')->store('admins', 'public');
         }
+        unset($validated['photo']);
 
         $admin->update($validated);
 
@@ -107,13 +111,28 @@ class AdminController extends Controller
             $admin->syncRoles($validated['roles']);
         }
 
-        $admin->load('roles');
-        $admin->roles->makeHidden('pivot');
-
         return response()->json([
             'message' => 'Admin updated successfully.',
-            'admin' => $admin
+            'admin' => new AdminResource($admin->load('roles')),
         ]);
+    }
+
+    public function changePassword(Request $request, Admin $admin)
+    {
+        Gate::authorize('admins.edit');
+
+        $validated = $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if (!Hash::check($validated['current_password'], $admin->password)) {
+            return response()->json(['message' => 'Current password is incorrect.'], 422);
+        }
+
+        $admin->update(['password' => Hash::make($validated['password'])]);
+
+        return response()->json(['message' => 'Password changed successfully.']);
     }
 
     public function destroy(Admin $admin)

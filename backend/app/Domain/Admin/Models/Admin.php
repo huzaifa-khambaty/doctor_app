@@ -20,6 +20,7 @@ class Admin extends Authenticatable
     protected $fillable = [
         'uuid',
         'name',
+        'photo_path',
         'email',
         'password',
         'status',
