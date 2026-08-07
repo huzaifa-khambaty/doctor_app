@@ -9,6 +9,7 @@ import 'package:respilink_mobile/features/auth/data/models/requests/otp_request.
 import 'package:respilink_mobile/features/auth/data/models/requests/register_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/resent_otp_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/reset_password_request.dart';
+import 'package:respilink_mobile/features/auth/data/models/privacy_policy_model.dart';
 import 'package:respilink_mobile/features/auth/data/models/specialities_model.dart';
 
 import '../../../../core/network/models/api_response.dart';
@@ -34,6 +35,8 @@ abstract class AuthRemoteDataSource {
   Future<ApiResponse<void>> forgetPassword(ForgetPasswordRequest request);
 
   Future<ApiResponse<List<SpecialitiesModel>>> specialities();
+
+  Future<ApiResponse<PrivacyPolicyModel>> getPrivacyPolicy();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -67,7 +70,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<ApiResponse<Doctor>> verifyOtp(OtpRequest request) async {
-    print(request.toJson());
     return _client.post(
       ApiEndpoints.otpVerify,
       data: request.toJson(),
@@ -155,6 +157,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             .map((e) => SpecialitiesModel.fromJson(e as Map<String, dynamic>))
             .toList();
       },
+    );
+  }
+
+  @override
+  Future<ApiResponse<PrivacyPolicyModel>> getPrivacyPolicy() async {
+    return _client.get(
+      ApiEndpoints.privacy,
+      fromJson: (json) =>
+          PrivacyPolicyModel.fromJson(json as Map<String, dynamic>),
     );
   }
 }

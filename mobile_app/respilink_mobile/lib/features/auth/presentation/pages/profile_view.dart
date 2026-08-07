@@ -119,9 +119,9 @@ class ProfileView extends StatelessWidget {
                       _ProfileMenuItem(
                         icon: Icons.shield_outlined,
                         label: 'Privacy & Security',
-                        onTap: () {
-                          // TODO: navigate to the privacy & security screen once it exists.
-                        },
+                        onTap: () => locator<NavigationService>().navigate(
+                          RouterStrings.privacyPolicy,
+                        ),
                       ),
                       _ProfileMenuItem(
                         icon: Icons.help_outline,

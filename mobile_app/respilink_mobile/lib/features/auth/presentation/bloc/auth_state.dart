@@ -1,3 +1,4 @@
+import 'package:respilink_mobile/features/auth/data/models/privacy_policy_model.dart';
 import 'package:respilink_mobile/features/auth/data/models/specialities_model.dart';
 import 'package:respilink_mobile/features/auth/domain/models/user_model.dart';
 
@@ -76,4 +77,23 @@ class SpecialitiesFailed extends AuthState {
   String message;
 
   SpecialitiesFailed({required this.message});
+}
+
+/// Dedicated (not sharing AuthLoading/AuthFailed) so this fetch never gets
+/// mistaken for — or drowned out by — an unrelated flow on another page that
+/// still shares this same global AuthBloc.
+class PrivacyPolicyLoading extends AuthState {
+  PrivacyPolicyLoading();
+}
+
+class PrivacyPolicyLoaded extends AuthState {
+  final PrivacyPolicyModel policy;
+
+  PrivacyPolicyLoaded({required this.policy});
+}
+
+class PrivacyPolicyFailed extends AuthState {
+  final String message;
+
+  PrivacyPolicyFailed({required this.message});
 }

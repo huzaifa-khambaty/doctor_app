@@ -19,6 +19,8 @@ class ApiEndpoints {
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
   static const String notifications = '/notifications';
+  static const String privacy = '/legal/privacy';
+  static const String terms = 'legal/terms';
 
   static const String editProfile = '/profile';
   static const String me = '/auth/me';

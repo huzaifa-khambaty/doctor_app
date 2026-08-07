@@ -72,3 +72,7 @@ class ChangePasswordRequested extends AuthEvent {
 class SpecialitiesRequested extends AuthEvent {
   SpecialitiesRequested();
 }
+
+class PrivacyPolicyRequested extends AuthEvent {
+  PrivacyPolicyRequested();
+}

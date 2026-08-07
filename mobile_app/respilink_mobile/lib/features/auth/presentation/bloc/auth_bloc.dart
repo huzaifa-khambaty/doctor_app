@@ -20,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ForgetPasswordRequested>(_forgetPassword);
     on<ResetPasswordRequested>(_resetPassword);
     on<SpecialitiesRequested>(_specialities);
+    on<PrivacyPolicyRequested>(_privacyPolicy);
   }
 
   void _isUserLoggedIn(
@@ -179,6 +180,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(SpecialitiesLoaded(specialities: res.data ?? []));
     } else {
       emit(SpecialitiesFailed(message: res.fullErrorMessage));
+    }
+  }
+
+  void _privacyPolicy(
+    PrivacyPolicyRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(PrivacyPolicyLoading());
+
+    final res = await _repository.getPrivacyPolicy();
+
+    if (res.success && res.data != null) {
+      emit(PrivacyPolicyLoaded(policy: res.data!));
+    } else {
+      emit(PrivacyPolicyFailed(message: res.fullErrorMessage));
     }
   }
 }

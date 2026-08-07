@@ -7,6 +7,7 @@ import 'package:respilink_mobile/features/auth/data/models/requests/otp_request.
 import 'package:respilink_mobile/features/auth/data/models/requests/register_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/resent_otp_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/reset_password_request.dart';
+import 'package:respilink_mobile/features/auth/data/models/privacy_policy_model.dart';
 import 'package:respilink_mobile/features/auth/data/models/specialities_model.dart';
 import 'package:respilink_mobile/features/auth/data/sources/auth_local_manager.dart';
 import 'package:respilink_mobile/features/auth/domain/models/user_model.dart';
@@ -131,5 +132,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<ApiResponse<List<SpecialitiesModel>>> specialities() async {
     return _remoteDataSource.specialities();
+  }
+
+  @override
+  Future<ApiResponse<PrivacyPolicyModel>> getPrivacyPolicy() async {
+    return _remoteDataSource.getPrivacyPolicy();
   }
 }

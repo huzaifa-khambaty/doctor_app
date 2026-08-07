@@ -26,4 +26,5 @@ class RouterStrings {
   static String articleReaderView = '/articleReaderView';
   static String profileView = '/profileView';
   static String notifications = '/notifications';
+  static String privacyPolicy = '/privacyPolicy';
 }
