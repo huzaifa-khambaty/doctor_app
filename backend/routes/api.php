@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Domain\Doctor\Http\Controllers\Api\AuthController;
 use App\Domain\Doctor\Http\Controllers\Api\ProfileController;
 use App\Domain\Shared\Http\Controllers\Api\SpecialtyController;
+use App\Domain\Shared\Http\Controllers\Api\StaticPageController;
 use App\Domain\Doctor\Http\Controllers\Api\EventController;
 use App\Domain\Doctor\Http\Controllers\Api\QuizController;
 use App\Domain\Doctor\Http\Controllers\Api\BadgeController;
@@ -84,6 +85,11 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::get('specialties', [SpecialtyController::class, 'index']);
+
+    Route::controller(StaticPageController::class)->group(function () {
+        Route::get('legal/terms', 'terms');
+        Route::get('legal/privacy', 'privacy');
+    });
 
     Route::prefix('queries')->middleware(['auth:sanctum', 'ability:doctor'])->controller(DoctorQueryController::class)->group(function () {
         Route::get('categories', 'categories');
