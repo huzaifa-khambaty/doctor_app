@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:respilink_app/core/network/api_endpoints.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/content/data/models/content_model.dart';
@@ -1352,9 +1353,12 @@ final class _TextEditorBlock extends _EditorBlock {
 }
 
 final class _ImageEditorBlock extends _EditorBlock {
-  final Uint8List bytes;
-  final String mimeType;
-  _ImageEditorBlock(this.bytes, this.mimeType);
+  final Uint8List? bytes;
+  final String? mimeType;
+  final String? src;
+
+  _ImageEditorBlock.upload(this.bytes, this.mimeType) : src = null;
+  _ImageEditorBlock.url(this.src) : bytes = null, mimeType = null;
 }
 
 class _DescriptionController extends ChangeNotifier {
@@ -1375,16 +1379,21 @@ class _DescriptionController extends ChangeNotifier {
     for (final b in _blocks) {
       if (b is _TextEditorBlock) buf.write(b.ctrl.toHtml());
       if (b is _ImageEditorBlock) {
-        buf.write(
-          '<img src="data:${b.mimeType};base64,${base64Encode(b.bytes)}">',
-        );
+        final src = b.src;
+        if (src != null) {
+          buf.write('<img src="$src">');
+        } else {
+          buf.write(
+            '<img src="data:${b.mimeType};base64,${base64Encode(b.bytes!)}">',
+          );
+        }
       }
     }
     return buf.toString();
   }
 
   void insertImageAfter(int blockIndex, Uint8List bytes, String mimeType) {
-    _blocks.insert(blockIndex + 1, _ImageEditorBlock(bytes, mimeType));
+    _blocks.insert(blockIndex + 1, _ImageEditorBlock.upload(bytes, mimeType));
     if (blockIndex + 2 >= _blocks.length ||
         _blocks[blockIndex + 2] is _ImageEditorBlock) {
       _blocks.insert(blockIndex + 2, _TextEditorBlock());
@@ -1420,20 +1429,33 @@ class _DescriptionController extends ChangeNotifier {
   void _loadFromHtml(String html) {
     if (html.trim().isEmpty) return;
     final re = RegExp(
-      r'<img\b[^>]*src="data:([^;]+);base64,([A-Za-z0-9+/=\s]+)"[^>]*>',
+      r'<img\b[^>]*src="([^"]+)"[^>]*>',
       caseSensitive: false,
     );
     int lastEnd = 0;
     for (final m in re.allMatches(html)) {
       _blocks.add(_TextEditorBlock(html.substring(lastEnd, m.start)));
-      try {
-        _blocks.add(
-          _ImageEditorBlock(
-            base64Decode(m.group(2)!.replaceAll(RegExp(r'\s'), '')),
-            m.group(1)!,
-          ),
-        );
-      } catch (_) {}
+      final src = m.group(1)!;
+      if (src.toLowerCase().startsWith('data:')) {
+        final dataMatch = RegExp(
+          r'data:([^;]+);base64,([A-Za-z0-9+/=\s]+)',
+          caseSensitive: false,
+        ).firstMatch(src);
+        if (dataMatch != null) {
+          try {
+            _blocks.add(
+              _ImageEditorBlock.upload(
+                base64Decode(
+                  dataMatch.group(2)!.replaceAll(RegExp(r'\s'), ''),
+                ),
+                dataMatch.group(1)!,
+              ),
+            );
+          } catch (_) {}
+        }
+      } else {
+        _blocks.add(_ImageEditorBlock.url(src));
+      }
       lastEnd = m.end;
     }
     _blocks.add(_TextEditorBlock(html.substring(lastEnd)));
@@ -1948,6 +1970,14 @@ class _BlockEditorFieldState extends State<_BlockEditorField> {
     );
   }
 
+  String _resolveImageSrc(String src) {
+    if (src.startsWith('http://') || src.startsWith('https://')) return src;
+    if (src.startsWith('/storage/')) {
+      return '${ApiEndpoints.imageUrl}${src.substring('/storage/'.length)}';
+    }
+    return src;
+  }
+
   Widget _buildImageBlock(int index, _ImageEditorBlock block) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 4, 14, 4),
@@ -1962,7 +1992,12 @@ class _BlockEditorFieldState extends State<_BlockEditorField> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(7),
-              child: Image.memory(block.bytes, fit: BoxFit.contain),
+              child: block.src != null
+                  ? AppNetworkImage(
+                      imageUrl: _resolveImageSrc(block.src!),
+                      fit: BoxFit.contain,
+                    )
+                  : Image.memory(block.bytes!, fit: BoxFit.contain),
             ),
           ),
           GestureDetector(

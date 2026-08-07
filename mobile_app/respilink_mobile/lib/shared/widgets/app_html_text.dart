@@ -1,6 +1,26 @@
+import 'package:respilink_mobile/core/network/api_endpoints.dart';
 import 'package:respilink_mobile/shared/utils/html_utils.dart';
 
 import '../../exports.dart';
+
+const _localHosts = {'localhost', '127.0.0.1', '0.0.0.0'};
+
+/// Backend-authored content occasionally embeds image URLs pointing at
+/// `localhost` (or a bare/relative path) — meaningless from a device, since
+/// that always resolves to the device itself. Rewrite those to the app's
+/// actual configured storage host so the image still loads.
+String _normalizeImageSrc(String src) {
+  final uri = Uri.tryParse(src);
+  if (uri == null) return src;
+
+  final needsRehost = !uri.hasScheme || _localHosts.contains(uri.host);
+  if (!needsRehost) return src;
+
+  final imageHost = Uri.parse(ApiEndpoints.imageUrl);
+  return uri
+      .replace(scheme: imageHost.scheme, host: imageHost.host, port: imageHost.port)
+      .toString();
+}
 
 enum _BlockTag { h1, h2, h3, h4, h5, h6, p, li, img }
 
@@ -63,7 +83,7 @@ class AppHtmlText extends StatelessWidget {
     return [
       for (final match in matches)
         if (match.group(3) != null)
-          _HtmlBlock(_BlockTag.img, '', imageSrc: match.group(3))
+          _HtmlBlock(_BlockTag.img, '', imageSrc: _normalizeImageSrc(match.group(3)!))
         else
           _HtmlBlock(
             _BlockTag.values.firstWhere(

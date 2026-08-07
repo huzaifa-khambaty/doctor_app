@@ -5,7 +5,11 @@
     <application
         android:label="MedSynapse"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        android:usesCleartextTraffic="true">
+        <!-- The API/storage host is currently plain http (dev/staging backend).
+             Android 9+ blocks cleartext network traffic by default, which
+             silently fails every http image/API request without this. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

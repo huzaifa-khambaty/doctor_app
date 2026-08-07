@@ -122,6 +122,7 @@ class _ArticleReaderBody extends StatelessWidget {
                 }
 
                 final details = state.details;
+                  print("description ${details.body}");
                 final relatedArticles = [
                   for (final related in details.relatedContent ?? const <RelatedContent>[])
                     _mapRelated(related),
