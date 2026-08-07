@@ -170,13 +170,13 @@ class _QuizDirectoryContentState extends State<QuizDirectoryContent> {
               const SizedBox(height: 24),
               const _QuizMetricsGridSection(),
               const SizedBox(height: 28),
-              _QuizUtilityControlRow(
-                sortMode: _sortMode,
-                topicFilterId: _topicFilterId,
-                onSortChanged: (m) => setState(() => _sortMode = m),
-                onTopicFilterChanged: (id) => setState(() => _topicFilterId = id),
-              ),
-              const SizedBox(height: 16),
+              // _QuizUtilityControlRow(
+              //   sortMode: _sortMode,
+              //   topicFilterId: _topicFilterId,
+              //   onSortChanged: (m) => setState(() => _sortMode = m),
+              //   onTopicFilterChanged: (id) => setState(() => _topicFilterId = id),
+              // ),
+              // const SizedBox(height: 16),
               _QuizDirectoryListBlock(
                 onEditQuizClicked: widget.onEditQuizClicked,
                 searchQuery: _searchQuery,
@@ -625,7 +625,7 @@ class _QuizStatCard extends StatelessWidget {
 // Main quiz table
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _QuizDirectoryListBlock extends StatelessWidget {
+class _QuizDirectoryListBlock extends StatefulWidget {
   const _QuizDirectoryListBlock({
     required this.onEditQuizClicked,
     required this.searchQuery,
@@ -639,33 +639,103 @@ class _QuizDirectoryListBlock extends StatelessWidget {
   final int? topicFilterId;
 
   @override
+  State<_QuizDirectoryListBlock> createState() => _QuizDirectoryListBlockState();
+}
+
+class _QuizDirectoryListBlockState extends State<_QuizDirectoryListBlock> {
+  String _titleFilter = '';
+  String _topicFilter = '';
+  String _statusFilter = '';
+  String _questionsFilter = '';
+  String _participantsFilter = '';
+
+  String _resolvedStatusLabel(String? status) {
+    final s = (status ?? 'draft').toLowerCase();
+    if (s == 'live' || s == 'published') return 'Live';
+    if (s == 'completed' || s == 'closed') return 'Completed';
+    return 'Draft';
+  }
+
+  bool _matchesNumericFilter(String filter, int? value) {
+    final f = filter.trim();
+    if (f.isEmpty) return true;
+    if (value == null) return false;
+    if (f.startsWith('>=')) {
+      final n = int.tryParse(f.substring(2).trim());
+      return n != null && value >= n;
+    } else if (f.startsWith('<=')) {
+      final n = int.tryParse(f.substring(2).trim());
+      return n != null && value <= n;
+    } else if (f.startsWith('>')) {
+      final n = int.tryParse(f.substring(1).trim());
+      return n != null && value > n;
+    } else if (f.startsWith('<')) {
+      final n = int.tryParse(f.substring(1).trim());
+      return n != null && value < n;
+    } else {
+      final n = int.tryParse(f);
+      return n != null && value == n;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<QuizBloc, QuizState>(
       builder: (context, state) {
-        var quizzes = state.quizzes;
+        final allQuizzes = state.quizzes;
+        var quizzes = allQuizzes;
+
         if (!state.isLoadingQuizzes) {
-          if (searchQuery.isNotEmpty) {
+          // Top-level filters from parent.
+          if (widget.searchQuery.isNotEmpty) {
             quizzes = quizzes.where((q) {
-              return (q.title ?? '').toLowerCase().contains(searchQuery) ||
-                  (q.topic?.name ?? '').toLowerCase().contains(searchQuery);
+              return (q.title ?? '').toLowerCase().contains(widget.searchQuery) ||
+                  (q.topic?.name ?? '').toLowerCase().contains(widget.searchQuery);
             }).toList();
           }
-          if (topicFilterId != null) {
+          if (widget.topicFilterId != null) {
             quizzes = quizzes
-                .where((q) => q.topicId == topicFilterId)
+                .where((q) => q.topicId == widget.topicFilterId)
                 .toList();
           }
-          quizzes = switch (sortMode) {
+          quizzes = switch (widget.sortMode) {
             _SortMode.newest => (List.of(quizzes)
-              ..sort((a, b) =>
-                  (b.createdAt ?? '').compareTo(a.createdAt ?? ''))),
+              ..sort((a, b) => (b.createdAt ?? '').compareTo(a.createdAt ?? ''))),
             _SortMode.oldest => (List.of(quizzes)
-              ..sort((a, b) =>
-                  (a.createdAt ?? '').compareTo(b.createdAt ?? ''))),
+              ..sort((a, b) => (a.createdAt ?? '').compareTo(b.createdAt ?? ''))),
             _SortMode.alpha => (List.of(quizzes)
-              ..sort(
-                  (a, b) => (a.title ?? '').compareTo(b.title ?? ''))),
+              ..sort((a, b) => (a.title ?? '').compareTo(b.title ?? ''))),
           };
+
+          // Column-level filters.
+          if (_titleFilter.isNotEmpty) {
+            final q = _titleFilter.trim().toLowerCase();
+            quizzes = quizzes
+                .where((quiz) => (quiz.title ?? '').toLowerCase().contains(q))
+                .toList();
+          }
+          if (_topicFilter.isNotEmpty) {
+            final q = _topicFilter.trim().toLowerCase();
+            quizzes = quizzes
+                .where((quiz) => (quiz.topic?.name ?? '').toLowerCase().contains(q))
+                .toList();
+          }
+          if (_statusFilter.isNotEmpty) {
+            final q = _statusFilter.trim().toLowerCase();
+            quizzes = quizzes
+                .where((quiz) => _resolvedStatusLabel(quiz.status).toLowerCase().contains(q))
+                .toList();
+          }
+          if (_questionsFilter.isNotEmpty) {
+            quizzes = quizzes
+                .where((quiz) => _matchesNumericFilter(_questionsFilter, quiz.questionsCount))
+                .toList();
+          }
+          if (_participantsFilter.isNotEmpty) {
+            quizzes = quizzes
+                .where((quiz) => _matchesNumericFilter(_participantsFilter, quiz.participantsCount))
+                .toList();
+          }
         }
 
         return Container(
@@ -687,7 +757,7 @@ class _QuizDirectoryListBlock extends StatelessWidget {
                 },
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
-                  _headerRow(),
+                  _headerRow(allQuizzes),
                   if (state.isLoadingQuizzes)
                     ..._shimmerRows()
                   else if (quizzes.isEmpty)
@@ -699,7 +769,6 @@ class _QuizDirectoryListBlock extends StatelessWidget {
                         q,
                         state.actioningQuizId == q.id,
                         state.loadingAnalyticsForQuizId == q.id,
-                        onEditQuizClicked,
                       ),
                     ),
                 ],
@@ -715,26 +784,151 @@ class _QuizDirectoryListBlock extends StatelessWidget {
     );
   }
 
-  TableRow _headerRow() {
-    const style = TextStyle(
+  TableRow _headerRow(List<Data> allQuizzes) {
+    const headerStyle = TextStyle(
       fontSize: 11,
       fontWeight: FontWeight.bold,
       color: AppColors.textMuted,
+      letterSpacing: 0.3,
     );
-    const deco = BoxDecoration(
-      border: Border(bottom: BorderSide(color: AppColors.borderLight)),
-    );
-    return TableRow(
-      decoration: deco,
-      children: const [
-        Padding(padding: EdgeInsets.all(14), child: Text('Quiz Title', style: style)),
-        Padding(padding: EdgeInsets.all(14), child: Text('Topic', style: style)),
-        Padding(padding: EdgeInsets.all(14), child: Text('Questions', style: style)),
-        Padding(padding: EdgeInsets.all(14), child: Text('Status', style: style)),
-        Padding(padding: EdgeInsets.all(14), child: Text('Participants', style: style)),
+
+    InputDecoration inputDeco(String hint) => InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+          contentPadding: const EdgeInsets.fromLTRB(8, 6, 4, 6),
+          filled: true,
+          fillColor: Colors.white,
+          isDense: true,
+          suffixIcon: const Icon(Icons.arrow_drop_down, size: 18, color: AppColors.textMuted),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: AppColors.borderLight),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: AppColors.primary),
+          ),
+        );
+
+    Widget autoFilter({
+      required Iterable<String> options,
+      required void Function(String) setter,
+      required String hint,
+    }) =>
+        Autocomplete<String>(
+          optionsBuilder: (tv) {
+            if (tv.text.isEmpty) return options;
+            final q = tv.text.toLowerCase();
+            return options.where((o) => o.toLowerCase().contains(q));
+          },
+          onSelected: (val) => setState(() => setter(val)),
+          fieldViewBuilder: (ctx, ctrl, fn, _) => TextField(
+            controller: ctrl,
+            focusNode: fn,
+            onChanged: (v) => setState(() => setter(v)),
+            style: const TextStyle(fontSize: 12, color: AppColors.textDark),
+            decoration: inputDeco(hint),
+          ),
+        );
+
+    Widget numericFilter({
+      required void Function(String) setter,
+      required String hint,
+    }) =>
+        TextField(
+          onChanged: (v) => setState(() => setter(v)),
+          style: const TextStyle(fontSize: 12, color: AppColors.textDark),
+          keyboardType: TextInputType.text,
+          decoration: inputDeco(hint).copyWith(suffixIcon: null),
+        );
+
+    Widget cell({
+      required String label,
+      required Widget input,
+      CrossAxisAlignment align = CrossAxisAlignment.start,
+      EdgeInsetsGeometry padding = const EdgeInsets.fromLTRB(14, 10, 8, 8),
+    }) =>
         Padding(
-          padding: EdgeInsets.all(14),
-          child: Text('Actions', style: style, textAlign: TextAlign.right),
+          padding: padding,
+          child: Column(
+            crossAxisAlignment: align,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: headerStyle,
+                textAlign: align == CrossAxisAlignment.end ? TextAlign.right : TextAlign.left,
+              ),
+              const SizedBox(height: 6),
+              input,
+            ],
+          ),
+        );
+
+    final titleOptions = allQuizzes
+        .map((q) => q.title ?? '')
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    final topicOptions = allQuizzes
+        .map((q) => q.topic?.name ?? '')
+        .where((n) => n.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    const statusOptions = ['Live', 'Draft', 'Completed'];
+
+    return TableRow(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+      ),
+      children: [
+        cell(
+          label: 'QUIZ TITLE',
+          input: autoFilter(
+            options: titleOptions,
+            setter: (v) => _titleFilter = v,
+            hint: 'Search title…',
+          ),
+        ),
+        cell(
+          label: 'TOPIC',
+          input: autoFilter(
+            options: topicOptions,
+            setter: (v) => _topicFilter = v,
+            hint: 'Filter topic…',
+          ),
+        ),
+        cell(
+          label: 'QUESTIONS',
+          input: numericFilter(
+            setter: (v) => _questionsFilter = v,
+            hint: '>=',
+          ),
+        ),
+        cell(
+          label: 'STATUS',
+          input: autoFilter(
+            options: statusOptions,
+            setter: (v) => _statusFilter = v,
+            hint: 'Filter status…',
+          ),
+        ),
+        cell(
+          label: 'PARTICIPANTS',
+          input: numericFilter(
+            setter: (v) => _participantsFilter = v,
+            hint: '>=',
+          ),
+        ),
+        cell(
+          label: 'ACTIONS',
+          align: CrossAxisAlignment.end,
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+          input: const SizedBox.shrink(),
         ),
       ],
     );
@@ -800,7 +994,6 @@ class _QuizDirectoryListBlock extends StatelessWidget {
     Data quiz,
     bool isActioning,
     bool isAnalyticsLoading,
-    void Function(int quizId) onEditQuizClicked,
   ) {
     final status = quiz.status ?? 'draft';
     final statusLower = status.toLowerCase();
@@ -951,7 +1144,7 @@ class _QuizDirectoryListBlock extends StatelessWidget {
                 ),
                 splashRadius: 16,
                 tooltip: 'Edit',
-                onPressed: quiz.id != null ? () => onEditQuizClicked(quiz.id!) : null,
+                onPressed: quiz.id != null ? () => widget.onEditQuizClicked(quiz.id!) : null,
               ),
               if (isLive)
                 isAnalyticsLoading
@@ -1006,7 +1199,7 @@ class _QuizDirectoryListBlock extends StatelessWidget {
                   color: Colors.white,
                   elevation: 4,
                   onSelected: (action) =>
-                      _handleAction(context, action, quiz, onEditQuizClicked),
+                      _handleAction(context, action, quiz),
                   itemBuilder: (_) => [
                     if (!isLive && !isCompleted)
                       _menuItem(
@@ -1072,7 +1265,6 @@ class _QuizDirectoryListBlock extends StatelessWidget {
     BuildContext context,
     _QuizAction action,
     Data quiz,
-    void Function(int quizId) onEditQuizClicked,
   ) {
     if (quiz.id == null) return;
     switch (action) {
@@ -1087,7 +1279,7 @@ class _QuizDirectoryListBlock extends StatelessWidget {
             );
         break;
       case _QuizAction.edit:
-        onEditQuizClicked(quiz.id!);
+        widget.onEditQuizClicked(quiz.id!);
         break;
       case _QuizAction.delete:
         _confirmDelete(context, quiz);

@@ -248,8 +248,8 @@ class _EventManagementContentState extends State<EventManagementContent> {
               const SizedBox(height: 24),
               const _EventMetricsSection(),
               const SizedBox(height: 24),
-              const _EventTypeFiltersRow(),
-              const SizedBox(height: 20),
+              // const _EventTypeFiltersRow(),
+              // const SizedBox(height: 20),
               _EventDataTable(
                 onEventTapped: widget.onEventTapped,
                 searchQuery: _searchQuery,
@@ -810,7 +810,7 @@ class _FilterChip extends StatelessWidget {
 // Events Data Table
 // =========================================================================
 
-class _EventDataTable extends StatelessWidget {
+class _EventDataTable extends StatefulWidget {
   final void Function(Events) onEventTapped;
   final String searchQuery;
 
@@ -820,18 +820,62 @@ class _EventDataTable extends StatelessWidget {
   });
 
   @override
+  State<_EventDataTable> createState() => _EventDataTableState();
+}
+
+class _EventDataTableState extends State<_EventDataTable> {
+  String _titleFilter = '';
+  String _typeFilter = '';
+  String _dateFilter = '';
+  String _statusFilter = '';
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<EventsBloc, EventsState>(
       builder: (context, state) {
-        final all = state.events?.data ?? [];
-        final events = searchQuery.isEmpty
-            ? all
-            : all.where((e) {
-                final title = (e.title ?? '').toLowerCase();
-                final location = (e.location ?? '').toLowerCase();
-                return title.contains(searchQuery) ||
-                    location.contains(searchQuery);
-              }).toList();
+        final allEvents = state.events?.data ?? [];
+        var events = allEvents;
+
+        // Top-level search from parent.
+        if (widget.searchQuery.isNotEmpty) {
+          events = events.where((e) {
+            final title = (e.title ?? '').toLowerCase();
+            final location = (e.location ?? '').toLowerCase();
+            return title.contains(widget.searchQuery) ||
+                location.contains(widget.searchQuery);
+          }).toList();
+        }
+
+        // Column-level filters.
+        if (_titleFilter.isNotEmpty) {
+          final q = _titleFilter.trim().toLowerCase();
+          events = events
+              .where((e) =>
+                  (e.title ?? '').toLowerCase().contains(q) ||
+                  (e.location ?? '').toLowerCase().contains(q))
+              .toList();
+        }
+        if (_typeFilter.isNotEmpty) {
+          final q = _typeFilter.trim().toLowerCase();
+          events = events
+              .where((e) => (e.type ?? 'event').toLowerCase().contains(q))
+              .toList();
+        }
+        if (_dateFilter.isNotEmpty) {
+          final q = _dateFilter.trim();
+          events = events.where((e) {
+            final dt = e.startDateTime;
+            if (dt == null) return false;
+            return dt.year.toString().contains(q);
+          }).toList();
+        }
+        if (_statusFilter.isNotEmpty) {
+          final q = _statusFilter.trim().toLowerCase();
+          events = events
+              .where((e) => e.computedStatus.toLowerCase().contains(q))
+              .toList();
+        }
+
         final isLoading = state.isLoading;
 
         return Container(
@@ -852,14 +896,14 @@ class _EventDataTable extends StatelessWidget {
                 },
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
-                  _buildHeaderRow(),
+                  _buildHeaderRow(allEvents),
                   if (isLoading)
                     ..._buildSkeletonRows()
                   else if (events.isEmpty)
                     _buildEmptyRow()
                   else
                     ...events.map(
-                      (e) => _buildEventRow(context, e, state, onEventTapped),
+                      (e) => _buildEventRow(context, e, state),
                     ),
                 ],
               ),
@@ -874,36 +918,143 @@ class _EventDataTable extends StatelessWidget {
     );
   }
 
-  TableRow _buildHeaderRow() {
-    const style = TextStyle(
+  TableRow _buildHeaderRow(List<Events> allEvents) {
+    const headerStyle = TextStyle(
       fontSize: 11,
       fontWeight: FontWeight.bold,
       color: AppColors.textMuted,
+      letterSpacing: 0.3,
     );
-    return const TableRow(
-      decoration: BoxDecoration(
+
+    InputDecoration inputDeco(String hint) => InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+          contentPadding: const EdgeInsets.fromLTRB(8, 6, 4, 6),
+          filled: true,
+          fillColor: Colors.white,
+          isDense: true,
+          suffixIcon: const Icon(Icons.arrow_drop_down, size: 18, color: AppColors.textMuted),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: AppColors.borderLight),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: AppColors.primary),
+          ),
+        );
+
+    Widget autoFilter({
+      required Iterable<String> options,
+      required void Function(String) setter,
+      required String hint,
+    }) =>
+        Autocomplete<String>(
+          optionsBuilder: (tv) {
+            if (tv.text.isEmpty) return options;
+            final q = tv.text.toLowerCase();
+            return options.where((o) => o.toLowerCase().contains(q));
+          },
+          onSelected: (val) => setState(() => setter(val)),
+          fieldViewBuilder: (ctx, ctrl, fn, _) => TextField(
+            controller: ctrl,
+            focusNode: fn,
+            onChanged: (v) => setState(() => setter(v)),
+            style: const TextStyle(fontSize: 12, color: AppColors.textDark),
+            decoration: inputDeco(hint),
+          ),
+        );
+
+    Widget cell({
+      required String label,
+      required Widget input,
+      CrossAxisAlignment align = CrossAxisAlignment.start,
+      EdgeInsetsGeometry padding = const EdgeInsets.fromLTRB(16, 10, 8, 8),
+    }) =>
+        Padding(
+          padding: padding,
+          child: Column(
+            crossAxisAlignment: align,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: headerStyle,
+                textAlign: align == CrossAxisAlignment.end ? TextAlign.right : TextAlign.left,
+              ),
+              const SizedBox(height: 6),
+              input,
+            ],
+          ),
+        );
+
+    final titleOptions = allEvents
+        .map((e) => e.title ?? '')
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    final typeOptions = allEvents
+        .map((e) {
+          final t = e.type ?? 'event';
+          return t[0].toUpperCase() + t.substring(1);
+        })
+        .toSet()
+        .toList()
+      ..sort();
+
+    final yearOptions = allEvents
+        .map((e) => e.startDateTime?.year.toString() ?? '')
+        .where((y) => y.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    const statusOptions = ['Live', 'Upcoming', 'Ended'];
+
+    return TableRow(
+      decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.borderLight)),
       ),
       children: [
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('EVENT', style: style),
+        cell(
+          label: 'EVENT',
+          input: autoFilter(
+            options: titleOptions,
+            setter: (v) => _titleFilter = v,
+            hint: 'Search title…',
+          ),
         ),
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('TYPE', style: style),
+        cell(
+          label: 'TYPE',
+          input: autoFilter(
+            options: typeOptions,
+            setter: (v) => _typeFilter = v,
+            hint: 'Filter type…',
+          ),
         ),
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('DATE & TIME', style: style),
+        cell(
+          label: 'DATE & TIME',
+          input: autoFilter(
+            options: yearOptions,
+            setter: (v) => _dateFilter = v,
+            hint: 'Filter year…',
+          ),
         ),
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('STATUS', style: style),
+        cell(
+          label: 'STATUS',
+          input: autoFilter(
+            options: statusOptions,
+            setter: (v) => _statusFilter = v,
+            hint: 'Filter status…',
+          ),
         ),
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('ACTIONS', style: style, textAlign: TextAlign.right),
+        cell(
+          label: 'ACTIONS',
+          align: CrossAxisAlignment.end,
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+          input: const SizedBox.shrink(),
         ),
       ],
     );
@@ -913,7 +1064,6 @@ class _EventDataTable extends StatelessWidget {
     BuildContext context,
     Events e,
     EventsState state,
-    void Function(Events) onTap,
   ) {
     final status = e.computedStatus;
     final startDt = e.startDateTime;
@@ -1109,7 +1259,7 @@ class _EventDataTable extends StatelessWidget {
                   size: 18,
                   color: AppColors.textMuted,
                 ),
-                onPressed: () => onTap(e),
+                onPressed: () => widget.onEventTapped(e),
                 tooltip: 'View details',
               ),
               _EventRowMenu(event: e, state: state),

@@ -95,12 +95,12 @@ class _PractitionerManagementContentState
               const SizedBox(height: 24),
               const _PipelineMetricsGrid(),
               const SizedBox(height: 24),
-              _FilterControlsBar(
-                selectedSpecialtyId: _selectedSpecialtyId,
-                onSpecialtyChanged: (val) =>
-                    setState(() => _selectedSpecialtyId = val),
-              ),
-              const SizedBox(height: 20),
+              // _FilterControlsBar(
+              //   selectedSpecialtyId: _selectedSpecialtyId,
+              //   onSpecialtyChanged: (val) =>
+              //       setState(() => _selectedSpecialtyId = val),
+              // ),
+              //const SizedBox(height: 20),
               _PractitionerDataTable(
                 onUserTapped: widget.onUserTapped,
                 searchQuery: _searchQuery,
@@ -600,7 +600,7 @@ class _StatusFilterChip extends StatelessWidget {
 // Data Table with real data + pagination
 // =========================================================================
 
-class _PractitionerDataTable extends StatelessWidget {
+class _PractitionerDataTable extends StatefulWidget {
   const _PractitionerDataTable({
     required this.onUserTapped,
     required this.searchQuery,
@@ -612,28 +612,118 @@ class _PractitionerDataTable extends StatelessWidget {
   final String? selectedSpecialtyId;
 
   @override
+  State<_PractitionerDataTable> createState() => _PractitionerDataTableState();
+}
+
+class _PractitionerDataTableState extends State<_PractitionerDataTable> {
+  String? _sortColumn;
+  bool _sortAscending = true;
+  String _nameFilter = '';
+  String _specialtyFilter = '';
+  String _hospitalFilter = '';
+  String _statusFilter = '';
+  String _dateFilter = '';
+
+  void _toggleSort(String column) {
+    setState(() {
+      if (_sortColumn == column) {
+        _sortAscending = !_sortAscending;
+      } else {
+        _sortColumn = column;
+        _sortAscending = true;
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<PractionerBloc, PractionerState>(
       builder: (context, state) {
         var practitioners = state.practioners?.data ?? [];
 
-        // Client-side specialty filter.
-        if (selectedSpecialtyId != null) {
+        // Specialty filter (from filter bar above).
+        if (widget.selectedSpecialtyId != null) {
           practitioners = practitioners.where((p) {
             return (p.specialties ?? []).any(
-              (s) => s.id?.toString() == selectedSpecialtyId,
+              (s) => s.id?.toString() == widget.selectedSpecialtyId,
             );
           }).toList();
         }
 
-        // Client-side search filter.
-        if (searchQuery.isNotEmpty) {
+        // Top-level search (from search bar above).
+        if (widget.searchQuery.isNotEmpty) {
           practitioners = practitioners.where((p) {
             final name = (p.fullName ?? '').toLowerCase();
             final id = (p.uuid ?? p.id?.toString() ?? '').toLowerCase();
-            return name.contains(searchQuery) || id.contains(searchQuery);
+            return name.contains(widget.searchQuery) || id.contains(widget.searchQuery);
           }).toList();
         }
+
+        // Column-level name / ID filter.
+        final nameTerm = _nameFilter.trim().toLowerCase();
+        if (nameTerm.isNotEmpty) {
+          practitioners = practitioners.where((p) {
+            final name = (p.fullName ?? '').toLowerCase();
+            final id = (p.licenseNumber ?? p.uuid ?? p.id?.toString() ?? '').toLowerCase();
+            return name.contains(nameTerm) || id.contains(nameTerm);
+          }).toList();
+        }
+
+        // Column-level hospital filter.
+        final hospitalTerm = _hospitalFilter.trim().toLowerCase();
+        if (hospitalTerm.isNotEmpty) {
+          practitioners = practitioners.where((p) {
+            return (p.hospitalAffiliation ?? '').toLowerCase().contains(hospitalTerm);
+          }).toList();
+        }
+
+        // Column-level specialty filter.
+        final specialtyTerm = _specialtyFilter.trim().toLowerCase();
+        if (specialtyTerm.isNotEmpty) {
+          practitioners = practitioners.where((p) {
+            return (p.specialties ?? []).any(
+              (s) => (s.name ?? s.slug ?? '').toLowerCase().contains(specialtyTerm),
+            );
+          }).toList();
+        }
+
+        // Column-level status filter.
+        final statusTerm = _statusFilter.trim().toLowerCase();
+        if (statusTerm.isNotEmpty) {
+          practitioners = practitioners.where((p) {
+            return (p.status ?? '').toLowerCase().contains(statusTerm);
+          }).toList();
+        }
+
+        // Column-level date filter (matches year or full date string).
+        final dateTerm = _dateFilter.trim();
+        if (dateTerm.isNotEmpty) {
+          practitioners = practitioners.where((p) {
+            return (p.createdAt ?? '').contains(dateTerm);
+          }).toList();
+        }
+
+        // Column sort.
+        if (_sortColumn != null) {
+          practitioners = List.of(practitioners);
+          practitioners.sort((a, b) {
+            final int cmp;
+            switch (_sortColumn) {
+              case 'name':
+                cmp = (a.fullName ?? '').compareTo(b.fullName ?? '');
+              case 'hospital':
+                cmp = (a.hospitalAffiliation ?? '').compareTo(b.hospitalAffiliation ?? '');
+              case 'date':
+                cmp = (a.createdAt ?? '').compareTo(b.createdAt ?? '');
+              case 'status':
+                cmp = (a.status ?? '').compareTo(b.status ?? '');
+              default:
+                cmp = 0;
+            }
+            return _sortAscending ? cmp : -cmp;
+          });
+        }
+
         final isLoading = state.isLoadingPractioners;
 
         return Container(
@@ -655,7 +745,7 @@ class _PractitionerDataTable extends StatelessWidget {
                 },
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
-                  _buildHeaderRow(),
+                  _buildHeaderRow(state),
                   if (isLoading)
                     ..._buildSkeletonRows()
                   else if (practitioners.isEmpty)
@@ -674,78 +764,160 @@ class _PractitionerDataTable extends StatelessWidget {
     );
   }
 
-  TableRow _buildHeaderRow() {
-    return const TableRow(
-      decoration: BoxDecoration(
+  static const _headerStyle = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textMuted,
+    letterSpacing: 0.3,
+  );
+
+  TableRow _buildHeaderRow(PractionerState state) {
+    // Shared decoration for every input control in the header.
+    InputDecoration inputDeco(String hint) => InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+          contentPadding: const EdgeInsets.fromLTRB(8, 6, 4, 6),
+          filled: true,
+          fillColor: Colors.white,
+          isDense: true,
+          suffixIcon: const Icon(
+            Icons.arrow_drop_down,
+            size: 18,
+            color: AppColors.textMuted,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: AppColors.borderLight),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: AppColors.primary),
+          ),
+        );
+
+    // Searchable dropdown filter for all columns.
+    Widget autoFilter({
+      required Iterable<String> options,
+      required void Function(String) setter,
+      required String hint,
+    }) =>
+        Autocomplete<String>(
+          optionsBuilder: (tv) {
+            if (tv.text.isEmpty) return options;
+            final q = tv.text.toLowerCase();
+            return options.where((o) => o.toLowerCase().contains(q));
+          },
+          onSelected: (val) => setState(() => setter(val)),
+          fieldViewBuilder: (ctx, ctrl, fn, _) => TextField(
+            controller: ctrl,
+            focusNode: fn,
+            onChanged: (v) => setState(() => setter(v)),
+            style: const TextStyle(fontSize: 12, color: AppColors.textDark),
+            decoration: inputDeco(hint),
+          ),
+        );
+
+    // Every column cell shares this structure: label then filter input.
+    Widget cell({
+      required String label,
+      required Widget input,
+      CrossAxisAlignment align = CrossAxisAlignment.start,
+      EdgeInsetsGeometry padding = const EdgeInsets.fromLTRB(16, 10, 8, 8),
+    }) =>
+        Padding(
+          padding: padding,
+          child: Column(
+            crossAxisAlignment: align,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label, style: _headerStyle, textAlign: align == CrossAxisAlignment.end ? TextAlign.right : TextAlign.left),
+              const SizedBox(height: 6),
+              input,
+            ],
+          ),
+        );
+
+    // Options derived from BLoC state.
+    final allData = state.practioners?.data ?? [];
+
+    final nameOptions = allData
+        .map((p) => p.fullName ?? '')
+        .where((n) => n.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    final specialtyOptions = state.specialties
+        .map((s) => s.name ?? s.slug ?? '')
+        .where((n) => n.isNotEmpty)
+        .toList();
+
+    final hospitalOptions = allData
+        .map((p) => p.hospitalAffiliation ?? '')
+        .where((h) => h.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    final yearOptions = allData
+        .map((p) => (p.createdAt ?? '').length >= 4 ? p.createdAt!.substring(0, 4) : '')
+        .where((y) => y.isNotEmpty && int.tryParse(y) != null)
+        .toSet()
+        .toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    const statusOptions = ['Pending', 'Verified', 'Rejected'];
+
+    return TableRow(
+      decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.borderLight)),
       ),
       children: [
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            'PRACTITIONER',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
+        cell(
+          label: 'PRACTITIONER',
+          input: autoFilter(
+            options: nameOptions,
+            setter: (v) => _nameFilter = v,
+            hint: 'Search name…',
           ),
         ),
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            'SPECIALTY',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
+        cell(
+          label: 'SPECIALTY',
+          input: autoFilter(
+            options: specialtyOptions,
+            setter: (v) => _specialtyFilter = v,
+            hint: 'Search specialty…',
           ),
         ),
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            'HOSPITAL / FACILITY',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
+        cell(
+          label: 'HOSPITAL / FACILITY',
+          input: autoFilter(
+            options: hospitalOptions,
+            setter: (v) => _hospitalFilter = v,
+            hint: 'Search facility…',
           ),
         ),
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            'REG. DATE',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
+        cell(
+          label: 'REG. DATE',
+          input: autoFilter(
+            options: yearOptions,
+            setter: (v) => _dateFilter = v,
+            hint: 'Filter year…',
           ),
         ),
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            'STATUS',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
+        cell(
+          label: 'STATUS',
+          input: autoFilter(
+            options: statusOptions,
+            setter: (v) => _statusFilter = v,
+            hint: 'Filter status…',
           ),
         ),
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            'ACTIONS',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textMuted,
-            ),
-            textAlign: TextAlign.right,
-          ),
+        cell(
+          label: 'ACTIONS',
+          align: CrossAxisAlignment.end,
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+          input: const SizedBox.shrink(),
         ),
       ],
     );
@@ -1062,7 +1234,7 @@ class _PractitionerDataTable extends StatelessWidget {
                     size: 18,
                     color: AppColors.textMuted,
                   ),
-                  onPressed: () => onUserTapped(p),
+                  onPressed: () => widget.onUserTapped(p),
                   tooltip: 'View Details',
                 ),
                 _PractitionerRowMenu(
@@ -1201,6 +1373,51 @@ class _PractitionerRowMenu extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+// =========================================================================
+// Sort arrows widget — used in the table header
+// =========================================================================
+
+class _SortArrows extends StatelessWidget {
+  const _SortArrows({
+    required this.isActive,
+    required this.ascending,
+    required this.onTap,
+  });
+
+  final bool isActive;
+  final bool ascending;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.arrow_drop_up,
+              size: 14,
+              color: isActive && ascending
+                  ? AppColors.primary
+                  : AppColors.textMuted.withValues(alpha: 0.35),
+            ),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 14,
+              color: isActive && !ascending
+                  ? AppColors.primary
+                  : AppColors.textMuted.withValues(alpha: 0.35),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

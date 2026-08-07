@@ -36,15 +36,10 @@ class _SettingsContentState extends State<SettingsContent> {
   Uint8List? _logoBytes;
   String? _logoName;
 
-  static const _timezones = ['EST', 'PST', 'GMT', 'UTC', 'CST', 'IST'];
+  static const _timezones = ['EST'];
   static const _languages = ['en'];
   static const _timezoneLabels = {
     'EST': 'EST (Eastern Standard Time)',
-    'PST': 'PST (Pacific Standard Time)',
-    'GMT': 'GMT (Greenwich Mean Time)',
-    'UTC': 'UTC (Coordinated Universal Time)',
-    'CST': 'CST (Central Standard Time)',
-    'IST': 'IST (India Standard Time)',
   };
   static const _languageLabels = {
     'en': 'English',

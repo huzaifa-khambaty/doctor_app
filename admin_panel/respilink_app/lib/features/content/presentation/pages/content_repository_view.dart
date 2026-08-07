@@ -36,6 +36,13 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
   final TextEditingController _searchCtrl = TextEditingController();
   Timer? _debounce;
 
+  // Column-level filters (client-side, applied to the current loaded page).
+  String _titleFilter = '';
+  String _typeFilter = '';
+  String _topicFilter = '';
+  String _dateFilter = '';
+  String _statusColFilter = '';
+
   @override
   void initState() {
     super.initState();
@@ -231,21 +238,21 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
               ),
               const SizedBox(width: 12),
             ],
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.borderLight),
-              ),
-              child: Row(
-                children: [
-                  _FilterChip(label: 'All', isActive: _activeStatus == null, onTap: () => _onFilterChanged(null)),
-                  _FilterChip(label: 'Drafts', isActive: _activeStatus == 'draft', onTap: () => _onFilterChanged('draft')),
-                  _FilterChip(label: 'Published', isActive: _activeStatus == 'published', onTap: () => _onFilterChanged('published')),
-                ],
-              ),
-            ),
+            // Container(
+            //   padding: const EdgeInsets.all(4),
+            //   decoration: BoxDecoration(
+            //     color: Colors.white,
+            //     borderRadius: BorderRadius.circular(8),
+            //     border: Border.all(color: AppColors.borderLight),
+            //   ),
+            //   child: Row(
+            //     children: [
+            //       _FilterChip(label: 'All', isActive: _activeStatus == null, onTap: () => _onFilterChanged(null)),
+            //       _FilterChip(label: 'Drafts', isActive: _activeStatus == 'draft', onTap: () => _onFilterChanged('draft')),
+            //       _FilterChip(label: 'Published', isActive: _activeStatus == 'published', onTap: () => _onFilterChanged('published')),
+            //     ],
+            //   ),
+            // ),
           ],
         ),
       ],
@@ -276,7 +283,43 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
 
   // ── Table ──────────────────────────────────────────────────────────────────
 
-  Widget _buildTable(ContentState state, List<Data> items, Contents? contents) {
+  Widget _buildTable(ContentState state, List<Data> allItems, Contents? contents) {
+    // Apply column-level filters on top of the server-returned page.
+    var items = allItems;
+
+    if (_titleFilter.isNotEmpty) {
+      final q = _titleFilter.trim().toLowerCase();
+      items = items.where((i) => (i.title ?? '').toLowerCase().contains(q)).toList();
+    }
+    if (_typeFilter.isNotEmpty) {
+      final q = _typeFilter.trim().toLowerCase();
+      items = items.where((i) {
+        final label = (i.type?.name ?? _typeLabel(i.type?.id ?? i.typeId)).toLowerCase();
+        return label.contains(q);
+      }).toList();
+    }
+    if (_topicFilter.isNotEmpty) {
+      final q = _topicFilter.trim().toLowerCase();
+      items = items.where((i) {
+        final specialty = i.specialties?.isNotEmpty == true
+            ? (i.specialties!.first.name ?? '').toLowerCase()
+            : '';
+        return specialty.contains(q);
+      }).toList();
+    }
+    if (_dateFilter.isNotEmpty) {
+      final q = _dateFilter.trim();
+      items = items
+          .where((i) => (i.createdAt ?? '').contains(q))
+          .toList();
+    }
+    if (_statusColFilter.isNotEmpty) {
+      final q = _statusColFilter.trim().toLowerCase();
+      items = items
+          .where((i) => _statusLabel(i.status).toLowerCase().contains(q))
+          .toList();
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBg,
@@ -296,7 +339,7 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
             },
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             children: [
-              _headerRow(),
+              _headerRow(allItems),
               if (state.isLoadingContents)
                 ..._skeletonRows()
               else
@@ -333,17 +376,157 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
     );
   }
 
-  TableRow _headerRow() {
-    const style = TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textMuted);
-    return const TableRow(
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.borderLight))),
+  TableRow _headerRow(List<Data> allItems) {
+    const headerStyle = TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.bold,
+      color: AppColors.textMuted,
+      letterSpacing: 0.3,
+    );
+
+    // Shared compact decoration for every filter input.
+    InputDecoration inputDeco(String hint) => InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+          contentPadding: const EdgeInsets.fromLTRB(8, 6, 4, 6),
+          filled: true,
+          fillColor: Colors.white,
+          isDense: true,
+          suffixIcon: const Icon(Icons.arrow_drop_down, size: 18, color: AppColors.textMuted),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: AppColors.borderLight),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: AppColors.primary),
+          ),
+        );
+
+    // Searchable autocomplete dropdown used for every column.
+    Widget autoFilter({
+      required Iterable<String> options,
+      required void Function(String) setter,
+      required String hint,
+    }) =>
+        Autocomplete<String>(
+          optionsBuilder: (tv) {
+            if (tv.text.isEmpty) return options;
+            final q = tv.text.toLowerCase();
+            return options.where((o) => o.toLowerCase().contains(q));
+          },
+          onSelected: (val) => setState(() => setter(val)),
+          fieldViewBuilder: (ctx, ctrl, fn, _) => TextField(
+            controller: ctrl,
+            focusNode: fn,
+            onChanged: (v) => setState(() => setter(v)),
+            style: const TextStyle(fontSize: 12, color: AppColors.textDark),
+            decoration: inputDeco(hint),
+          ),
+        );
+
+    // Uniform cell: label on top, filter input below.
+    Widget cell({
+      required String label,
+      required Widget input,
+      CrossAxisAlignment align = CrossAxisAlignment.start,
+      EdgeInsetsGeometry padding = const EdgeInsets.fromLTRB(16, 10, 8, 8),
+    }) =>
+        Padding(
+          padding: padding,
+          child: Column(
+            crossAxisAlignment: align,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: headerStyle,
+                textAlign: align == CrossAxisAlignment.end ? TextAlign.right : TextAlign.left,
+              ),
+              const SizedBox(height: 6),
+              input,
+            ],
+          ),
+        );
+
+    // Build option lists from the current page's data.
+    final titleOptions = allItems
+        .map((i) => i.title ?? '')
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    const typeOptions = ['PDF', 'Article', 'Webinar', 'Quiz'];
+
+    final topicOptions = allItems
+        .expand((i) => i.specialties ?? [])
+        .map<String>((s) => s.name ?? '')
+        .where((n) => n.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    final yearOptions = allItems
+        .map((i) => (i.createdAt ?? '').length >= 4 ? i.createdAt!.substring(0, 4) : '')
+        .where((y) => y.isNotEmpty && int.tryParse(y) != null)
+        .toSet()
+        .toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    const statusOptions = ['Published', 'In Review', 'Draft'];
+
+    return TableRow(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+      ),
       children: [
-        Padding(padding: EdgeInsets.all(16), child: Text('TITLE', style: style)),
-        Padding(padding: EdgeInsets.all(16), child: Text('TYPE', style: style)),
-        Padding(padding: EdgeInsets.all(16), child: Text('TOPIC', style: style)),
-        Padding(padding: EdgeInsets.all(16), child: Text('DATE CREATED', style: style)),
-        Padding(padding: EdgeInsets.all(16), child: Text('STATUS', style: style)),
-        Padding(padding: EdgeInsets.all(16), child: SizedBox()),
+        cell(
+          label: 'TITLE',
+          input: autoFilter(
+            options: titleOptions,
+            setter: (v) => _titleFilter = v,
+            hint: 'Search title…',
+          ),
+        ),
+        cell(
+          label: 'TYPE',
+          input: autoFilter(
+            options: typeOptions,
+            setter: (v) => _typeFilter = v,
+            hint: 'Filter type…',
+          ),
+        ),
+        cell(
+          label: 'TOPIC',
+          input: autoFilter(
+            options: topicOptions,
+            setter: (v) => _topicFilter = v,
+            hint: 'Filter topic…',
+          ),
+        ),
+        cell(
+          label: 'DATE CREATED',
+          input: autoFilter(
+            options: yearOptions,
+            setter: (v) => _dateFilter = v,
+            hint: 'Filter year…',
+          ),
+        ),
+        cell(
+          label: 'STATUS',
+          input: autoFilter(
+            options: statusOptions,
+            setter: (v) => _statusColFilter = v,
+            hint: 'Filter status…',
+          ),
+        ),
+        cell(
+          label: 'ACTIONS',
+          align: CrossAxisAlignment.end,
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+          input: const SizedBox.shrink(),
+        ),
       ],
     );
   }
