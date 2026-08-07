@@ -8,6 +8,7 @@ use App\Domain\Admin\Http\Controllers\Api\AccountDeletionController;
 use App\Domain\Admin\Http\Controllers\Api\RoleController;
 use App\Domain\Admin\Http\Controllers\Api\PermissionController;
 use App\Domain\Shared\Http\Controllers\Api\SpecialtyController;
+use App\Domain\Shared\Http\Controllers\Api\StaticPageController;
 use App\Domain\Admin\Http\Controllers\Api\EventController;
 use App\Domain\Admin\Http\Controllers\Api\AdminQuizController;
 use App\Domain\Admin\Http\Controllers\Api\AdminTopicController;
@@ -28,6 +29,11 @@ Route::prefix('admin/v1')->group(function () {
             Route::post('logout', 'logout');
             Route::get('me', 'me');
         });
+    });
+
+    Route::controller(StaticPageController::class)->group(function () {
+        Route::get('legal/terms', 'terms');
+        Route::get('legal/privacy', 'privacy');
     });
 
     Route::middleware(['auth:sanctum', 'ability:admin'])->group(function () {

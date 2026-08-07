@@ -60,6 +60,11 @@ class ContentLibrary extends Model
         return $this->hasMany(ContentExternalLink::class, 'content_id');
     }
 
+    public function articleImages()
+    {
+        return $this->hasMany(ContentArticleImage::class, 'content_library_id');
+    }
+
     public function quiz()
     {
         return $this->belongsTo(Quiz::class);

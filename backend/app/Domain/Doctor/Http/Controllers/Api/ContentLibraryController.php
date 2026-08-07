@@ -116,7 +116,7 @@ class ContentLibraryController extends Controller
             ],
             'published_at' => $content->published_at,
             'read_time' => $content->read_time,
-            'body' => $content->description,
+            'body' => $this->absoluteImageUrls($content->description),
             'tags' => $content->specialties->pluck('name')->toArray(),
             'views' => $content->views_count,
             'likes' => $content->likes_count,
@@ -233,6 +233,21 @@ class ContentLibraryController extends Controller
             ->delete();
 
         return response()->json(['message' => 'Content removed from saved list.']);
+    }
+
+    private function absoluteImageUrls(?string $html): ?string
+    {
+        if (empty($html)) {
+            return $html;
+        }
+
+        $baseUrl = rtrim(config('app.url'), '/');
+
+        return preg_replace(
+            '~src="(/storage/[^"]+)"~',
+            'src="' . $baseUrl . '$1"',
+            $html
+        );
     }
 
     private function applyTrending($query)

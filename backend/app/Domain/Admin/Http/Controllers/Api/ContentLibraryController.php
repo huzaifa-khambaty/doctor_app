@@ -2,6 +2,7 @@
 
 namespace App\Domain\Admin\Http\Controllers\Api;
 
+use App\Domain\Shared\Models\ContentArticleImage;
 use App\Domain\Shared\Models\ContentLibrary;
 use App\Domain\Shared\Models\ContentType;
 use App\Domain\Shared\Models\Specialty;
@@ -15,6 +16,9 @@ use Illuminate\Support\Facades\Storage;
 
 class ContentLibraryController extends Controller
 {
+    private const ARTICLE_IMAGE_DIR = 'content/article-images';
+    private const MAX_ARTICLE_IMAGE_BYTES = 5242880; // 5 MB
+
     public function index(Request $request)
     {
         Gate::authorize('content.view');
@@ -102,6 +106,11 @@ class ContentLibraryController extends Controller
         $validated['created_by'] = $request->user()->id;
 
         $content = ContentLibrary::create($validated);
+
+        if ($content->description) {
+            $content->description = $this->processBase64Images($content->description, $content->id);
+            $content->save();
+        }
 
         $content->specialties()->sync($request->specialty_ids);
 
@@ -195,7 +204,18 @@ class ContentLibraryController extends Controller
             $validated['webinar_file']
         );
 
+        $hasDescription = array_key_exists('description', $validated);
+        $newDescription = $hasDescription ? $validated['description'] : null;
+
+        if ($newDescription !== null) {
+            $validated['description'] = $this->processBase64Images($newDescription, $content->id);
+        }
+
         $content->update($validated);
+
+        if ($hasDescription) {
+            $this->reconcileArticleImages($content, $validated['description']);
+        }
 
         if ($specialtyIds !== null) {
             $content->specialties()->sync($specialtyIds);
@@ -229,6 +249,13 @@ class ContentLibraryController extends Controller
         }
         if ($content->webinar_path) {
             Storage::disk('public')->delete($content->webinar_path);
+        }
+
+        if ($content->articleImages()->exists()) {
+            foreach ($content->articleImages()->get() as $image) {
+                Storage::disk('public')->delete($image->path);
+            }
+            $content->articleImages()->delete();
         }
 
         $content->delete();
@@ -275,6 +302,77 @@ class ContentLibraryController extends Controller
                 'published_at' => $content->published_at,
             ],
         ]);
+    }
+
+    private function processBase64Images(?string $html, int $contentId): ?string
+    {
+        if (empty($html)) {
+            return $html;
+        }
+
+        return preg_replace_callback(
+            '/<img([^>]*?)src=["\']data:image\/(png|jpe?g|gif|webp);base64,([^"\']+)["\']([^>]*?)>/i',
+            function ($matches) use ($contentId) {
+                $mime = strtolower($matches[2]);
+
+                $extension = match ($mime) {
+                    'png' => 'png',
+                    'jpeg', 'jpg' => 'jpg',
+                    'gif' => 'gif',
+                    'webp' => 'webp',
+                    default => 'png',
+                };
+
+                $bytes = base64_decode(preg_replace('/\s+/', '', $matches[3]), true);
+
+                if ($bytes === false || $bytes === '' || strlen($bytes) > self::MAX_ARTICLE_IMAGE_BYTES) {
+                    return $matches[0];
+                }
+
+                $filename = 'article-' . $contentId . '-' . uniqid() . '.' . $extension;
+                $path = self::ARTICLE_IMAGE_DIR . '/' . $filename;
+
+                Storage::disk('public')->put($path, $bytes);
+
+                ContentArticleImage::create([
+                    'content_library_id' => $contentId,
+                    'path' => $path,
+                    'filename' => $filename,
+                    'mime_type' => 'image/' . $mime,
+                    'size' => strlen($bytes),
+                ]);
+
+                return '<img' . $matches[1] . 'src="/storage/' . $path . '"' . $matches[4] . '>';
+            },
+            $html
+        );
+    }
+
+    private function reconcileArticleImages(ContentLibrary $content, ?string $newHtml): void
+    {
+        $referenced = $this->extractArticleImagePaths($newHtml);
+
+        foreach ($content->articleImages()->get() as $image) {
+            if (!in_array($image->path, $referenced, true)) {
+                Storage::disk('public')->delete($image->path);
+                $image->delete();
+            }
+        }
+    }
+
+    private function extractArticleImagePaths(?string $html): array
+    {
+        if (empty($html)) {
+            return [];
+        }
+
+        preg_match_all(
+            '~' . preg_quote(self::ARTICLE_IMAGE_DIR, '~') . '/[A-Za-z0-9._-]+~',
+            $html,
+            $matches
+        );
+
+        return array_values(array_unique($matches[0] ?? []));
     }
 
     private function getPdfPageCount($file): int
