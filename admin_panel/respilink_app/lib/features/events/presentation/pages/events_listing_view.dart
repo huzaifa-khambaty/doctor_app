@@ -425,16 +425,30 @@ class _EventTitleRowSection extends StatelessWidget {
 // Metrics + Next Event
 // =========================================================================
 
-class _EventMetricsSection extends StatelessWidget {
+class _EventMetricsSection extends StatefulWidget {
   const _EventMetricsSection();
+
+  @override
+  State<_EventMetricsSection> createState() => _EventMetricsSectionState();
+}
+
+class _EventMetricsSectionState extends State<_EventMetricsSection> {
+  int _panelIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EventsBloc, EventsState>(
       builder: (context, state) {
         final events = state.events?.data ?? [];
-        final nextEvent = _firstOrNull(events, (e) => e.isLive || e.isUpcoming);
         final total = state.events?.total ?? 0;
+
+        // Live events first, then upcoming — all navigable.
+        final candidates = [
+          ...events.where((e) => e.isLive),
+          ...events.where((e) => e.isUpcoming),
+        ];
+        final count = candidates.length;
+        final idx = count == 0 ? 0 : _panelIndex.clamp(0, count - 1);
 
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -458,10 +472,7 @@ class _EventMetricsSection extends StatelessWidget {
                       ),
                       _MetricCard(
                         title: 'UPCOMING',
-                        value: events
-                            .where((e) => e.isUpcoming)
-                            .length
-                            .toString(),
+                        value: events.where((e) => e.isUpcoming).length.toString(),
                         subtitle: 'Scheduled',
                         subColor: AppColors.primary,
                         icon: Icons.schedule_outlined,
@@ -469,12 +480,8 @@ class _EventMetricsSection extends StatelessWidget {
                       _MetricCard(
                         title: 'LIVE NOW',
                         value: events.where((e) => e.isLive).length.toString(),
-                        subtitle: events.any((e) => e.isLive)
-                            ? 'In Progress'
-                            : 'None Active',
-                        subColor: events.any((e) => e.isLive)
-                            ? AppColors.errorRed
-                            : AppColors.textMuted,
+                        subtitle: events.any((e) => e.isLive) ? 'In Progress' : 'None Active',
+                        subColor: events.any((e) => e.isLive) ? AppColors.errorRed : AppColors.textMuted,
                         icon: Icons.live_tv_outlined,
                       ),
                     ],
@@ -483,9 +490,8 @@ class _EventMetricsSection extends StatelessWidget {
                 wide ? const SizedBox(width: 16) : const SizedBox(height: 16),
                 Expanded(
                   flex: wide ? 1 : 0,
-                  child: nextEvent != null
-                      ? _NextEventPanel(event: nextEvent)
-                      : Container(
+                  child: count == 0
+                      ? Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             color: AppColors.cardBg,
@@ -495,12 +501,44 @@ class _EventMetricsSection extends StatelessWidget {
                           child: const Center(
                             child: Text(
                               'No upcoming events',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textMuted,
-                              ),
+                              style: TextStyle(fontSize: 13, color: AppColors.textMuted),
                             ),
                           ),
+                        )
+                      : Stack(
+                          children: [
+                            _NextEventPanel(event: candidates[idx]),
+                            if (count > 1)
+                              Positioned(
+                                top: 10,
+                                right: 10,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _PanelNavBtn(
+                                      icon: Icons.chevron_left,
+                                      enabled: idx > 0,
+                                      onTap: () => setState(() => _panelIndex = idx - 1),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${idx + 1} / $count',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    _PanelNavBtn(
+                                      icon: Icons.chevron_right,
+                                      enabled: idx < count - 1,
+                                      onTap: () => setState(() => _panelIndex = idx + 1),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
                 ),
               ],
@@ -510,12 +548,39 @@ class _EventMetricsSection extends StatelessWidget {
       },
     );
   }
+}
 
-  static T? _firstOrNull<T>(List<T> list, bool Function(T) test) {
-    for (final e in list) {
-      if (test(e)) return e;
-    }
-    return null;
+class _PanelNavBtn extends StatelessWidget {
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _PanelNavBtn({
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: enabled
+              ? Colors.white.withValues(alpha: 0.25)
+              : Colors.white.withValues(alpha: 0.08),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: enabled ? Colors.white : Colors.white30,
+        ),
+      ),
+    );
   }
 }
 

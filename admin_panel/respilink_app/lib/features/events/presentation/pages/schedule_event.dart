@@ -147,6 +147,12 @@ class _ScheduleEventContentState extends State<ScheduleEventContent> {
       initialDate: _startDate ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppColors.primary),
+        ),
+        child: child!,
+      ),
     );
     if (picked != null) setState(() => _startDate = picked);
   }
@@ -155,6 +161,12 @@ class _ScheduleEventContentState extends State<ScheduleEventContent> {
     final picked = await showTimePicker(
       context: context,
       initialTime: _startTime ?? TimeOfDay.now(),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppColors.primary),
+        ),
+        child: child!,
+      ),
     );
     if (picked != null) setState(() => _startTime = picked);
   }
@@ -165,6 +177,12 @@ class _ScheduleEventContentState extends State<ScheduleEventContent> {
       initialDate: _endDate ?? (_startDate ?? DateTime.now()),
       firstDate: _startDate ?? DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppColors.primary),
+        ),
+        child: child!,
+      ),
     );
     if (picked != null) setState(() => _endDate = picked);
   }
@@ -173,6 +191,12 @@ class _ScheduleEventContentState extends State<ScheduleEventContent> {
     final picked = await showTimePicker(
       context: context,
       initialTime: _endTime ?? TimeOfDay.now(),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppColors.primary),
+        ),
+        child: child!,
+      ),
     );
     if (picked != null) setState(() => _endTime = picked);
   }

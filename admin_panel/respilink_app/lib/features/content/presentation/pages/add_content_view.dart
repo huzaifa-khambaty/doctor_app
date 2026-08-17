@@ -102,8 +102,8 @@ class _AddContentViewState extends State<AddContentView> {
         ? ['pdf']
         : ['mp4', 'mov', 'avi', 'mkv', 'webm'];
     final result = await FilePicker.platform.pickFiles(
-      type: _contentType == 'PDF' ? FileType.custom : FileType.video,
-      allowedExtensions: _contentType == 'PDF' ? allowed : null,
+      type: FileType.custom,
+      allowedExtensions: allowed,
       withData: true,
     );
     if (result != null && result.files.isNotEmpty) {
@@ -1119,25 +1119,8 @@ class _AddContentViewState extends State<AddContentView> {
           ),
         ),
         const SizedBox(width: 12),
-        OutlinedButton.icon(
-          onPressed: state.isSubmitting ? null : () => _submit('draft'),
-          icon: const Icon(Icons.save_outlined, size: 16),
-          label: const Text(
-            'Save as Draft',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            side: const BorderSide(color: AppColors.primary),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
         ElevatedButton.icon(
-          onPressed: state.isSubmitting ? null : () => _submit('published'),
+          onPressed: state.isSubmitting ? null : () => _submit(_status),
           icon: state.isSubmitting
               ? const SizedBox(
                   width: 14,
@@ -1148,12 +1131,12 @@ class _AddContentViewState extends State<AddContentView> {
                   ),
                 )
               : const Icon(
-                  Icons.rocket_launch_outlined,
+                  Icons.save_rounded,
                   size: 16,
                   color: Colors.white,
                 ),
           label: Text(
-            _isEdit ? 'Update & Publish' : 'Publish',
+            _isEdit ? 'Update' : 'Save',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 13,
