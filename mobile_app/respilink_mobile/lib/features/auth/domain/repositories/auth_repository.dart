@@ -14,7 +14,10 @@ import 'package:respilink_mobile/features/auth/domain/models/user_model.dart';
 abstract class AuthRepository {
   Future<ApiResponse<bool>> isUserLoggedIn();
 
-  Future<ApiResponse<Doctor>> login(LoginRequest request);
+  Future<ApiResponse<Doctor>> login(
+    LoginRequest request, {
+    bool rememberMe = true,
+  });
 
   Future<ApiResponse<Doctor?>> register(RegisterRequest request);
 

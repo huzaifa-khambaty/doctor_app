@@ -41,7 +41,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _login(LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
 
-    final res = await _repository.login(event.request);
+    final res = await _repository.login(
+      event.request,
+      rememberMe: event.rememberMe,
+    );
 
     if (res.success) {
       emit(AuthSuccess(model: res.data));

@@ -42,6 +42,10 @@ class EventDetailModel {
   final String registrationNote;
   final String ctaLabel;
 
+  /// True once the event's end date/time has already passed — the detail
+  /// pages hide the Register/Join CTA entirely in that case.
+  final bool isPast;
+
   const EventDetailModel({
     required this.event,
     this.hosts = const [],
@@ -53,5 +57,6 @@ class EventDetailModel {
     required this.listItems,
     required this.registrationNote,
     this.ctaLabel = 'Register Now',
+    this.isPast = false,
   });
 }

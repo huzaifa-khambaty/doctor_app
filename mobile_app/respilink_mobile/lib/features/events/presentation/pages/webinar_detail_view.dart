@@ -118,6 +118,7 @@ class _WebinarDetailViewState extends State<WebinarDetailView> {
           return BlocBuilder<EventDetailBloc, EventDetailState>(
             builder: (context, state) {
               if (state is! WebinarDetailLoaded) return const SizedBox.shrink();
+              if (state.detail.isPast) return const SizedBox.shrink();
 
               return EventDetailFooterBar(
                 note: state.detail.registrationNote,

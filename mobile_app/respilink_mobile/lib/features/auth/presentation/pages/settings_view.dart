@@ -1,6 +1,8 @@
 import 'package:respilink_mobile/core/network/api_endpoints.dart';
 import 'package:respilink_mobile/core/utils/global_notifiers.dart';
+import 'package:respilink_mobile/features/auth/data/sources/auth_local_manager.dart';
 import 'package:respilink_mobile/features/auth/domain/models/user_model.dart';
+import 'package:respilink_mobile/services/biometric_auth_service.dart';
 import 'package:respilink_mobile/shared/widgets/app_notification_bell.dart';
 
 import '../../../../exports.dart';
@@ -17,8 +19,49 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {
   bool _pushNotifications = true;
   bool _newsletter = false;
-  bool _biometricLogin = true;
+  bool _biometricLogin = false;
+  bool _biometricAvailable = false;
   bool _darkMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBiometricState();
+  }
+
+  Future<void> _loadBiometricState() async {
+    final available = await locator<BiometricAuthService>().isAvailable;
+    final cachedToken = await locator<AuthLocalManager>().getBiometricToken();
+    if (!mounted) return;
+    setState(() {
+      _biometricAvailable = available;
+      // Reflect whatever's actually cached (e.g. set via a "remember this
+      // device" login) rather than assuming a default.
+      _biometricLogin = cachedToken != null;
+    });
+  }
+
+  Future<void> _onBiometricToggle(bool enabled) async {
+    final authLocalManager = locator<AuthLocalManager>();
+
+    if (enabled) {
+      final token = AppConstants.apiToken;
+      final user = GlobalNotifiers.userNotifier.value;
+      if (token.isEmpty) {
+        SnackbarUtil.showSnackbar(
+          message: 'Please log in again to enable biometric login.',
+          isError: true,
+        );
+        return;
+      }
+      await authLocalManager.saveBiometricSession(token, user);
+    } else {
+      await authLocalManager.clearBiometricSession();
+    }
+
+    if (!mounted) return;
+    setState(() => _biometricLogin = enabled);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,14 +197,16 @@ class _SettingsViewState extends State<SettingsView> {
                         onTap: () => locator<NavigationService>().navigate(
                           RouterStrings.changePassword,
                         ),
+                        isLast: !_biometricAvailable,
                       ),
-                      _SettingsRow(
-                        icon: Icons.fingerprint,
-                        label: 'Biometric Login',
-                        toggleValue: _biometricLogin,
-                        onToggle: (v) => setState(() => _biometricLogin = v),
-                        isLast: true,
-                      ),
+                      if (_biometricAvailable)
+                        _SettingsRow(
+                          icon: Icons.fingerprint,
+                          label: 'Biometric Login',
+                          toggleValue: _biometricLogin,
+                          onToggle: _onBiometricToggle,
+                          isLast: true,
+                        ),
                     ],
                   ),
 

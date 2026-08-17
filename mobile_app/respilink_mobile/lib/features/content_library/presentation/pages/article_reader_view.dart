@@ -57,20 +57,30 @@ class _ArticleReaderBody extends StatelessWidget {
 
   Future<void> _shareArticle(ContentDetailsModel details) async {
     final title = (details.title ?? '').trim();
-    final excerpt = HtmlUtils.stripTags(details.body);
-    final link = (details.externalUrl ?? '').trim();
+    final body = HtmlUtils.stripTags(details.body);
+    final tags = details.tags ?? const <String>[];
+    final links = <String>{
+      if ((details.externalUrl ?? '').trim().isNotEmpty) details.externalUrl!.trim(),
+      for (final link in details.externalLinks ?? const <String>[])
+        if (link.trim().isNotEmpty) link.trim(),
+      if ((details.webinarUrl ?? '').trim().isNotEmpty) details.webinarUrl!.trim(),
+    };
 
     final text = StringBuffer(title.isNotEmpty ? title : 'MedSynapse Article');
-    if (excerpt.isNotEmpty) {
-      final preview = excerpt.length > 200
-          ? '${excerpt.substring(0, 200)}...'
-          : excerpt;
+    // Full body — no truncation, share should carry everything shown on-screen.
+    if (body.isNotEmpty) {
       text
         ..writeln()
         ..writeln()
-        ..write(preview);
+        ..write(body);
     }
-    if (link.isNotEmpty) {
+    if (tags.isNotEmpty) {
+      text
+        ..writeln()
+        ..writeln()
+        ..write(tags.map((tag) => '#$tag').join(' '));
+    }
+    for (final link in links) {
       text
         ..writeln()
         ..writeln()

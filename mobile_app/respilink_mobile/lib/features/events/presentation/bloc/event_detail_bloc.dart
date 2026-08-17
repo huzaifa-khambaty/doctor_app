@@ -125,6 +125,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       listItems: model.learningObjectives ?? const [],
       registrationNote: fee > 0 ? 'Fee: $fee' : 'Free for Members',
       ctaLabel: 'Register Now',
+      isPast: _isEventPast(model.date, model.endTime),
     );
   }
 
@@ -185,6 +186,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       listItems: model.prerequisites ?? const [],
       registrationNote: fee > 0 ? '$currency$fee (Registration Fee)' : 'Free',
       ctaLabel: 'Register',
+      isPast: _isEventPast(model.date, model.endTime),
     );
   }
 
@@ -234,6 +236,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       agendaByDay: _groupAgenda(model.agenda),
       priceLabel: price > 0 ? '$currency$price / person' : 'Free',
       ctaLabel: 'Register',
+      isPast: _isEventPast(model.dateTo ?? model.dateFrom, null),
     );
   }
 
@@ -316,5 +319,36 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     if (startLabel.isEmpty) return endLabel;
     if (endLabel.isEmpty) return startLabel;
     return '$startLabel - $endLabel';
+  }
+
+  /// True once the event's end moment has already passed. [date] is the
+  /// event's (or conference's last) day; [endTime] — if known — narrows the
+  /// cutoff to that time of day, otherwise the whole day counts as current
+  /// until midnight. An unparsable/missing date never hides the CTA (fails
+  /// open rather than silently disabling registration on good events).
+  bool _isEventPast(String? date, String? endTime) {
+    final day = DateTimeUtils.parseBackendDate(date);
+    if (day == null) return false;
+
+    DateTime cutoff = DateTime(day.year, day.month, day.day, 23, 59, 59);
+
+    if (endTime != null && endTime.trim().isNotEmpty) {
+      for (final pattern in ['HH:mm:ss', 'HH:mm', 'hh:mm:ss a', 'hh:mm a']) {
+        try {
+          final parsedTime = DateFormat(pattern).parseStrict(endTime.trim());
+          cutoff = DateTime(
+            day.year,
+            day.month,
+            day.day,
+            parsedTime.hour,
+            parsedTime.minute,
+            parsedTime.second,
+          );
+          break;
+        } catch (_) {}
+      }
+    }
+
+    return DateTime.now().isAfter(cutoff);
   }
 }

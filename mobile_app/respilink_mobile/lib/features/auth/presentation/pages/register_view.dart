@@ -40,6 +40,29 @@ class _RegisterViewState extends State<RegisterView> {
     context.read<AuthBloc>().add(SpecialitiesRequested());
   }
 
+  /// Register is frequently reached via a stack-*replacing* navigation
+  /// (Onboarding "Get Started" uses `go`, not `push`), which leaves
+  /// nothing to pop back to — plain `context.pop()` is a silent no-op then.
+  void _goBack() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      locator<NavigationService>().navigateAndRemove(RouterStrings.onboarding);
+    }
+  }
+
+  /// Distinct from [_goBack] — this one is wired to a link explicitly
+  /// labeled "Log In", so its fallback (when there's nothing to pop, e.g.
+  /// Register reached via Onboarding "Get Started") must be the Login
+  /// screen itself, not Onboarding.
+  void _goToLogin() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      locator<NavigationService>().navigateAndRemove(RouterStrings.login);
+    }
+  }
+
   @override
   void dispose() {
     _itsCtrl.dispose();
@@ -84,7 +107,8 @@ class _RegisterViewState extends State<RegisterView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
-                          onTap: () => context.pop(),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _goBack,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -457,7 +481,8 @@ class _RegisterViewState extends State<RegisterView> {
 
                     Center(
                       child: GestureDetector(
-                        onTap: () => context.pop(),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _goToLogin,
                         child: RichText(
                           text: TextSpan(
                             text: 'Already have an account? ',

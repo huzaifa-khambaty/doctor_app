@@ -36,6 +36,10 @@ class ConferenceDetailModel {
   final String priceLabel;
   final String ctaLabel;
 
+  /// True once the conference's last day has already passed — the detail
+  /// page hides the Register CTA entirely in that case.
+  final bool isPast;
+
   const ConferenceDetailModel({
     required this.event,
     required this.badgeLabel,
@@ -45,5 +49,6 @@ class ConferenceDetailModel {
     this.priceCaption = 'Admission Price',
     required this.priceLabel,
     this.ctaLabel = 'Register',
+    this.isPast = false,
   });
 }

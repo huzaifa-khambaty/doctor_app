@@ -44,13 +44,29 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+  /// Login is frequently reached via a stack-*replacing* navigation
+  /// (Onboarding "Log in" / Splash auto-redirect both use `go`, not
+  /// `push`), which leaves nothing to pop back to — `context.pop()` in
+  /// that case is a silent no-op, which read as "the back button doesn't
+  /// work". Fall back to Onboarding when there's really nothing to pop.
+  void _goBack() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      locator<NavigationService>().navigateAndRemove(RouterStrings.onboarding);
+    }
+  }
+
   Future<void> _handleBiometricLogin() async {
     final authenticated = await locator<BiometricAuthService>().authenticate();
     if (!authenticated) return;
 
+    // Deliberately reads the biometric cache (not the session cache) —
+    // this stays populated after logout so biometric unlock keeps working
+    // even once the user has signed out of their active session.
     final authLocalManager = locator<AuthLocalManager>();
-    final token = await authLocalManager.getCachedToken();
-    final user = await authLocalManager.getCachedUser();
+    final token = await authLocalManager.getBiometricToken();
+    final user = await authLocalManager.getBiometricUser();
 
     if (token != null && user != null) {
       AppConstants.apiToken = token;
@@ -90,17 +106,21 @@ class _LoginViewState extends State<LoginView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
-                          onTap: () => locator<NavigationService>().pop(),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.arrow_back_ios, size: 16.sp),
-                              SizedBox(width: 4.w),
-                              AppText.medium(
-                                label: 'Log In',
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ],
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _goBack,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.h),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.arrow_back_ios, size: 16.sp),
+                                SizedBox(width: 4.w),
+                                AppText.medium(
+                                  label: 'Log In',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         AppText.large(
@@ -245,9 +265,12 @@ class _LoginViewState extends State<LoginView> {
                                         password: _passCtrl.text,
                                         fcmToken: AppConstants.firebaseToken,
                                       );
-                                      BlocProvider.of<AuthBloc>(
-                                        context,
-                                      ).add(LoginRequested(request: request));
+                                      BlocProvider.of<AuthBloc>(context).add(
+                                        LoginRequested(
+                                          request: request,
+                                          rememberMe: _rememberDevice,
+                                        ),
+                                      );
                                     }
                                   },
                                 ),
@@ -259,28 +282,32 @@ class _LoginViewState extends State<LoginView> {
 
                     Center(
                       child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
                         onTap: () => locator<NavigationService>().navigate(
                           RouterStrings.register,
                         ),
-                        child: RichText(
-                          text: TextSpan(
-                            text: "Don't have a clinician account? ",
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              fontFamily: AppConstants.fontFamily,
-                              color: AppColors.black,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: 'Request Access',
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: AppConstants.fontFamily,
-                                  fontSize: 13.sp,
-                                ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.h),
+                          child: RichText(
+                            text: TextSpan(
+                              text: "Don't have a clinician account? ",
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                fontFamily: AppConstants.fontFamily,
+                                color: AppColors.black,
                               ),
-                            ],
+                              children: [
+                                TextSpan(
+                                  text: 'Request Access',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: AppConstants.fontFamily,
+                                    fontSize: 13.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

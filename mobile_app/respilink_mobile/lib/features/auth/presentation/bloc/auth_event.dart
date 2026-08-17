@@ -15,8 +15,9 @@ class UserAuthenticationRequested extends AuthEvent {
 
 class LoginRequested extends AuthEvent {
   final LoginRequest request;
+  final bool rememberMe;
 
-  LoginRequested({required this.request});
+  LoginRequested({required this.request, this.rememberMe = true});
 }
 
 class RegisterRequested extends AuthEvent {

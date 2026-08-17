@@ -13,11 +13,28 @@ abstract class AuthLocalManager {
 
   Future<Doctor?> getCachedUser();
 
+  /// Clears the active-session cache only (used for cold-start auto-login).
+  /// Deliberately leaves the biometric cache untouched — logging out should
+  /// still let the user unlock again with biometrics without retyping their
+  /// password, matching how [saveBiometricSession]/[clearBiometricSession]
+  /// are managed separately.
   Future<void> clearAuthData();
 
   Future<void> saveBadgeCount(int count);
 
   Future<String?> getCachedCount();
+
+  /// Credentials kept specifically for the "Unlock with biometrics" button —
+  /// intentionally decoupled from the session cache above so that logging
+  /// out (which clears the session cache) doesn't also make biometric login
+  /// permanently unreachable.
+  Future<void> saveBiometricSession(String token, Doctor? user);
+
+  Future<String?> getBiometricToken();
+
+  Future<Doctor?> getBiometricUser();
+
+  Future<void> clearBiometricSession();
 }
 
 class AuthLocalManagerImpl implements AuthLocalManager {
@@ -90,5 +107,50 @@ class AuthLocalManagerImpl implements AuthLocalManager {
   @override
   Future<String?> getCachedCount() async {
     return await _storage.read(key: _badgeKey);
+  }
+
+  static const _biometricTokenKey = 'biometric_token';
+  static const _biometricUserKey = 'biometric_user';
+
+  @override
+  Future<void> saveBiometricSession(String token, Doctor? user) async {
+    try {
+      await _storage.write(key: _biometricTokenKey, value: token);
+      await _storage.write(
+        key: _biometricUserKey,
+        value: user != null ? jsonEncode(user.toJson()) : null,
+      );
+    } catch (e) {
+      debugPrint('AuthLocalManager: saveBiometricSession failed: $e');
+    }
+  }
+
+  @override
+  Future<String?> getBiometricToken() async {
+    try {
+      return await _storage.read(key: _biometricTokenKey);
+    } catch (e) {
+      debugPrint('AuthLocalManager: failed to read biometric token: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<Doctor?> getBiometricUser() async {
+    try {
+      final userJson = await _storage.read(key: _biometricUserKey);
+      if (userJson == null) return null;
+
+      return Doctor.fromCachedJson(userJson);
+    } catch (e) {
+      debugPrint('AuthLocalManager: failed to read/parse biometric user: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<void> clearBiometricSession() async {
+    await _storage.delete(key: _biometricTokenKey);
+    await _storage.delete(key: _biometricUserKey);
   }
 }

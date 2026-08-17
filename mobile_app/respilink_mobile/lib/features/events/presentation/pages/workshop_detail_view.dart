@@ -119,6 +119,7 @@ class _WorkshopDetailViewState extends State<WorkshopDetailView> {
           return BlocBuilder<EventDetailBloc, EventDetailState>(
             builder: (context, state) {
               if (state is! WorkshopDetailLoaded) return const SizedBox.shrink();
+              if (state.detail.isPast) return const SizedBox.shrink();
 
               final isLoading = registerState is EventRegisterLoading;
               final joinLink = state.detail.event.externalJoinLink?.trim();

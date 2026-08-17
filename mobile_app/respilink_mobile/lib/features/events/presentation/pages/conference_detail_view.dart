@@ -144,6 +144,7 @@ class _ConferenceDetailViewState extends State<ConferenceDetailView> {
               if (state is! ConferenceDetailLoaded) {
                 return const SizedBox.shrink();
               }
+              if (state.detail.isPast) return const SizedBox.shrink();
 
               return EventPriceFooterBar(
                 priceCaption: state.detail.priceCaption,

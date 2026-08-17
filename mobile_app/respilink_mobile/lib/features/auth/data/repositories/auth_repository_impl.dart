@@ -23,12 +23,28 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._remoteDataSource, this._localManager);
 
   @override
-  Future<ApiResponse<Doctor>> login(LoginRequest request) async {
+  Future<ApiResponse<Doctor>> login(
+    LoginRequest request, {
+    bool rememberMe = true,
+  }) async {
     final response = await _remoteDataSource.login(request);
 
     if (response.success && response.token != null) {
-      await _localManager.saveToken(response.token!);
-      await _localManager.saveUser(response.data);
+      if (rememberMe) {
+        await _localManager.saveToken(response.token!);
+        await _localManager.saveUser(response.data);
+        await _localManager.saveBiometricSession(
+          response.token!,
+          response.data,
+        );
+      } else {
+        // Respect the explicit choice not to be remembered on this device —
+        // drop any session/biometric credentials a previous login may have
+        // left behind, rather than leaving them to silently auto-login the
+        // user (or unlock biometrically) next time regardless.
+        await _localManager.clearAuthData();
+        await _localManager.clearBiometricSession();
+      }
     }
 
     return response;
@@ -57,14 +73,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<ApiResponse<Doctor?>> register(RegisterRequest request) async {
-    final response = await _remoteDataSource.register(request);
-
-    if (response.success && response.token != null) {
-      await _localManager.saveToken(response.token!);
-      await _localManager.saveUser(response.data);
-    }
-
-    return response;
+    // Deliberately never persists a session here, even if the backend's
+    // response happens to include a token — the account is still
+    // `status: "pending"` until OTP verification succeeds, and saving
+    // credentials at this point would auto-log-in a device that skipped
+    // OTP entirely (e.g. closing the app right after signing up).
+    // `verifyOtp()` below is the only step that should ever mark the
+    // device as signed in.
+    return _remoteDataSource.register(request);
   }
 
   @override
