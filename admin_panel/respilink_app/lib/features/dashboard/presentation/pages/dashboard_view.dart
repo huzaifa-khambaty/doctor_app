@@ -287,10 +287,16 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   void _onNavigationChanged(int index) {
     setState(() {
       _currentNavigationIndex = index;
-      if (index == 2) {
-        _showAddContentForm = false;
-        _editingContent = null;
-      }
+      // Reset all section sub-state so navigating away and back starts fresh.
+      _showManualEnrollmentForm = false;
+      _selectedPractioner = null;
+      _showAddContentForm = false;
+      _editingContent = null;
+      _showCreateQuizForm = false;
+      _editingQuizId = null;
+      _showCreateEventForm = false;
+      _selectedEvent = null;
+      _showNotificationHistory = false;
     });
     if (Navigator.canPop(context)) {
       Navigator.pop(context);

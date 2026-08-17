@@ -64,7 +64,7 @@ class _AdminUserBodyState extends State<_AdminUserBody> {
     final dt = DateTime.tryParse(raw) ??
         DateTime.tryParse(raw.replaceFirst(' ', 'T'));
     if (dt == null) return raw;
-    return DateFormat('MMM d, yyyy').format(dt.toLocal());
+    return DateFormat('d MMM yyyy, h:mm a').format(dt.toLocal());
   }
 
   void _showCreateDialog(BuildContext context, List<RolesModel> roles) {

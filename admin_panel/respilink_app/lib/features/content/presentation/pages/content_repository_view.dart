@@ -410,11 +410,7 @@ class _ContentRepositoryContentState extends State<ContentRepositoryContent> {
       required String hint,
     }) =>
         Autocomplete<String>(
-          optionsBuilder: (tv) {
-            if (tv.text.isEmpty) return options;
-            final q = tv.text.toLowerCase();
-            return options.where((o) => o.toLowerCase().contains(q));
-          },
+          optionsBuilder: (tv) => options,
           onSelected: (val) => setState(() => setter(val)),
           fieldViewBuilder: (ctx, ctrl, fn, _) => TextField(
             controller: ctrl,

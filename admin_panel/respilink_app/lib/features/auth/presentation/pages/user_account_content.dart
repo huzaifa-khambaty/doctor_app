@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
@@ -286,7 +287,7 @@ class _UserAccountContentState extends State<UserAccountContent> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'System Level Root Access • Last login: ${admin?.lastLoginAt ?? "—"}',
+                                    'System Level Root Access • Last login: ${_formatDate(admin?.lastLoginAt)}',
                                     style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                                   ),
                                 ],
@@ -439,6 +440,14 @@ class _UserAccountContentState extends State<UserAccountContent> {
         },
       ),
     );
+  }
+
+  String _formatDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '—';
+    final dt = DateTime.tryParse(raw) ??
+        DateTime.tryParse(raw.replaceFirst(' ', 'T'));
+    if (dt == null) return raw;
+    return DateFormat('d MMM yyyy, h:mm a').format(dt.toLocal());
   }
 
   Widget _avatarInitial(String? name) {

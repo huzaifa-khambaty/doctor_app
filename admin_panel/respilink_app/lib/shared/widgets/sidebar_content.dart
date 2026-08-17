@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/global_notifiers.dart';
+import 'package:respilink_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:respilink_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
 
 class MySidebarContent extends StatelessWidget {
@@ -32,7 +35,7 @@ class MySidebarContent extends StatelessWidget {
 
         return Container(
           color: AppColors.sidebarBg,
-          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
           child: Column(
             crossAxisAlignment: isCollapsed
                 ? CrossAxisAlignment.center
@@ -43,21 +46,21 @@ class MySidebarContent extends StatelessWidget {
                   'MedSynapse Admin',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 const Text(
                   'Clinical Management',
-                  style: TextStyle(color: Colors.white60, fontSize: 12),
+                  style: TextStyle(color: Colors.white60, fontSize: 11),
                 ),
               ] else ...[
                 Icon(Icons.medical_information, color: Colors.white, size: 28),
               ],
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
               Expanded(
                 child: ListView(
@@ -147,7 +150,7 @@ class MySidebarContent extends StatelessWidget {
                 ),
               ),
 
-              const Divider(color: Colors.white12, height: 32),
+              const Divider(color: Colors.white12, height: 20),
               if (hasAnyPerm(['admins.view', 'roles.manage'])) ...[
                 _SidebarItem(
                   icon: Icons.settings_outlined,
@@ -157,8 +160,11 @@ class MySidebarContent extends StatelessWidget {
                   onTap: (v) => onDestinationSelected?.call(v),
                   index: 9,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 4),
               ],
+
+              _LogoutButton(isCollapsed: isCollapsed),
+              const SizedBox(height: 10),
 
               InkWell(
                 onTap: () => onDestinationSelected?.call(10),
@@ -216,8 +222,8 @@ class _ExpandableSidebarGroupState extends State<_ExpandableSidebarGroup> {
   Widget build(BuildContext context) {
     if (widget.isCollapsed) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Icon(widget.icon, color: widget.isGroupActive ? Colors.white : Colors.white60, size: 22),
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Icon(widget.icon, color: widget.isGroupActive ? Colors.white : Colors.white60, size: 20),
       );
     }
 
@@ -231,7 +237,7 @@ class _ExpandableSidebarGroupState extends State<_ExpandableSidebarGroup> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 2),
           child: InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
             onHover: (h) => setState(() => _isHovered = h),
@@ -239,7 +245,7 @@ class _ExpandableSidebarGroupState extends State<_ExpandableSidebarGroup> {
             splashColor: Colors.white10,
             highlightColor: Colors.transparent,
             child: Container(
-              height: 48,
+              height: 42,
               decoration: BoxDecoration(
                 color: itemBgColor,
                 borderRadius: BorderRadius.circular(8),
@@ -250,14 +256,14 @@ class _ExpandableSidebarGroupState extends State<_ExpandableSidebarGroup> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  Icon(widget.icon, color: contentColor, size: 22),
-                  const SizedBox(width: 14),
+                  Icon(widget.icon, color: contentColor, size: 20),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       widget.title,
                       style: TextStyle(
                         color: contentColor,
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: widget.isGroupActive
                             ? FontWeight.w600
                             : FontWeight.w400,
@@ -267,7 +273,7 @@ class _ExpandableSidebarGroupState extends State<_ExpandableSidebarGroup> {
                   Icon(
                     _isExpanded ? Icons.expand_less : Icons.expand_more,
                     color: contentColor,
-                    size: 18,
+                    size: 16,
                   ),
                 ],
               ),
@@ -318,7 +324,7 @@ class _SidebarSubItemState extends State<_SidebarSubItem> {
         splashColor: Colors.white10,
         highlightColor: Colors.transparent,
         child: Container(
-          height: 40,
+          height: 36,
           decoration: BoxDecoration(
             color: widget.isActive || _isHovered
                 ? Colors.white.withValues(alpha: 0.08)
@@ -341,7 +347,7 @@ class _SidebarSubItemState extends State<_SidebarSubItem> {
                 widget.title,
                 style: TextStyle(
                   color: contentColor,
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight:
                       widget.isActive ? FontWeight.w600 : FontWeight.w400,
                 ),
@@ -391,7 +397,7 @@ class _SidebarItemState extends State<_SidebarItem> {
         : (_isHovered ? Colors.white : Colors.white60);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: InkWell(
         onTap: () => widget.onTap(widget.index),
         onHover: (hovering) {
@@ -403,7 +409,7 @@ class _SidebarItemState extends State<_SidebarItem> {
         splashColor: Colors.white10,
         highlightColor: Colors.transparent,
         child: Container(
-          height: 48,
+          height: 42,
           decoration: BoxDecoration(
             color: itemBgColor,
             borderRadius: BorderRadius.circular(8),
@@ -417,17 +423,76 @@ class _SidebarItemState extends State<_SidebarItem> {
                 ? MainAxisAlignment.center
                 : MainAxisAlignment.start,
             children: [
-              Flexible(child: Icon(widget.icon, color: contentColor, size: 22)),
+              Flexible(child: Icon(widget.icon, color: contentColor, size: 20)),
               if (!widget.isCollapsed) ...[
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 Text(
                   widget.title,
                   style: TextStyle(
                     color: contentColor,
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: widget.isActive
                         ? FontWeight.w600
                         : FontWeight.w400,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _LogoutButton extends StatefulWidget {
+  final bool isCollapsed;
+  const _LogoutButton({required this.isCollapsed});
+
+  @override
+  State<_LogoutButton> createState() => _LogoutButtonState();
+}
+
+class _LogoutButtonState extends State<_LogoutButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: InkWell(
+        onTap: () => context.read<AuthBloc>().add(LogoutRequested()),
+        onHover: (h) => setState(() => _isHovered = h),
+        borderRadius: BorderRadius.circular(8),
+        splashColor: Colors.redAccent.withValues(alpha: 0.15),
+        highlightColor: Colors.transparent,
+        child: Container(
+          height: 42,
+          decoration: BoxDecoration(
+            color: _isHovered
+                ? Colors.redAccent.withValues(alpha: 0.12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisAlignment: widget.isCollapsed
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start,
+            children: [
+              Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+              if (!widget.isCollapsed) ...[
+                const SizedBox(width: 12),
+                const Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
