@@ -11,6 +11,7 @@ import 'package:respilink_app/features/settings/data/model/requests/update_setti
 import 'package:respilink_app/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:respilink_app/features/settings/presentation/bloc/settings_event.dart';
 import 'package:respilink_app/features/settings/presentation/bloc/settings_state.dart';
+import 'package:respilink_app/core/utils/global_notifiers.dart';
 import 'package:respilink_app/injections.dart';
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
 import 'package:respilink_app/shared/widgets/app_skeleton.dart';
@@ -63,6 +64,9 @@ class _SettingsContentState extends State<SettingsContent> {
   void _populate(AppSettingsModel s) {
     _appNameCtrl.text = s.appName ?? '';
     _appEmailCtrl.text = s.appEmail ?? '';
+    if (s.appName != null && s.appName!.isNotEmpty) {
+      GlobalNotifiers.appNameNotifier.value = s.appName;
+    }
     if (s.timeZone != null && _timezones.contains(s.timeZone)) {
       _selectedTimezone = s.timeZone!;
     }
@@ -119,6 +123,8 @@ class _SettingsContentState extends State<SettingsContent> {
         }
         if (state.saveSettingsSuccess) {
           setState(() => _logoBytes = null);
+          final savedName = _appNameCtrl.text.trim();
+          if (savedName.isNotEmpty) GlobalNotifiers.appNameNotifier.value = savedName;
           SnackbarUtil.showSnackbar(context, message: 'Settings saved successfully');
         }
         if (state.error != null && !state.isLoadingSettings && !state.isSavingSettings) {

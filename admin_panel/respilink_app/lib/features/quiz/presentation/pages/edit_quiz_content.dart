@@ -663,51 +663,193 @@ class _EditQuizContentState extends State<EditQuizContent> {
   }
 
   Widget _buildShimmer(bool wide) {
-    final box200 = Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-    );
-
-    final topRow = wide
-        ? Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 2, child: box200),
-              const SizedBox(width: 16),
-              Expanded(flex: 1, child: box200),
-            ],
-          )
-        : Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              box200,
-              const SizedBox(height: 16),
-              box200,
-            ],
-          );
-
     return Shimmer.fromColors(
       baseColor: const Color(0xFFE2E8F0),
       highlightColor: const Color(0xFFF8FAFC),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          topRow,
+          // ── Metadata cards ───────────────────────────────────────────────
+          if (wide)
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(flex: 2, child: _shimmerGeneralCard()),
+              const SizedBox(width: 16),
+              Expanded(flex: 1, child: _shimmerConfigCard()),
+            ])
+          else
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              _shimmerGeneralCard(),
+              const SizedBox(height: 16),
+              _shimmerConfigCard(),
+            ]),
           const SizedBox(height: 32),
-          Container(
-            height: 300,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+
+          // ── Questions header ─────────────────────────────────────────────
+          Row(children: [
+            _shimmerBox(width: 130, height: 18, radius: 6),
+            const Spacer(),
+            _shimmerBox(width: 80, height: 22, radius: 11),
+          ]),
+          const SizedBox(height: 16),
+
+          // ── Question card ────────────────────────────────────────────────
+          _shimmerQuestionCard(wide),
         ],
       ),
     );
   }
+
+  // ── Shimmer helpers ──────────────────────────────────────────────────────
+
+  Widget _shimmerBox({
+    double? width,
+    double height = 14,
+    double radius = 6,
+  }) =>
+      Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      );
+
+  Widget _shimmerField({double height = 44}) => _shimmerBox(
+        width: double.infinity,
+        height: height,
+        radius: 8,
+      );
+
+  Widget _shimmerLabel() => _shimmerBox(width: 90, height: 10, radius: 4);
+
+  Widget _shimmerCardShell({required Widget child}) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        ),
+        child: child,
+      );
+
+  Widget _shimmerCardHeader() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            _shimmerBox(width: 16, height: 16, radius: 4),
+            const SizedBox(width: 8),
+            _shimmerBox(width: 120, height: 14, radius: 4),
+          ]),
+          const SizedBox(height: 12),
+          _shimmerBox(width: double.infinity, height: 1, radius: 0),
+          const SizedBox(height: 16),
+        ],
+      );
+
+  Widget _shimmerGeneralCard() => _shimmerCardShell(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          _shimmerCardHeader(),
+          _shimmerLabel(),
+          const SizedBox(height: 6),
+          _shimmerField(),
+          const SizedBox(height: 16),
+          _shimmerLabel(),
+          const SizedBox(height: 6),
+          _shimmerField(height: 76),
+        ]),
+      );
+
+  Widget _shimmerConfigCard() => _shimmerCardShell(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          _shimmerCardHeader(),
+          _shimmerLabel(),
+          const SizedBox(height: 6),
+          _shimmerField(),
+          const SizedBox(height: 16),
+          _shimmerLabel(),
+          const SizedBox(height: 6),
+          _shimmerField(),
+          const SizedBox(height: 16),
+          _shimmerLabel(),
+          const SizedBox(height: 6),
+          Row(children: [
+            Expanded(child: _shimmerField()),
+            const SizedBox(width: 8),
+            _shimmerBox(width: 16, height: 12, radius: 3),
+            const SizedBox(width: 8),
+            Expanded(child: _shimmerField()),
+          ]),
+        ]),
+      );
+
+  Widget _shimmerQuestionCard(bool wide) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // Card header row
+          Row(children: [
+            _shimmerBox(width: 20, height: 20, radius: 10),
+            const SizedBox(width: 8),
+            _shimmerBox(width: 70, height: 14, radius: 4),
+            const Spacer(),
+            _shimmerBox(width: 140, height: 12, radius: 4),
+            const SizedBox(width: 8),
+            _shimmerBox(width: 36, height: 20, radius: 10),
+          ]),
+          const SizedBox(height: 12),
+          _shimmerBox(width: double.infinity, height: 1, radius: 0),
+          const SizedBox(height: 16),
+          // Two-column body
+          if (wide)
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(child: _shimmerQuestionLeft()),
+              const SizedBox(width: 24),
+              Expanded(child: _shimmerQuestionRight()),
+            ])
+          else
+            Column(children: [
+              _shimmerQuestionLeft(),
+              const SizedBox(height: 20),
+              _shimmerQuestionRight(),
+            ]),
+        ]),
+      );
+
+  Widget _shimmerQuestionLeft() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _shimmerLabel(),
+          const SizedBox(height: 6),
+          _shimmerField(height: 90),
+          const SizedBox(height: 16),
+          _shimmerLabel(),
+          const SizedBox(height: 6),
+          _shimmerBox(width: double.infinity, height: 100, radius: 8),
+        ],
+      );
+
+  Widget _shimmerQuestionRight() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            _shimmerLabel(),
+            const Spacer(),
+            _shimmerBox(width: 70, height: 12, radius: 4),
+          ]),
+          const SizedBox(height: 8),
+          ...[for (int i = 0; i < 4; i++) ...[
+            _shimmerBox(width: double.infinity, height: 52, radius: 8),
+            const SizedBox(height: 8),
+          ]],
+        ],
+      );
 
   Widget _buildQuestionCard(int qi, bool wide) {
     final q = _questions[qi];

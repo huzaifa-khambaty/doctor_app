@@ -40,6 +40,13 @@ String _formatDate(String? iso) {
   return '${_months[dt.month - 1]} ${dt.day}, ${dt.year}';
 }
 
+bool _isScheduledDatePast(String? iso) {
+  if (iso == null) return false;
+  final dt = DateTime.tryParse(iso);
+  if (dt == null) return false;
+  return dt.isBefore(DateTime.now());
+}
+
 String _formatScheduled(String? iso) {
   if (iso == null) return '—';
   final dt = DateTime.tryParse(iso)?.toLocal();
@@ -430,9 +437,9 @@ class _ScheduledItem extends StatelessWidget {
               ],
             ),
           ),
-          if (item.canEdit == true)
+          if (item.canEdit == true && !_isScheduledDatePast(item.scheduledAt))
             _iconBtn(Icons.edit_outlined, 'Edit', onEdit),
-          if (item.canCancel == true)
+          if (item.canCancel == true && !_isScheduledDatePast(item.scheduledAt))
             _iconBtn(Icons.cancel_outlined, 'Cancel', onCancel),
           _iconBtn(Icons.delete_outline, 'Delete', onDelete, color: Colors.red.shade400),
         ],
@@ -633,7 +640,7 @@ class _HistoryCard extends StatelessWidget {
               padding: EdgeInsets.zero,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               elevation: 2,
-              itemBuilder: (_) => _menuItems(status),
+              itemBuilder: (_) => _menuItems(status, null),
               onSelected: (action) {
                 if (action == 'edit') onEdit(item);
                 if (action == 'cancel') onCancel(item.id!);
@@ -646,13 +653,14 @@ class _HistoryCard extends StatelessWidget {
     );
   }
 
-  List<PopupMenuEntry<String>> _menuItems(String status) {
+  List<PopupMenuEntry<String>> _menuItems(String status, String? scheduledAt) {
     final items = <PopupMenuEntry<String>>[];
+    final isPast = _isScheduledDatePast(scheduledAt);
 
     if (status == 'draft') {
       items.add(_menuItem('edit', Icons.edit_outlined, 'Edit'));
     }
-    if (status == 'scheduled') {
+    if (status == 'scheduled' && !isPast) {
       items.add(_menuItem('edit', Icons.edit_outlined, 'Edit / Reschedule'));
       items.add(_menuItem('cancel', Icons.cancel_outlined, 'Cancel'));
     }

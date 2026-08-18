@@ -215,6 +215,10 @@ class _ScheduleEventContentState extends State<ScheduleEventContent> {
       SnackbarUtil.showSnackbar(context, message: 'End date and time are required', isError: true);
       return;
     }
+    if (_selectedSpeakers.isEmpty) {
+      SnackbarUtil.showSnackbar(context, message: 'Please add at least one speaker', isError: true);
+      return;
+    }
 
     final request = CreateEventRequest(
       title: title,
@@ -247,6 +251,10 @@ class _ScheduleEventContentState extends State<ScheduleEventContent> {
     }
     if (_endDate == null || _endTime == null) {
       SnackbarUtil.showSnackbar(context, message: 'End date and time are required', isError: true);
+      return;
+    }
+    if (_selectedSpeakers.isEmpty) {
+      SnackbarUtil.showSnackbar(context, message: 'Please add at least one speaker', isError: true);
       return;
     }
 

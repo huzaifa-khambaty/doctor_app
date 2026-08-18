@@ -42,13 +42,16 @@ class MySidebarContent extends StatelessWidget {
                 : CrossAxisAlignment.start,
             children: [
               if (!isCollapsed) ...[
-                const Text(
-                  'MedSynapse Admin',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
+                ValueListenableBuilder<String?>(
+                  valueListenable: GlobalNotifiers.appNameNotifier,
+                  builder: (_, appName, _) => Text(
+                    appName ?? 'MedSynapse Admin',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 2),
