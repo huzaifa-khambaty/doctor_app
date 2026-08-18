@@ -40,7 +40,7 @@ class _QuizResultsViewState extends State<QuizResultsView> {
       builder: (context, themeMode) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: const QuizResultsAppBar(),
+          appBar: QuizResultsAppBar(),
           body: SafeArea(
             top: false,
             child: BlocBuilder<QuizResultsBloc, QuizResultsState>(

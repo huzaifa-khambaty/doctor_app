@@ -62,7 +62,7 @@ class EventsListSkeleton extends StatelessWidget {
             child: AppSkeleton.textBar(width: 140.w, height: 15.h),
           );
         }
-        return const EventCardSkeleton();
+        return EventCardSkeleton();
       },
     );
   }
@@ -112,7 +112,7 @@ class EventDetailSkeleton extends StatelessWidget {
                   ),
                 ],
                 SizedBox(height: 18.h),
-                const _InfoGridSkeleton(),
+                _InfoGridSkeleton(),
                 SizedBox(height: 22.h),
                 AppSkeleton.textBar(width: 100.w, height: 15.h),
                 SizedBox(height: 10.h),
@@ -183,7 +183,7 @@ class ConferenceDetailSkeleton extends StatelessWidget {
               children: [
                 AppSkeleton.textBar(width: 220.w, height: 19.h),
                 SizedBox(height: 16.h),
-                const _InfoGridSkeleton(),
+                _InfoGridSkeleton(),
                 SizedBox(height: 24.h),
                 AppSkeleton.textBar(width: 150.w, height: 15.h),
                 SizedBox(height: 14.h),

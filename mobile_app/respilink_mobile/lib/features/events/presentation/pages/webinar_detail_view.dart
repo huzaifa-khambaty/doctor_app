@@ -42,7 +42,7 @@ class _WebinarDetailViewState extends State<WebinarDetailView> {
       builder: (context, themeMode) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: const EventDetailAppBar(),
+          appBar: EventDetailAppBar(),
           body: SafeArea(
             top: false,
             child: BlocConsumer<EventDetailBloc, EventDetailState>(

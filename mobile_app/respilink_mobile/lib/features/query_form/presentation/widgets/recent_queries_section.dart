@@ -45,7 +45,7 @@ class RecentQueriesSection extends StatelessWidget {
         SizedBox(height: 12.h),
         if (isLoading) ...[
           for (var i = 0; i < 3; i++) ...[
-            const _RecentQueryCardSkeleton(),
+            _RecentQueryCardSkeleton(),
             SizedBox(height: 12.h),
           ],
         ] else if (hasError)

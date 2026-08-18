@@ -119,7 +119,7 @@ class _QuizReviewViewState extends State<QuizReviewView> {
         }
 
         if (state is! QuizReviewLoaded) {
-          return const QuizReviewSkeleton();
+          return QuizReviewSkeleton();
         }
 
         return ListView.separated(

@@ -13,8 +13,8 @@ class LibraryResultsSkeleton extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(bottom: index == 3 ? 0 : 16.h),
             child: index.isEven
-                ? const _MediaCardSkeleton()
-                : const _DocumentCardSkeleton(),
+                ? _MediaCardSkeleton()
+                : _DocumentCardSkeleton(),
           ),
       ],
     );

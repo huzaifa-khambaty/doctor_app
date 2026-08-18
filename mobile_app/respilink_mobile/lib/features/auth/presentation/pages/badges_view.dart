@@ -65,7 +65,7 @@ class _BadgesViewState extends State<BadgesView> {
                 }
 
                 if (state is! BadgesLoaded) {
-                  return const _BadgesSkeleton();
+                  return _BadgesSkeleton();
                 }
 
                 return _BadgesBody(badges: state.badges);

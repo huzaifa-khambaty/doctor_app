@@ -114,7 +114,7 @@ class _QueryFormViewState extends State<QueryFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const QueryFormHeader(),
+                  QueryFormHeader(),
 
                   SizedBox(height: 20.h),
 

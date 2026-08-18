@@ -36,7 +36,7 @@ class _LeaderboardViewState extends State<LeaderboardView> {
       builder: (context, themeMode) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: const LeaderboardAppBar(),
+          appBar: LeaderboardAppBar(),
           body: SafeArea(
             top: false,
             child: BlocBuilder<QuizLeaderboardBloc, QuizLeaderboardState>(

@@ -43,7 +43,7 @@ class _WorkshopDetailViewState extends State<WorkshopDetailView> {
       builder: (context, themeMode) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: const EventDetailAppBar(title: 'Workshop Detail'),
+          appBar: EventDetailAppBar(title: 'Workshop Detail'),
           body: SafeArea(
             top: false,
             child: BlocConsumer<EventDetailBloc, EventDetailState>(
@@ -61,7 +61,7 @@ class _WorkshopDetailViewState extends State<WorkshopDetailView> {
                 }
 
                 if (state is! WorkshopDetailLoaded) {
-                  return const EventDetailSkeleton();
+                  return EventDetailSkeleton();
                 }
 
                 final detail = state.detail;

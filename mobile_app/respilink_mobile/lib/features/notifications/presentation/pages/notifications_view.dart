@@ -138,7 +138,7 @@ class _NotificationsViewState extends State<NotificationsView> {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-        children: const [NotificationsListSkeleton()],
+        children: [NotificationsListSkeleton()],
       );
     }
 
@@ -149,7 +149,7 @@ class _NotificationsViewState extends State<NotificationsView> {
     if (notifications.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        children: const [NotificationsEmptyState()],
+        children: [NotificationsEmptyState()],
       );
     }
 

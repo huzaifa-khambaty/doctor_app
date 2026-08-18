@@ -186,7 +186,7 @@ class ProfileView extends StatelessWidget {
 
                       SizedBox(height: 20.h),
 
-                      const Center(child: _AppVersionLabel()),
+                      Center(child: _AppVersionLabel()),
 
                       SizedBox(height: 16.h),
                     ],

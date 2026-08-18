@@ -77,7 +77,7 @@ class _QuizTabViewState extends State<QuizTabView> {
     }
 
     if (state is! QuizHomeLoaded) {
-      return const QuizHomeSkeleton();
+      return QuizHomeSkeleton();
     }
 
     return AppRefreshIndicator(
