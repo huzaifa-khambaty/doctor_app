@@ -24,7 +24,7 @@ class GlobalRankBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.fieldColor,
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(

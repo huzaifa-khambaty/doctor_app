@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/core/validators/validators.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/reset_password_request.dart';
 import 'package:respilink_mobile/features/auth/presentation/bloc/auth_bloc.dart';
@@ -12,11 +13,7 @@ class ResetPasswordView extends StatefulWidget {
   final String email;
   final String code;
 
-  const ResetPasswordView({
-    super.key,
-    required this.email,
-    required this.code,
-  });
+  const ResetPasswordView({super.key, required this.email, required this.code});
 
   @override
   State<ResetPasswordView> createState() => _ResetPasswordViewState();
@@ -37,50 +34,57 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthSuccess) {
-          Handlers.onPasswordReset();
-        } else if (state is AuthFailed) {
-          SnackbarUtil.showSnackbar(message: state.message);
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: AppColors.white,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            centerTitle: true,
-            iconTheme: IconThemeData(color: AppColors.black),
-            title: AppText.medium(
-              label: 'Reset Password',
-              fontWeight: FontWeight.bold,
-              color: AppColors.black,
-            ),
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-              child: _FormView(
-                formKey: _formKey,
-                passwordCtrl: _passwordCtrl,
-                cnfPasswordCtrl: _cnfPasswordCtrl,
-                state: state,
-                onSubmit: () {
-                  final request = ResetPasswordRequest(
-                    email: widget.email,
-                    confirmPassword: _cnfPasswordCtrl.text,
-                    otp: widget.code,
-                    password: _passwordCtrl.text,
-                  );
-                  BlocProvider.of<AuthBloc>(
-                    context,
-                  ).add(ResetPasswordRequested(request: request));
-                },
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthSuccess) {
+              Handlers.onPasswordReset();
+            } else if (state is AuthFailed) {
+              SnackbarUtil.showSnackbar(message: state.message);
+            }
+          },
+          builder: (context, state) {
+            return Scaffold(
+              appBar: AppBar(
+                backgroundColor: AppColors.background,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                centerTitle: true,
+                iconTheme: IconThemeData(color: AppColors.black),
+                title: AppText.medium(
+                  label: 'Reset Password',
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.black,
+                ),
               ),
-            ),
-          ),
+              body: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 16.h,
+                  ),
+                  child: _FormView(
+                    formKey: _formKey,
+                    passwordCtrl: _passwordCtrl,
+                    cnfPasswordCtrl: _cnfPasswordCtrl,
+                    state: state,
+                    onSubmit: () {
+                      final request = ResetPasswordRequest(
+                        email: widget.email,
+                        confirmPassword: _cnfPasswordCtrl.text,
+                        otp: widget.code,
+                        password: _passwordCtrl.text,
+                      );
+                      BlocProvider.of<AuthBloc>(
+                        context,
+                      ).add(ResetPasswordRequested(request: request));
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );

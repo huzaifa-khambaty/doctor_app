@@ -19,7 +19,7 @@ class QuizStatCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(color: AppColors.fieldColor, width: 1),
       ),

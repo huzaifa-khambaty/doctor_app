@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:respilink_mobile/core/network/api_endpoints.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/core/utils/global_notifiers.dart';
 import 'package:respilink_mobile/core/utils/handlers.dart';
 import 'package:respilink_mobile/features/auth/domain/models/user_model.dart';
@@ -14,9 +15,17 @@ import '../../../../exports.dart';
 
 // TODO: replace with real data from the backend once the profile/stats API is wired up.
 List<(int, String, Color)> _stats = [
-  (GlobalNotifiers.userNotifier.value?.quizCount ?? 0, 'QUIZZES', AppColors.primary),
+  (
+    GlobalNotifiers.userNotifier.value?.quizCount ?? 0,
+    'QUIZZES',
+    AppColors.primary,
+  ),
   (GlobalNotifiers.userNotifier.value?.rank ?? 0, 'RANK', AppColors.yellow),
-  (GlobalNotifiers.userNotifier.value?.badgeCount ?? 0, 'BADGES', AppColors.purpleAccent),
+  (
+    GlobalNotifiers.userNotifier.value?.badgeCount ?? 0,
+    'BADGES',
+    AppColors.purpleAccent,
+  ),
 ];
 
 /// Profile summary only has room for a handful — "View All" opens the full
@@ -30,154 +39,164 @@ class ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        titleSpacing: showBackButton ? 0 : 20.w,
-        automaticallyImplyLeading: false,
-        leading: showBackButton
-            ? IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  size: 18.sp,
-                  color: AppColors.black,
-                ),
-                onPressed: () => locator<NavigationService>().pop(),
-              )
-            : null,
-        title: AppText.large(
-          label: 'MedSynapse',
-          fontSize: 18.sp,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primary,
-        ),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16.w),
-            child: AppNotificationBell(color: AppColors.black),
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            centerTitle: false,
+            titleSpacing: showBackButton ? 0 : 20.w,
+            automaticallyImplyLeading: false,
+            leading: showBackButton
+                ? IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios,
+                      size: 18.sp,
+                      color: AppColors.black,
+                    ),
+                    onPressed: () => locator<NavigationService>().pop(),
+                  )
+                : null,
+            title: AppText.large(
+              label: 'MedSynapse',
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
+            actions: [
+              Padding(
+                padding: EdgeInsets.only(right: 16.w),
+                child: AppNotificationBell(color: AppColors.black),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: ValueListenableBuilder<Doctor?>(
-        valueListenable: GlobalNotifiers.userNotifier,
-        builder: (context, user, child) {
-          return SafeArea(
-            top: false,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _ProfileCard(user: user),
-
-                  SizedBox(height: 16.h),
-
-                  _StatsRow(stats: _stats),
-
-                  SizedBox(height: 20.h),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          body: ValueListenableBuilder<Doctor?>(
+            valueListenable: GlobalNotifiers.userNotifier,
+            builder: (context, user, child) {
+              return SafeArea(
+                top: false,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 16.h,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppText.medium(
-                        label: 'Earned Badges',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15.sp,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          locator<NavigationService>().navigate(
-                            RouterStrings.badges,
-                          );
-                        },
-                        child: AppText.small(
-                          label: 'View All',
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 14.h),
-                  _EarnedBadgesRow(badges: user?.earnedBadges ?? const []),
+                      _ProfileCard(user: user),
 
-                  SizedBox(height: 24.h),
+                      SizedBox(height: 16.h),
 
-                  _ProfileMenu(
-                    items: [
-                      _ProfileMenuItem(
-                        icon: Icons.settings_outlined,
-                        label: 'Account Settings',
-                        onTap: () => locator<NavigationService>().navigate(
-                          RouterStrings.settings,
-                        ),
-                      ),
-                      _ProfileMenuItem(
-                        icon: Icons.shield_outlined,
-                        label: 'Privacy & Security',
-                        onTap: () => locator<NavigationService>().navigate(
-                          RouterStrings.privacyPolicy,
-                        ),
-                      ),
-                      _ProfileMenuItem(
-                        icon: Icons.help_outline,
-                        label: 'Support Center',
-                        onTap: () {
-                          // TODO: navigate to the support center once it exists.
-                        },
-                        isLast: true,
-                      ),
-                    ],
-                  ),
+                      _StatsRow(stats: _stats),
 
-                  SizedBox(height: 24.h),
+                      SizedBox(height: 20.h),
 
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => _showLogoutDialog(context),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: AppColors.white,
-                        side: BorderSide(color: AppColors.error, width: 1.5),
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14.r),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(
-                            Icons.logout,
-                            color: AppColors.error,
-                            size: 18.sp,
-                          ),
-                          SizedBox(width: 8.w),
                           AppText.medium(
-                            label: 'Log Out',
-                            color: AppColors.error,
+                            label: 'Earned Badges',
                             fontWeight: FontWeight.bold,
+                            fontSize: 15.sp,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              locator<NavigationService>().navigate(
+                                RouterStrings.badges,
+                              );
+                            },
+                            child: AppText.small(
+                              label: 'View All',
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),
-                    ),
+                      SizedBox(height: 14.h),
+                      _EarnedBadgesRow(badges: user?.earnedBadges ?? const []),
+
+                      SizedBox(height: 24.h),
+
+                      _ProfileMenu(
+                        items: [
+                          _ProfileMenuItem(
+                            icon: Icons.settings_outlined,
+                            label: 'Account Settings',
+                            onTap: () => locator<NavigationService>().navigate(
+                              RouterStrings.settings,
+                            ),
+                          ),
+                          _ProfileMenuItem(
+                            icon: Icons.shield_outlined,
+                            label: 'Privacy & Security',
+                            onTap: () => locator<NavigationService>().navigate(
+                              RouterStrings.privacyPolicy,
+                            ),
+                          ),
+                          _ProfileMenuItem(
+                            icon: Icons.help_outline,
+                            label: 'Support Center',
+                            onTap: () {
+                              // TODO: navigate to the support center once it exists.
+                            },
+                            isLast: true,
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 24.h),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () => _showLogoutDialog(context),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: AppColors.background,
+                            side: BorderSide(
+                              color: AppColors.error,
+                              width: 1.5,
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14.r),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.logout,
+                                color: AppColors.error,
+                                size: 18.sp,
+                              ),
+                              SizedBox(width: 8.w),
+                              AppText.medium(
+                                label: 'Log Out',
+                                color: AppColors.error,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: 20.h),
+
+                      const Center(child: _AppVersionLabel()),
+
+                      SizedBox(height: 16.h),
+                    ],
                   ),
-
-                  SizedBox(height: 20.h),
-
-                  const Center(child: _AppVersionLabel()),
-
-                  SizedBox(height: 16.h),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -201,7 +220,7 @@ void _showLogoutDialog(BuildContext context) {
       },
       builder: (context, state) {
         return AlertDialog(
-          backgroundColor: AppColors.white,
+          backgroundColor: AppColors.background,
           title: AppText.medium(label: 'Log Out', color: AppColors.black),
           content: AppText.small(
             label: 'Are you sure you want to log out?',
@@ -295,7 +314,9 @@ class _ProfileCard extends StatelessWidget {
                   )
                 : CircleAvatar(
                     radius: 38.r,
-                    backgroundColor: AppColors.white.withValues(alpha: 0.15),
+                    backgroundColor: AppColors.background.withValues(
+                      alpha: 0.15,
+                    ),
                     child: Icon(
                       Icons.person,
                       color: AppColors.white,
@@ -503,7 +524,7 @@ class _ProfileMenu extends StatelessWidget {
                         ? null
                         : Border(
                             bottom: BorderSide(
-                              color: AppColors.white,
+                              color: AppColors.background,
                               width: 1.5.h,
                             ),
                           ),

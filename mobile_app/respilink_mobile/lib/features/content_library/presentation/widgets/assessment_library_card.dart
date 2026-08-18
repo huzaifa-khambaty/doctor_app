@@ -60,7 +60,7 @@ class AssessmentLibraryCard extends StatelessWidget {
             child: ElevatedButton(
               onPressed: isLoading ? null : onStart,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.white,
+                backgroundColor: AppColors.background,
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),

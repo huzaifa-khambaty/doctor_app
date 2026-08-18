@@ -21,27 +21,26 @@ class MediaLibraryCard extends StatelessWidget {
 
   String get _imageUrl {
     final image = content.image ?? '';
-    return image.startsWith('http')
-        ? image
-        : "${AppConstants.imagePath}$image";
+    return image.startsWith('http') ? image : "${AppConstants.imagePath}$image";
   }
 
-  ({String label, Color color, IconData icon}) get _typeTag => switch (content.type) {
+  ({String label, Color color, IconData icon}) get _typeTag =>
+      switch (content.type) {
         LibraryContentType.webinar => (
-            label: 'WEBINAR',
-            color: AppColors.purpleAccent,
-            icon: Icons.live_tv_outlined,
-          ),
+          label: 'WEBINAR',
+          color: AppColors.purpleAccent,
+          icon: Icons.live_tv_outlined,
+        ),
         LibraryContentType.article => (
-            label: 'ARTICLE',
-            color: AppColors.primary,
-            icon: Icons.article_outlined,
-          ),
+          label: 'ARTICLE',
+          color: AppColors.primary,
+          icon: Icons.article_outlined,
+        ),
         _ => (
-            label: 'CONTENT',
-            color: AppColors.primary,
-            icon: Icons.image_outlined,
-          ),
+          label: 'CONTENT',
+          color: AppColors.primary,
+          icon: Icons.image_outlined,
+        ),
       };
 
   @override
@@ -52,7 +51,7 @@ class MediaLibraryCard extends StatelessWidget {
       onTap: isLoading ? null : onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: AppColors.fieldColor, width: 1),
         ),
@@ -106,7 +105,10 @@ class MediaLibraryCard extends StatelessWidget {
                     bottom: 10.h,
                     right: 10.w,
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 3.h,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.black.withValues(alpha: 0.65),
                         borderRadius: BorderRadius.circular(6.r),
@@ -146,7 +148,11 @@ class MediaLibraryCard extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(content.metaLeftIcon, color: AppColors.grey, size: 13.sp),
+                            Icon(
+                              content.metaLeftIcon,
+                              color: AppColors.grey,
+                              size: 13.sp,
+                            ),
                             SizedBox(width: 4.w),
                             AppText.small(
                               label: content.metaLeft!,
@@ -157,7 +163,10 @@ class MediaLibraryCard extends StatelessWidget {
                         ),
                       if (content.ctaLabel != null)
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 6.h,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(16.r),
@@ -165,7 +174,11 @@ class MediaLibraryCard extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.bolt, color: AppColors.white, size: 12.sp),
+                              Icon(
+                                Icons.bolt,
+                                color: AppColors.white,
+                                size: 12.sp,
+                              ),
                               SizedBox(width: 4.w),
                               AppText.small(
                                 label: content.ctaLabel!,
@@ -180,7 +193,11 @@ class MediaLibraryCard extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(content.metaRightIcon, color: AppColors.grey, size: 13.sp),
+                            Icon(
+                              content.metaRightIcon,
+                              color: AppColors.grey,
+                              size: 13.sp,
+                            ),
                             SizedBox(width: 4.w),
                             AppText.small(
                               label: content.metaRight!,

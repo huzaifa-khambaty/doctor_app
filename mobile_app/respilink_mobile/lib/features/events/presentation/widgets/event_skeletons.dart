@@ -9,7 +9,7 @@ class EventCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(18.r),
         border: Border.all(color: AppColors.fieldColor, width: 1),
       ),
@@ -168,7 +168,11 @@ class ConferenceDetailSkeleton extends StatelessWidget {
               Positioned(
                 left: 14.w,
                 bottom: 14.h,
-                child: AppSkeleton(width: 70.w, height: 22.h, borderRadius: 8.r),
+                child: AppSkeleton(
+                  width: 70.w,
+                  height: 22.h,
+                  borderRadius: 8.r,
+                ),
               ),
             ],
           ),

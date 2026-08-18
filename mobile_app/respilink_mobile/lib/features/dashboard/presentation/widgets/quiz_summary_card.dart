@@ -23,7 +23,7 @@ class QuizSummaryCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: AppColors.fieldColor, width: 1),
         ),
@@ -70,10 +70,7 @@ class QuizSummaryCard extends StatelessWidget {
                           icon: Icons.access_time,
                           label: '${quiz.duration} min',
                         ),
-                      _MetaItem(
-                        icon: Icons.bolt,
-                        label: '${quiz.xp ?? 0} XP',
-                      ),
+                      _MetaItem(icon: Icons.bolt, label: '${quiz.xp ?? 0} XP'),
                     ],
                   ),
                 ],

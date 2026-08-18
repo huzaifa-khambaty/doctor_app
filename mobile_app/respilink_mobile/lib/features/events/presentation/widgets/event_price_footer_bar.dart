@@ -21,7 +21,7 @@ class EventPriceFooterBar extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.background,
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.06),
@@ -37,7 +37,7 @@ class EventPriceFooterBar extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   AppText.small(
                     label: priceCaption,

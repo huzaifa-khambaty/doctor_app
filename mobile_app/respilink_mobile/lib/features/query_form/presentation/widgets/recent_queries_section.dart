@@ -49,10 +49,7 @@ class RecentQueriesSection extends StatelessWidget {
             SizedBox(height: 12.h),
           ],
         ] else if (hasError)
-          AppText.small(
-            label: 'Unable to load queries.',
-            color: AppColors.grey,
-          )
+          AppText.small(label: 'Unable to load queries.', color: AppColors.grey)
         else if (queries.isEmpty)
           AppText.small(label: 'No queries yet.', color: AppColors.grey)
         else
@@ -75,7 +72,7 @@ class _RecentQueryCardSkeleton extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(color: AppColors.fieldColor, width: 1),
       ),

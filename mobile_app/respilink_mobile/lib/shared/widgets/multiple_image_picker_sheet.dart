@@ -1,10 +1,7 @@
 import '../../../../exports.dart'; // Retained your custom export layer
 
 class AppMultipleImagePickerSheet extends StatelessWidget {
-  const AppMultipleImagePickerSheet._({
-    required this.onSuccess, 
-    this.onError,
-  });
+  const AppMultipleImagePickerSheet._({required this.onSuccess, this.onError});
 
   // 1. Updated callback signature to pass an array list of selected file instances
   final void Function(List<File> files) onSuccess;
@@ -22,10 +19,8 @@ class AppMultipleImagePickerSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => AppMultipleImagePickerSheet._(
-        onSuccess: onSuccess, 
-        onError: onError,
-      ),
+      builder: (_) =>
+          AppMultipleImagePickerSheet._(onSuccess: onSuccess, onError: onError),
     );
   }
 
@@ -53,7 +48,8 @@ class AppMultipleImagePickerSheet extends StatelessWidget {
 
   Future<void> _pickMultiGallery(BuildContext context) async {
     // 2. Bound invocation mapping to support multiple multi-image picker actions
-    final result = await locator<ImagePickerService>().pickMultipleFromGallery();
+    final result = await locator<ImagePickerService>()
+        .pickMultipleFromGallery();
     if (context.mounted) _handleMultiplePick(context, result);
   }
 
@@ -71,7 +67,7 @@ class AppMultipleImagePickerSheet extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: AppColors.background,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(

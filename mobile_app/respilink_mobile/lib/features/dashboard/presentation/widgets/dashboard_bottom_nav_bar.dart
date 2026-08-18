@@ -17,7 +17,7 @@ class DashboardBottomNavBar extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 10.h),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.background,
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.06),

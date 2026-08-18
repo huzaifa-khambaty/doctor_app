@@ -15,7 +15,7 @@ class NotificationsListSkeleton extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(14.w),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.background,
                 borderRadius: BorderRadius.circular(14.r),
                 border: Border.all(color: AppColors.fieldColor, width: 1),
               ),
@@ -28,7 +28,10 @@ class NotificationsListSkeleton extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        AppSkeleton.textBar(width: double.infinity, height: 13.h),
+                        AppSkeleton.textBar(
+                          width: double.infinity,
+                          height: 13.h,
+                        ),
                         SizedBox(height: 8.h),
                         AppSkeleton.textBar(width: 160.w, height: 11.h),
                         SizedBox(height: 10.h),

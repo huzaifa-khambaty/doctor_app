@@ -15,7 +15,7 @@ class ReinforceKnowledgeCard extends StatelessWidget {
       child: Container(
         width: 190.w,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(14.r),
           border: Border.all(color: AppColors.fieldColor, width: 1),
         ),

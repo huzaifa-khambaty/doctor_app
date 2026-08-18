@@ -22,7 +22,7 @@ class QuizReviewQuestionCard extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(18.r),
         border: Border.all(color: AppColors.fieldColor, width: 1),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/quiz/domain/models/quiz_result_model.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_results_bloc.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_results_event.dart';
@@ -35,25 +36,32 @@ class _QuizResultsViewState extends State<QuizResultsView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: const QuizResultsAppBar(),
-      body: SafeArea(
-        top: false,
-        child: BlocBuilder<QuizResultsBloc, QuizResultsState>(
-          builder: (context, state) {
-            if (state is QuizResultsFailed) {
-              return RequestFailed(message: state.message);
-            }
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: const QuizResultsAppBar(),
+          body: SafeArea(
+            top: false,
+            child: BlocBuilder<QuizResultsBloc, QuizResultsState>(
+              builder: (context, state) {
+                if (state is QuizResultsFailed) {
+                  return RequestFailed(message: state.message);
+                }
 
-            if (state is! QuizResultsLoaded) {
-              return const QuizResultsSkeleton();
-            }
+                if (state is! QuizResultsLoaded) {
+                  return const QuizResultsSkeleton();
+                }
 
-            return _QuizResultsBody(quizId: widget.quizId, result: state.result);
-          },
-        ),
-      ),
+                return _QuizResultsBody(
+                  quizId: widget.quizId,
+                  result: state.result,
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

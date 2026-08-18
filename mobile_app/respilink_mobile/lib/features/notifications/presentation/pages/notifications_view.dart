@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/core/utils/date_time_utils.dart';
 import 'package:respilink_mobile/core/utils/global_notifiers.dart';
 import 'package:respilink_mobile/features/notifications/data/models/notification_model.dart';
@@ -70,42 +71,55 @@ class _NotificationsViewState extends State<NotificationsView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, size: 18.sp, color: AppColors.black),
-          onPressed: () => locator<NavigationService>().pop(),
-        ),
-        title: AppText.medium(
-          label: 'Notifications',
-          fontWeight: FontWeight.bold,
-          color: AppColors.black,
-        ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: BlocConsumer<NotificationsBloc, NotificationsState>(
-          listener: (context, state) {
-            if (state is NotificationsFailed) {
-              SnackbarUtil.showSnackbar(message: state.message, isError: true);
-            }
-          },
-          builder: (context, state) {
-            return AppRefreshIndicator(
-              onRefresh: () async {
-                context.read<NotificationsBloc>().add(NotificationsRequested());
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            centerTitle: false,
+            titleSpacing: 0,
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios,
+                size: 18.sp,
+                color: AppColors.black,
+              ),
+              onPressed: () => locator<NavigationService>().pop(),
+            ),
+            title: AppText.medium(
+              label: 'Notifications',
+              fontWeight: FontWeight.bold,
+              color: AppColors.black,
+            ),
+          ),
+          body: SafeArea(
+            top: false,
+            child: BlocConsumer<NotificationsBloc, NotificationsState>(
+              listener: (context, state) {
+                if (state is NotificationsFailed) {
+                  SnackbarUtil.showSnackbar(
+                    message: state.message,
+                    isError: true,
+                  );
+                }
               },
-              child: _buildBody(state),
-            );
-          },
-        ),
-      ),
+              builder: (context, state) {
+                return AppRefreshIndicator(
+                  onRefresh: () async {
+                    context.read<NotificationsBloc>().add(
+                      NotificationsRequested(),
+                    );
+                  },
+                  child: _buildBody(state),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -149,7 +163,9 @@ class _NotificationsViewState extends State<NotificationsView> {
         final (label, items) = sections[index];
 
         return Padding(
-          padding: EdgeInsets.only(bottom: index == sections.length - 1 ? 0 : 20.h),
+          padding: EdgeInsets.only(
+            bottom: index == sections.length - 1 ? 0 : 20.h,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

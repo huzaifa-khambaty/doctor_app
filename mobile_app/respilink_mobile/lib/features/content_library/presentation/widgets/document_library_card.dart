@@ -26,7 +26,7 @@ class DocumentLibraryCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: AppColors.fieldColor, width: 1),
         ),
@@ -107,7 +107,11 @@ class DocumentLibraryCard extends StatelessWidget {
                   Row(
                     children: [
                       if (content.metaLeft != null) ...[
-                        Icon(content.metaLeftIcon, color: AppColors.grey, size: 13.sp),
+                        Icon(
+                          content.metaLeftIcon,
+                          color: AppColors.grey,
+                          size: 13.sp,
+                        ),
                         SizedBox(width: 4.w),
                         AppText.small(
                           label: content.metaLeft!,
@@ -117,7 +121,11 @@ class DocumentLibraryCard extends StatelessWidget {
                         SizedBox(width: 12.w),
                       ],
                       if (content.metaRight != null) ...[
-                        Icon(content.metaRightIcon, color: AppColors.grey, size: 13.sp),
+                        Icon(
+                          content.metaRightIcon,
+                          color: AppColors.grey,
+                          size: 13.sp,
+                        ),
                         SizedBox(width: 4.w),
                         AppText.small(
                           label: content.metaRight!,

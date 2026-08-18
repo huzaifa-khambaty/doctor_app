@@ -23,7 +23,7 @@ class UpNextEventCard extends StatelessWidget {
         width: 220.w,
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: AppColors.fieldColor, width: 1),
         ),
@@ -34,10 +34,7 @@ class UpNextEventCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8.w,
-                    vertical: 4.h,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: _tagColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8.r),
@@ -49,7 +46,11 @@ class UpNextEventCard extends StatelessWidget {
                     fontSize: 9.sp,
                   ),
                 ),
-                Icon(Icons.calendar_today_outlined, color: AppColors.grey, size: 14.sp),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  color: AppColors.grey,
+                  size: 14.sp,
+                ),
               ],
             ),
             SizedBox(height: 10.h),
@@ -75,7 +76,11 @@ class UpNextEventCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                Icon(Icons.arrow_forward_ios, color: AppColors.primary, size: 12.sp),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppColors.primary,
+                  size: 12.sp,
+                ),
               ],
             ),
           ],

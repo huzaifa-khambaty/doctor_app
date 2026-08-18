@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:respilink_mobile/core/extensions/string_extensions.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/core/utils/handlers.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/otp_request.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/resent_otp_request.dart';
@@ -42,7 +43,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
   @override
   void initState() {
     super.initState();
-    if(!mounted) return;
+    if (!mounted) return;
     _startTimer();
   }
 
@@ -86,248 +87,255 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) async {
-        if (state is ResendOtpSuccess) {
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) async {
+            if (state is ResendOtpSuccess) {
+              for (var controller in _controllers) {
+                controller.clear();
+              }
+              _startTimer();
+              if (_focusNodes.isNotEmpty) {
+                _focusNodes[0].requestFocus();
+              }
+              _canResend = true;
+              SnackbarUtil.showSnackbar(message: state.message);
+            } else if (state is OptVerifiedSuccess) {
+              _timer?.cancel();
 
-          for (var controller in _controllers) {
-            controller.clear();
-          }
-          _startTimer();
-          if (_focusNodes.isNotEmpty) {
-            _focusNodes[0].requestFocus();
-          }
-          _canResend = true;
-          SnackbarUtil.showSnackbar(message: state.message);
-
-        } else if (state is OptVerifiedSuccess) {
-          _timer?.cancel();
-          
-          if(widget.purpose == "reset") {
-            Handlers.onOtpVerifiedReset(widget.email, _otpCode);
-          } else {
-            Handlers.onOtpVerified(state.data as Doctor?);
-          }
-
-        } else if (state is ResendOtpFailure) {
-          SnackbarUtil.showSnackbar(message: state.message, isError: true);
-        } else if (state is AuthFailed) {
-          SnackbarUtil.showSnackbar(message: state.message, isError: true);
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: AppColors.white,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            centerTitle: true,
-            iconTheme: IconThemeData(color: AppColors.black),
-            title: AppText.medium(
-              label: 'Verification',
-              fontWeight: FontWeight.bold,
-              color: AppColors.black,
-            ),
-          ),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  /// Icon + intro copy
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 56.r,
-                          height: 56.r,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16.r),
-                          ),
-                          child: Icon(
-                            Icons.shield_outlined,
-                            color: AppColors.primary,
-                            size: 26.r,
-                          ),
-                        ),
-                        SizedBox(height: 16.h),
-                        AppText.large(
-                          label: 'Secure Entry',
-                          fontWeight: FontWeight.bold,
-                        ),
-                        SizedBox(height: 6.h),
-                        AppText.small(
-                          label: "We've sent a 6-digit verification code to",
-                          color: AppColors.grey,
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 2.h),
-                        AppText.small(
-                          label: widget.email.maskEmail(),
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ],
-                    ),
+              if (widget.purpose == "reset") {
+                Handlers.onOtpVerifiedReset(widget.email, _otpCode);
+              } else {
+                Handlers.onOtpVerified(state.data as Doctor?);
+              }
+            } else if (state is ResendOtpFailure) {
+              SnackbarUtil.showSnackbar(message: state.message, isError: true);
+            } else if (state is AuthFailed) {
+              SnackbarUtil.showSnackbar(message: state.message, isError: true);
+            }
+          },
+          builder: (context, state) {
+            return Scaffold(
+              appBar: AppBar(
+                backgroundColor: AppColors.background,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                centerTitle: true,
+                iconTheme: IconThemeData(color: AppColors.black),
+                title: AppText.medium(
+                  label: 'Verification',
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.black,
+                ),
+              ),
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 16.h,
                   ),
-
-                  SizedBox(height: 24.h),
-
-                  /// OTP card
-                  Container(
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.fieldColor,
-                      borderRadius: BorderRadius.circular(18.r),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: List.generate(
-                            6,
-                            (index) => Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 2.w),
-                              child: _otpBox(index),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(height: 20.h),
-
-                        /// Verify Button
-                        state is AuthLoading
-                            ? const AppLoader()
-                            : AppButton.filled(
-                                label: 'Verify Account',
-                                onTap: () {
-                                  if (_otpCode.length == 6) {
-                                    final request = OtpRequest(
-                                      email: widget.email,
-                                      otp: _otpCode,
-                                      purpose: widget.purpose,
-                                    );
-                                    BlocProvider.of<AuthBloc>(context).add(
-                                      VerifyOtpRequested(request: request),
-                                    );
-                                  }
-                                },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      /// Icon + intro copy
+                      Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 56.r,
+                              height: 56.r,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(16.r),
                               ),
+                              child: Icon(
+                                Icons.shield_outlined,
+                                color: AppColors.primary,
+                                size: 26.r,
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            AppText.large(
+                              label: 'Secure Entry',
+                              fontWeight: FontWeight.bold,
+                            ),
+                            SizedBox(height: 6.h),
+                            AppText.small(
+                              label:
+                                  "We've sent a 6-digit verification code to",
+                              color: AppColors.grey,
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 2.h),
+                            AppText.small(
+                              label: widget.email.maskEmail(),
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ],
+                        ),
+                      ),
 
-                        SizedBox(height: 16.h),
+                      SizedBox(height: 24.h),
 
-                        /// Resend Timer
-                        Center(
-                          child: _canResend
-                              ? GestureDetector(
-                                  onTap: () {
-                                    final request = ResendOtpRequest(
-                                      email: widget.email,
-                                      purpose: "reset",
-                                    );
-                                    BlocProvider.of<AuthBloc>(context).add(
-                                      ResendOtpRequested(request: request),
-                                    );
-                                  },
-                                  child: RichText(
-                                    text: TextSpan(
-                                      text: "Didn't receive code? ",
-                                      style: TextStyle(
-                                        fontSize: 13.sp,
-                                        fontFamily: AppConstants.fontFamily,
-                                        color: AppColors.secondary,
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text: 'Resend Now',
+                      /// OTP card
+                      Container(
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(
+                          color: AppColors.fieldColor,
+                          borderRadius: BorderRadius.circular(18.r),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: List.generate(
+                                6,
+                                (index) => Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 2.w,
+                                  ),
+                                  child: _otpBox(index),
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(height: 20.h),
+
+                            /// Verify Button
+                            state is AuthLoading
+                                ? const AppLoader()
+                                : AppButton.filled(
+                                    label: 'Verify Account',
+                                    onTap: () {
+                                      if (_otpCode.length == 6) {
+                                        final request = OtpRequest(
+                                          email: widget.email,
+                                          otp: _otpCode,
+                                          purpose: widget.purpose,
+                                        );
+                                        BlocProvider.of<AuthBloc>(context).add(
+                                          VerifyOtpRequested(request: request),
+                                        );
+                                      }
+                                    },
+                                  ),
+
+                            SizedBox(height: 16.h),
+
+                            /// Resend Timer
+                            Center(
+                              child: _canResend
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        final request = ResendOtpRequest(
+                                          email: widget.email,
+                                          purpose: "reset",
+                                        );
+                                        BlocProvider.of<AuthBloc>(context).add(
+                                          ResendOtpRequested(request: request),
+                                        );
+                                      },
+                                      child: RichText(
+                                        text: TextSpan(
+                                          text: "Didn't receive code? ",
                                           style: TextStyle(
                                             fontSize: 13.sp,
-                                            fontFamily:
-                                                AppConstants.fontFamily,
-                                            color: AppColors.primary,
-                                            fontWeight: FontWeight.w700,
+                                            fontFamily: AppConstants.fontFamily,
+                                            color: AppColors.secondary,
                                           ),
+                                          children: [
+                                            TextSpan(
+                                              text: 'Resend Now',
+                                              style: TextStyle(
+                                                fontSize: 13.sp,
+                                                fontFamily:
+                                                    AppConstants.fontFamily,
+                                                color: AppColors.primary,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
+                                    )
+                                  : AppText.small(
+                                      label:
+                                          'Resend code in 00:${_start.toString().padLeft(2, '0')}',
+                                      color: AppColors.secondary,
                                     ),
-                                  ),
-                                )
-                              : AppText.small(
-                                  label:
-                                      'Resend code in 00:${_start.toString().padLeft(2, '0')}',
-                                  color: AppColors.secondary,
-                                ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  SizedBox(height: 16.h),
+                      SizedBox(height: 16.h),
 
-                  /// Secure verification badge
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 16.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.fieldColor,
-                      borderRadius: BorderRadius.circular(18.r),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.gpp_good_outlined,
-                          color: AppColors.primary,
-                          size: 22.r,
+                      /// Secure verification badge
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 16.h,
                         ),
-                        SizedBox(height: 6.h),
-                        AppText.small(
-                          label: 'SECURE VERIFICATION BY RESPILINK',
-                          color: AppColors.grey,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10.sp,
+                        decoration: BoxDecoration(
+                          color: AppColors.fieldColor,
+                          borderRadius: BorderRadius.circular(18.r),
                         ),
-                      ],
-                    ),
-                  ),
-
-                  SizedBox(height: 20.h),
-
-                  Center(
-                    child: RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        text:
-                            'This verification step ensures your clinical data remains protected. Need help? ',
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontFamily: AppConstants.fontFamily,
-                          color: AppColors.tertiary,
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.gpp_good_outlined,
+                              color: AppColors.primary,
+                              size: 22.r,
+                            ),
+                            SizedBox(height: 6.h),
+                            AppText.small(
+                              label: 'SECURE VERIFICATION BY RESPILINK',
+                              color: AppColors.grey,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 10.sp,
+                            ),
+                          ],
                         ),
-                        children: [
-                          TextSpan(
-                            text: 'Contact Support',
+                      ),
+
+                      SizedBox(height: 20.h),
+
+                      Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            text:
+                                'This verification step ensures your clinical data remains protected. Need help? ',
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontFamily: AppConstants.fontFamily,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
+                              color: AppColors.tertiary,
                             ),
+                            children: [
+                              TextSpan(
+                                text: 'Contact Support',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontFamily: AppConstants.fontFamily,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
 
-                  SizedBox(height: 16.h),
-                ],
+                      SizedBox(height: 16.h),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -387,13 +395,10 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.r),
-            borderSide: BorderSide(
-              color: AppColors.primary,
-              width: 2,
-            ),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
         ),
-        cursorColor:AppColors.primary,
+        cursorColor: AppColors.primary,
       ),
     );
   }

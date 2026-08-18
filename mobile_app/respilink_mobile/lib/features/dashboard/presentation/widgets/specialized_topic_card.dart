@@ -15,7 +15,7 @@ class SpecializedTopicCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: AppColors.fieldColor, width: 1),
         ),

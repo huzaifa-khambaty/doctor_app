@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_play_bloc.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_play_event.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_play_state.dart';
@@ -33,37 +34,47 @@ class _QuizPlayViewState extends State<QuizPlayView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<QuizPlayBloc, QuizPlayState>(
-      listener: (context, state) {
-        if (state is QuizPlayFailed) {
-          SnackbarUtil.showSnackbar(message: state.message, isError: true);
-        } else if (state is QuizPlayLoaded && state.submitError != null) {
-          SnackbarUtil.showSnackbar(
-            message: state.submitError!,
-            isError: true,
-          );
-        } else if (state is QuizPlayCompleted) {
-          SnackbarUtil.showSnackbar(message: "Quiz submitted successfully.");
-          locator<NavigationService>().navigate(
-            RouterStrings.quizReview,
-            arguments: widget.quizId,
-          );
-        } else if (state is QuizPlayTimeExpired) {
-          SnackbarUtil.showSnackbar(message: "Time's up! Your answers have been submitted.");
-          locator<NavigationService>().navigateAndRemove(RouterStrings.dashboard);
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          backgroundColor: AppColors.white,
-          appBar: QuizAppBar(
-            timeLimitSeconds: state is QuizPlayLoaded
-                ? state.quiz.timeLimit
-                : null,
-            onTimeExpired: () =>
-                context.read<QuizPlayBloc>().add(QuizTimeExpired()),
-          ),
-          body: SafeArea(top: false, child: _buildBody(context, state)),
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return BlocConsumer<QuizPlayBloc, QuizPlayState>(
+          listener: (context, state) {
+            if (state is QuizPlayFailed) {
+              SnackbarUtil.showSnackbar(message: state.message, isError: true);
+            } else if (state is QuizPlayLoaded && state.submitError != null) {
+              SnackbarUtil.showSnackbar(
+                message: state.submitError!,
+                isError: true,
+              );
+            } else if (state is QuizPlayCompleted) {
+              SnackbarUtil.showSnackbar(
+                message: "Quiz submitted successfully.",
+              );
+              locator<NavigationService>().navigate(
+                RouterStrings.quizReview,
+                arguments: widget.quizId,
+              );
+            } else if (state is QuizPlayTimeExpired) {
+              SnackbarUtil.showSnackbar(
+                message: "Time's up! Your answers have been submitted.",
+              );
+              locator<NavigationService>().navigateAndRemove(
+                RouterStrings.dashboard,
+              );
+            }
+          },
+          builder: (context, state) {
+            return Scaffold(
+              backgroundColor: AppColors.background,
+              appBar: QuizAppBar(
+                timeLimitSeconds: state is QuizPlayLoaded
+                    ? state.quiz.timeLimit
+                    : null,
+                onTimeExpired: () =>
+                    context.read<QuizPlayBloc>().add(QuizTimeExpired()),
+              ),
+              body: SafeArea(top: false, child: _buildBody(context, state)),
+            );
+          },
         );
       },
     );

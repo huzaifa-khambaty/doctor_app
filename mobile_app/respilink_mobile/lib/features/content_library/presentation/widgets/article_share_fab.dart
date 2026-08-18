@@ -11,7 +11,7 @@ class ArticleShareFab extends StatelessWidget {
       onPressed: onTap,
       heroTag: 'article_share_fab',
       shape: CircleBorder(),
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.background,
       elevation: 2,
       child: Icon(Icons.share, color: AppColors.primary, size: 20.sp),
     );

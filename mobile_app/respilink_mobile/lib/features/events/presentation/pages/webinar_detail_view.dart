@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/event_detail_bloc.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/event_detail_event.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/event_detail_state.dart';
@@ -37,101 +38,111 @@ class _WebinarDetailViewState extends State<WebinarDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: const EventDetailAppBar(),
-      body: SafeArea(
-        top: false,
-        child: BlocConsumer<EventDetailBloc, EventDetailState>(
-          listener: (context, state) {
-            if (state is EventDetailFailed) {
-              SnackbarUtil.showSnackbar(message: state.message, isError: true);
-            }
-          },
-          builder: (context, state) {
-            if (state is EventDetailFailed) {
-              return RequestFailed(message: state.message);
-            }
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: const EventDetailAppBar(),
+          body: SafeArea(
+            top: false,
+            child: BlocConsumer<EventDetailBloc, EventDetailState>(
+              listener: (context, state) {
+                if (state is EventDetailFailed) {
+                  SnackbarUtil.showSnackbar(
+                    message: state.message,
+                    isError: true,
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state is EventDetailFailed) {
+                  return RequestFailed(message: state.message);
+                }
 
-            if (state is! WebinarDetailLoaded) {
-              return const EventDetailSkeleton();
-            }
+                if (state is! WebinarDetailLoaded) {
+                  return const EventDetailSkeleton();
+                }
 
-            final detail = state.detail;
+                final detail = state.detail;
 
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  EventDetailBanner(image: detail.event.image),
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 16.h,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppText.large(
-                          label: detail.event.title,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 19.sp,
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      EventDetailBanner(image: detail.event.image),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 16.h,
                         ),
-                        SizedBox(height: 14.h),
-                        EventHostRow(hosts: detail.hosts),
-                        SizedBox(height: 18.h),
-                        EventDetailInfoGrid(tiles: detail.infoTiles),
-                        SizedBox(height: 22.h),
-                        EventDetailSection(
-                          title: detail.aboutTitle,
-                          description: detail.description,
-                          expandedContent: detail.expandedContent,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppText.large(
+                              label: detail.event.title,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 19.sp,
+                            ),
+                            SizedBox(height: 14.h),
+                            EventHostRow(hosts: detail.hosts),
+                            SizedBox(height: 18.h),
+                            EventDetailInfoGrid(tiles: detail.infoTiles),
+                            SizedBox(height: 22.h),
+                            EventDetailSection(
+                              title: detail.aboutTitle,
+                              description: detail.description,
+                              expandedContent: detail.expandedContent,
+                            ),
+                            if (detail.listItems.isNotEmpty) ...[
+                              SizedBox(height: 22.h),
+                              EventDetailChecklist(
+                                title: detail.listTitle,
+                                items: detail.listItems,
+                              ),
+                            ],
+                          ],
                         ),
-                        if (detail.listItems.isNotEmpty) ...[
-                          SizedBox(height: 22.h),
-                          EventDetailChecklist(
-                            title: detail.listTitle,
-                            items: detail.listItems,
-                          ),
-                        ],
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-      bottomNavigationBar: BlocConsumer<EventRegisterBloc, EventRegisterState>(
-        listener: (context, registerState) {
-          if (registerState is EventRegisterSuccess) {
-            SnackbarUtil.showSnackbar(message: registerState.message);
-          } else if (registerState is EventRegisterFailed) {
-            SnackbarUtil.showSnackbar(
-              message: registerState.message,
-              isError: true,
-            );
-          }
-        },
-        builder: (context, registerState) {
-          return BlocBuilder<EventDetailBloc, EventDetailState>(
-            builder: (context, state) {
-              if (state is! WebinarDetailLoaded) return const SizedBox.shrink();
-              if (state.detail.isPast) return const SizedBox.shrink();
+                );
+              },
+            ),
+          ),
+          bottomNavigationBar:
+              BlocConsumer<EventRegisterBloc, EventRegisterState>(
+                listener: (context, registerState) {
+                  if (registerState is EventRegisterSuccess) {
+                    SnackbarUtil.showSnackbar(message: registerState.message);
+                  } else if (registerState is EventRegisterFailed) {
+                    SnackbarUtil.showSnackbar(
+                      message: registerState.message,
+                      isError: true,
+                    );
+                  }
+                },
+                builder: (context, registerState) {
+                  return BlocBuilder<EventDetailBloc, EventDetailState>(
+                    builder: (context, state) {
+                      if (state is! WebinarDetailLoaded) {
+                        return const SizedBox.shrink();
+                      }
+                      if (state.detail.isPast) return const SizedBox.shrink();
 
-              return EventDetailFooterBar(
-                note: state.detail.registrationNote,
-                ctaLabel: state.detail.ctaLabel,
-                isLoading: registerState is EventRegisterLoading,
-                onCtaTap: () => context.read<EventRegisterBloc>().add(
-                  EventRegisterRequested(eventId: widget.eventId),
-                ),
-              );
-            },
-          );
-        },
-      ),
+                      return EventDetailFooterBar(
+                        note: state.detail.registrationNote,
+                        ctaLabel: state.detail.ctaLabel,
+                        isLoading: registerState is EventRegisterLoading,
+                        onCtaTap: () => context.read<EventRegisterBloc>().add(
+                          EventRegisterRequested(eventId: widget.eventId),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+        );
+      },
     );
   }
 }

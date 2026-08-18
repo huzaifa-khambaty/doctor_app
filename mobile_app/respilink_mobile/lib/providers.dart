@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/exports.dart';
 import 'package:respilink_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:respilink_mobile/features/auth/presentation/bloc/badges_bloc.dart';
@@ -31,6 +32,9 @@ class Providers {
     BlocProvider<ConnectivityCubit>(
       create: (context) => ConnectivityCubit(locator()),
     ),
+
+    /// App-wide dark/light mode
+    BlocProvider<ThemeCubit>(create: (context) => ThemeCubit(locator())),
 
     BlocProvider<AuthBloc>(
       create: (context) =>

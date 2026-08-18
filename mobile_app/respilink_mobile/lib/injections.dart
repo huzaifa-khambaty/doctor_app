@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:respilink_mobile/core/network/dio_client.dart';
+import 'package:respilink_mobile/core/theme/theme_local_manager.dart';
 import 'package:respilink_mobile/features/auth/auth_injections.dart';
 import 'package:respilink_mobile/features/content_library/content_library_injections.dart';
 import 'package:respilink_mobile/features/dashboard/dashboard_injections.dart';
@@ -17,7 +18,9 @@ final locator = GetIt.instance;
 void initDependencies() {
   locator.registerLazySingleton<NavigationService>(() => NavigationService());
   locator.registerLazySingleton<ImagePickerService>(() => ImagePickerService());
-  locator.registerLazySingleton<BiometricAuthService>(() => BiometricAuthService());
+  locator.registerLazySingleton<BiometricAuthService>(
+    () => BiometricAuthService(),
+  );
   locator.registerLazySingleton<PusherService>(() => PusherService());
 
   /// Secure storage — singleton so every consumer shares one instance.
@@ -34,6 +37,10 @@ void initDependencies() {
 
   locator.registerLazySingleton<OnboardingLocalManager>(
     () => OnboardingLocalManagerImpl(locator()),
+  );
+
+  locator.registerLazySingleton<ThemeLocalManager>(
+    () => ThemeLocalManagerImpl(locator()),
   );
 
   /// Services

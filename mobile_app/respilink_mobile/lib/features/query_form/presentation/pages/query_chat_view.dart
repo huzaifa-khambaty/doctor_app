@@ -1,3 +1,5 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/query_form/domain/models/chat_message_model.dart';
 import 'package:respilink_mobile/features/query_form/domain/models/query_item_model.dart';
 import 'package:respilink_mobile/features/query_form/presentation/widgets/chat_input_bar.dart';
@@ -88,78 +90,90 @@ class _QueryChatViewState extends State<QueryChatView> {
   Widget build(BuildContext context) {
     final query = widget.query;
 
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, size: 18.sp, color: AppColors.black),
-          onPressed: () => locator<NavigationService>().pop(),
-        ),
-        title: Row(
-          children: [
-            Container(
-              width: 32.r,
-              height: 32.r,
-              decoration: BoxDecoration(
-                color: query.iconColor.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            centerTitle: false,
+            titleSpacing: 0,
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios,
+                size: 18.sp,
+                color: AppColors.black,
               ),
-              child: Icon(query.icon, color: query.iconColor, size: 16.sp),
+              onPressed: () => locator<NavigationService>().pop(),
             ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText.medium(
-                    label: query.title,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13.sp,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            title: Row(
+              children: [
+                Container(
+                  width: 32.r,
+                  height: 32.r,
+                  decoration: BoxDecoration(
+                    color: query.iconColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
                   ),
-                  SizedBox(height: 2.h),
-                  Row(
+                  child: Icon(query.icon, color: query.iconColor, size: 16.sp),
+                ),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppText.small(
-                        label: 'Ticket #${query.id}',
-                        color: AppColors.grey,
-                        fontSize: 10.sp,
+                      AppText.medium(
+                        label: query.title,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13.sp,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(width: 6.w),
-                      QueryStatusBadge(status: query.status),
+                      SizedBox(height: 2.h),
+                      Row(
+                        children: [
+                          AppText.small(
+                            label: 'Ticket #${query.id}',
+                            color: AppColors.grey,
+                            fontSize: 10.sp,
+                          ),
+                          SizedBox(width: 6.w),
+                          QueryStatusBadge(status: query.status),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.separated(
-                controller: _scrollController,
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-                itemCount: _messages.length,
-                separatorBuilder: (context, index) => SizedBox(height: 14.h),
-                itemBuilder: (context, index) =>
-                    ChatMessageBubble(message: _messages[index]),
-              ),
+          ),
+          body: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 16.h,
+                    ),
+                    itemCount: _messages.length,
+                    separatorBuilder: (context, index) =>
+                        SizedBox(height: 14.h),
+                    itemBuilder: (context, index) =>
+                        ChatMessageBubble(message: _messages[index]),
+                  ),
+                ),
+                ChatInputBar(controller: _messageController, onSend: _send),
+              ],
             ),
-            ChatInputBar(controller: _messageController, onSend: _send),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

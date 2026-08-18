@@ -28,7 +28,9 @@ class NotificationTile extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: isUnread ? _accentColor.withValues(alpha: 0.06) : AppColors.white,
+          color: isUnread
+              ? _accentColor.withValues(alpha: 0.06)
+              : AppColors.background,
           borderRadius: BorderRadius.circular(14.r),
           border: Border.all(color: AppColors.fieldColor, width: 1),
         ),
@@ -42,7 +44,11 @@ class NotificationTile extends StatelessWidget {
                 color: _accentColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(notification.type.icon, color: _accentColor, size: 19.sp),
+              child: Icon(
+                notification.type.icon,
+                color: _accentColor,
+                size: 19.sp,
+              ),
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -80,7 +86,10 @@ class NotificationTile extends StatelessWidget {
                 width: 8.r,
                 height: 8.r,
                 margin: EdgeInsets.only(top: 4.h),
-                decoration: BoxDecoration(color: _accentColor, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: _accentColor,
+                  shape: BoxShape.circle,
+                ),
               ),
             ],
           ],

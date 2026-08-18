@@ -10,7 +10,7 @@ class LibrarySearchBar extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.fieldColor,
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(

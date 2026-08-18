@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/dashboard/data/model/quiz_list_model.dart';
 import 'package:respilink_mobile/features/dashboard/domain/models/specialized_topic_model.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/quiz_list_bloc.dart';
@@ -44,58 +45,65 @@ class _TopicQuizListViewState extends State<TopicQuizListView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<QuizAttemptBloc, QuizAttemptState>(
-      listener: (context, attemptState) {
-        if (attemptState is QuizAttemptStarted) {
-          setState(() => _startingQuizId = null);
-          locator<NavigationService>().navigate(
-            RouterStrings.quizPlay,
-            arguments: attemptState.quizId,
-          );
-        } else if (attemptState is QuizAttemptFailed) {
-          setState(() => _startingQuizId = null);
-          SnackbarUtil.showSnackbar(
-            message: attemptState.message,
-            isError: true,
-          );
-        }
-      },
-      child: BlocConsumer<QuizListBloc, QuizListState>(
-        listener: (context, state) {
-          if (state is QuizListFailed) {
-            SnackbarUtil.showSnackbar(message: state.message, isError: true);
-          }
-        },
-        builder: (context, state) {
-          final title =
-              (state is QuizListLoaded ? state.topic?.name : null) ??
-              widget.topic.title;
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return BlocListener<QuizAttemptBloc, QuizAttemptState>(
+          listener: (context, attemptState) {
+            if (attemptState is QuizAttemptStarted) {
+              setState(() => _startingQuizId = null);
+              locator<NavigationService>().navigate(
+                RouterStrings.quizPlay,
+                arguments: attemptState.quizId,
+              );
+            } else if (attemptState is QuizAttemptFailed) {
+              setState(() => _startingQuizId = null);
+              SnackbarUtil.showSnackbar(
+                message: attemptState.message,
+                isError: true,
+              );
+            }
+          },
+          child: BlocConsumer<QuizListBloc, QuizListState>(
+            listener: (context, state) {
+              if (state is QuizListFailed) {
+                SnackbarUtil.showSnackbar(
+                  message: state.message,
+                  isError: true,
+                );
+              }
+            },
+            builder: (context, state) {
+              final title =
+                  (state is QuizListLoaded ? state.topic?.name : null) ??
+                  widget.topic.title;
 
-          return Scaffold(
-            backgroundColor: AppColors.white,
-            appBar: AppBar(
-              backgroundColor: AppColors.white,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              centerTitle: true,
-              leading: IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  size: 18.sp,
-                  color: AppColors.black,
+              return Scaffold(
+                backgroundColor: AppColors.background,
+                appBar: AppBar(
+                  backgroundColor: AppColors.background,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  centerTitle: true,
+                  leading: IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios,
+                      size: 18.sp,
+                      color: AppColors.black,
+                    ),
+                    onPressed: () => locator<NavigationService>().pop(),
+                  ),
+                  title: AppText.medium(
+                    label: title,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.black,
+                  ),
                 ),
-                onPressed: () => locator<NavigationService>().pop(),
-              ),
-              title: AppText.medium(
-                label: title,
-                fontWeight: FontWeight.bold,
-                color: AppColors.black,
-              ),
-            ),
-            body: SafeArea(top: false, child: _buildBody(state)),
-          );
-        },
-      ),
+                body: SafeArea(top: false, child: _buildBody(state)),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -115,7 +123,9 @@ class _TopicQuizListViewState extends State<TopicQuizListView> {
         );
       },
       isEmpty: state.quizzes.isEmpty,
-      emptyWidget: const RequestFailed(message: 'No quizzes found for this topic.'),
+      emptyWidget: const RequestFailed(
+        message: 'No quizzes found for this topic.',
+      ),
       child: ListView.separated(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
         physics: const AlwaysScrollableScrollPhysics(),

@@ -19,7 +19,7 @@ class EventDetailFooterBar extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.background,
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.06),

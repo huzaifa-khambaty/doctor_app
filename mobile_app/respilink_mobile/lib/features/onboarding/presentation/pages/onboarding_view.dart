@@ -1,3 +1,5 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/onboarding/data/onboarding_local_manager.dart';
 
 import '../../../../exports.dart';
@@ -73,86 +75,89 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: Column(
-            children: [
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _slides.length,
-                  onPageChanged: (index) =>
-                      setState(() => _currentPage = index),
-                  itemBuilder: (context, index) => _SlideContent(
-                    slide: _slides[index],
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 20.h),
-
-              /// Dots indicator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _slides.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: EdgeInsets.symmetric(horizontal: 3.w),
-                    width: index == _currentPage ? 24.w : 8.w,
-                    height: 8.h,
-                    decoration: BoxDecoration(
-                      color: index == _currentPage
-                          ? AppColors.primary
-                          : AppColors.grey.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(4.r),
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: _slides.length,
+                      onPageChanged: (index) =>
+                          setState(() => _currentPage = index),
+                      itemBuilder: (context, index) =>
+                          _SlideContent(slide: _slides[index]),
                     ),
                   ),
-                ),
-              ),
 
-              SizedBox(height: 24.h),
+                  SizedBox(height: 20.h),
 
-              AppButton.filled(
-                label: _isLastPage ? 'Get Started  →' : 'Next  →',
-                onTap: _onGetStarted,
-              ),
-
-              SizedBox(height: 16.h),
-
-              Center(
-                child: GestureDetector(
-                  onTap: _onLogin,
-                  child: RichText(
-                    text: TextSpan(
-                      text: 'Already have an account? ',
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontFamily: AppConstants.fontFamily,
-                        color: AppColors.black,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: 'Log in',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: AppConstants.fontFamily,
-                            fontSize: 13.sp,
-                          ),
+                  /// Dots indicator
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _slides.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        margin: EdgeInsets.symmetric(horizontal: 3.w),
+                        width: index == _currentPage ? 24.w : 8.w,
+                        height: 8.h,
+                        decoration: BoxDecoration(
+                          color: index == _currentPage
+                              ? AppColors.primary
+                              : AppColors.grey.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(4.r),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+
+                  SizedBox(height: 24.h),
+
+                  AppButton.filled(
+                    label: _isLastPage ? 'Get Started  →' : 'Next  →',
+                    onTap: _onGetStarted,
+                  ),
+
+                  SizedBox(height: 16.h),
+
+                  Center(
+                    child: GestureDetector(
+                      onTap: _onLogin,
+                      child: RichText(
+                        text: TextSpan(
+                          text: 'Already have an account? ',
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontFamily: AppConstants.fontFamily,
+                            color: AppColors.black,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Log in',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: AppConstants.fontFamily,
+                                fontSize: 13.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

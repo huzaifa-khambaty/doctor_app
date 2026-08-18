@@ -47,7 +47,7 @@ class EngageBanner extends StatelessWidget {
           ElevatedButton(
             onPressed: onExplore,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.white,
+              backgroundColor: AppColors.background,
               padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.r),

@@ -72,7 +72,10 @@ class RankingRow extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(color: AppColors.white, width: 1.5),
+                      border: Border.all(
+                        color: AppColors.background,
+                        width: 1.5,
+                      ),
                     ),
                     child: AppText.small(
                       label: '${entry.rank}',

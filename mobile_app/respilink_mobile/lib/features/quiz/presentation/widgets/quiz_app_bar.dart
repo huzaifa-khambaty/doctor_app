@@ -14,7 +14,7 @@ class QuizAppBar extends StatelessWidget implements PreferredSizeWidget {
     final timeLimit = timeLimitSeconds;
 
     return AppBar(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.background,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,

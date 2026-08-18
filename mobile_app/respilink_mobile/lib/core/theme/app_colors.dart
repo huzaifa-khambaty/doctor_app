@@ -3,11 +3,27 @@ import '../../exports.dart';
 class AppColors {
   AppColors._();
 
-  static final Color black = Color(0xff000000);
+  /// Flipped by [ThemeCubit] whenever the app-wide theme changes. The
+  /// neutral/surface getters below read this instead of being fixed
+  /// `const`s so that every screen — nearly all of which read colors
+  /// straight off [AppColors] rather than `Theme.of(context)` — picks up
+  /// dark mode automatically once the app rebuilds after a theme change,
+  /// without needing every individual screen edited.
+  static bool _isDark = false;
+
+  static void setDark(bool isDark) => _isDark = isDark;
+
+  /// Default text/icon color — used throughout as the "readable foreground"
+  /// color, so it inverts to a light tone in dark mode. [white] stays fixed
+  /// since it's frequently used for text/icons drawn on top of colored
+  /// (e.g. primary-filled button) surfaces that don't change with theme.
+  static Color get black =>
+      _isDark ? const Color(0xffE8F2FF) : const Color(0xff000000);
   static final Color white = Color(0xffffffff);
 
   // static final Color primary = Color(0xff065F46);
-  static final Color grey = Color(0xff94A3B8);
+  static Color get grey =>
+      _isDark ? const Color(0xffA0ACC0) : const Color(0xff94A3B8);
   static final Color redFFDAD6 = Color(0xffFFDAD6);
   static final Color redBA1A1A = Color(0xffBA1A1A);
   static final Color greenA3F4C6 = Color(0xffA3F4C6);
@@ -46,30 +62,50 @@ class AppColors {
   static const Color blue002147 = Color(0xFF002147);
   static const Color blueE8F0FE = Color(0xFFE8F0FE);
 
-  // Surface variants
-  static const Color surface = Color(0xFFF7F9FF);
-  static const Color surfaceBright = Color(0xFFF7F9FF);
-  static const Color surfaceDim = Color(0xFFC9DCF3);
-  static const Color surfaceContainer = Color(0xFFE3EFFF);
-  static const Color surfaceContainerHigh = Color(0xFFD9EAFF);
-  static const Color surfaceContainerHighest = Color(0xFFD1E4FB);
-  static const Color surfaceContainerLow = Color(0xFFEDF4FF);
-  static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
-  static const Color surfaceVariant = Color(0xFFD1E4FB);
-  static const Color inverseSurface = Color(0xFF203243);
-  static const Color inverseOnSurface = Color(0xFFE8F2FF);
+  // Surface variants — flip between the original light palette and a
+  // matching dark palette so cards/screens keep the same visual hierarchy
+  // (background < container < containerHigh < containerHighest) in both
+  // modes.
+  static Color get surface =>
+      _isDark ? const Color(0xFF0F1114) : const Color(0xFFF7F9FF);
+  static Color get surfaceBright =>
+      _isDark ? const Color(0xFF15181C) : const Color(0xFFF7F9FF);
+  static Color get surfaceDim =>
+      _isDark ? const Color(0xFF1B1F24) : const Color(0xFFC9DCF3);
+  static Color get surfaceContainer =>
+      _isDark ? const Color(0xFF1A1E23) : const Color(0xFFE3EFFF);
+  static Color get surfaceContainerHigh =>
+      _isDark ? const Color(0xFF20252B) : const Color(0xFFD9EAFF);
+  static Color get surfaceContainerHighest =>
+      _isDark ? const Color(0xFF262B32) : const Color(0xFFD1E4FB);
+  static Color get surfaceContainerLow =>
+      _isDark ? const Color(0xFF15181C) : const Color(0xFFEDF4FF);
+  static Color get surfaceContainerLowest =>
+      _isDark ? const Color(0xFF121417) : const Color(0xFFFFFFFF);
+  static Color get surfaceVariant =>
+      _isDark ? const Color(0xFF262B32) : const Color(0xFFD1E4FB);
+  static Color get inverseSurface =>
+      _isDark ? const Color(0xFFE8F2FF) : const Color(0xFF203243);
+  static Color get inverseOnSurface =>
+      _isDark ? const Color(0xFF203243) : const Color(0xFFE8F2FF);
 
   // On-surface
-  static const Color onSurface = Color(0xFF091D2E);
-  static const Color onSurfaceVariant = Color(0xFF3F4942);
-  static const Color onBackground = Color(0xFF091D2E);
+  static Color get onSurface =>
+      _isDark ? const Color(0xFFE8F2FF) : const Color(0xFF091D2E);
+  static Color get onSurfaceVariant =>
+      _isDark ? const Color(0xFFC4CDD5) : const Color(0xFF3F4942);
+  static Color get onBackground =>
+      _isDark ? const Color(0xFFE8F2FF) : const Color(0xFF091D2E);
 
   // Background
-  static const Color background = Color(0xFFF7F9FF);
+  static Color get background =>
+      _isDark ? const Color(0xFF0B0D10) : const Color(0xFFF7F9FF);
 
   // Outline
-  static const Color outline = Color(0xFF6F7A72);
-  static const Color outlineVariant = Color(0xFFBEC9C0);
+  static Color get outline =>
+      _isDark ? const Color(0xFF8A968D) : const Color(0xFF6F7A72);
+  static Color get outlineVariant =>
+      _isDark ? const Color(0xFF3A4A42) : const Color(0xFFBEC9C0);
 
   // Error
   static const Color error = Color(0xFFBA1A1A);
@@ -85,7 +121,8 @@ class AppColors {
   static const Color tealGradientStart = Color(0xff0E7C86);
   static const Color brighterTeal = Color(0xFF00896B);
   static const Color green1A6B5A = Color(0xFF1A6B5A);
-  static const Color fieldColor = Color(0xFFF1F5F9);
+  static Color get fieldColor =>
+      _isDark ? const Color(0xFF1E2227) : const Color(0xFFF1F5F9);
 
   // Dashboard accents
   static const Color indigoAccent = Color(0xFF4C6FFF);

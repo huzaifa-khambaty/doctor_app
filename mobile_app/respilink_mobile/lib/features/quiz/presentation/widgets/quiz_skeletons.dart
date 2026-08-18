@@ -24,7 +24,11 @@ class QuizHomeSkeleton extends StatelessWidget {
             ],
           ),
           SizedBox(height: 10.h),
-          AppSkeleton(width: double.infinity, height: 170.h, borderRadius: 20.r),
+          AppSkeleton(
+            width: double.infinity,
+            height: 170.h,
+            borderRadius: 20.r,
+          ),
 
           SizedBox(height: 24.h),
           AppSkeleton.textBar(width: 150.w, height: 15.h),
@@ -42,7 +46,7 @@ class QuizHomeSkeleton extends StatelessWidget {
             itemBuilder: (context, index) => Container(
               padding: EdgeInsets.all(14.w),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.background,
                 borderRadius: BorderRadius.circular(16.r),
                 border: Border.all(color: AppColors.fieldColor, width: 1),
               ),
@@ -160,7 +164,7 @@ class QuizReviewSkeleton extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(18.r),
           border: Border.all(color: AppColors.fieldColor, width: 1),
         ),
@@ -304,7 +308,10 @@ class QuizLeaderboardSkeleton extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 8.h),
               child: Row(
                 children: [
-                  SizedBox(width: 20.w, child: AppSkeleton.textBar(height: 13.h)),
+                  SizedBox(
+                    width: 20.w,
+                    child: AppSkeleton.textBar(height: 13.h),
+                  ),
                   SizedBox(width: 8.w),
                   AppSkeleton.circle(size: 40.r),
                   SizedBox(width: 12.w),

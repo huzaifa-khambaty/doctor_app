@@ -28,7 +28,7 @@ class _MediaCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: AppColors.fieldColor, width: 1),
       ),
@@ -64,7 +64,7 @@ class _DocumentCardSkeleton extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: AppColors.fieldColor, width: 1),
       ),
@@ -106,7 +106,11 @@ class ArticleReaderSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppSkeleton(width: double.infinity, height: 180.h, borderRadius: 16.r),
+          AppSkeleton(
+            width: double.infinity,
+            height: 180.h,
+            borderRadius: 16.r,
+          ),
           SizedBox(height: 16.h),
           Row(
             children: [
@@ -146,7 +150,11 @@ class ArticleReaderSkeleton extends StatelessWidget {
               for (var i = 0; i < 3; i++)
                 Padding(
                   padding: EdgeInsets.only(right: 8.w),
-                  child: AppSkeleton(width: 60.w, height: 26.h, borderRadius: 999.r),
+                  child: AppSkeleton(
+                    width: 60.w,
+                    height: 26.h,
+                    borderRadius: 999.r,
+                  ),
                 ),
             ],
           ),

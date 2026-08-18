@@ -34,7 +34,7 @@ class AppSkeleton extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.fieldColor,
           shape: shape,
           borderRadius: shape == BoxShape.rectangle
               ? BorderRadius.circular(borderRadius ?? 8.r)
@@ -110,7 +110,7 @@ class AppSkeleton extends StatelessWidget {
         height: 100.h,
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: Colors.grey.shade200),
         ),
@@ -149,7 +149,7 @@ class AppSkeleton extends StatelessWidget {
         childAspectRatio: 1.35,
       ),
       itemBuilder: (context, index) => const _FolderCardSkeleton(),
-       //separatorBuilder: (context, index) => 7.h.addHeight,
+      //separatorBuilder: (context, index) => 7.h.addHeight,
     );
   }
 }
@@ -174,7 +174,7 @@ class _FolderCardSkeleton extends StatelessWidget {
         children: [
           Container(
             padding: EdgeInsets.all(6.r),
-            decoration:  BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.grey.shade100,
               shape: BoxShape.circle,
             ),

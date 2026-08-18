@@ -86,7 +86,9 @@ class _HomeTabViewState extends State<HomeTabView> {
       id: event.id ?? 0,
       type: _eventTypeFrom(event.type),
       title: event.title ?? '',
-      dateLabel: dt != null ? DateFormat('MMM d, yyyy').format(dt.toLocal()) : '',
+      dateLabel: dt != null
+          ? DateFormat('MMM d, yyyy').format(dt.toLocal())
+          : '',
       timeLabel: dt != null ? DateFormat.jm().format(dt.toLocal()) : '',
       image: event.bannerUrl ?? '',
     );
@@ -148,7 +150,7 @@ class _HomeTabViewState extends State<HomeTabView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const WelcomeHeader(),
+                    WelcomeHeader(),
                     SizedBox(height: 20.h),
                     _buildBody(state),
                   ],

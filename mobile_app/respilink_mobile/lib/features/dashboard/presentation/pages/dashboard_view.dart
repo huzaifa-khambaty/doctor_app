@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:respilink_mobile/features/dashboard/presentation/bloc/dashboard_state.dart';
@@ -22,37 +23,50 @@ class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
 
   Widget _tabContent(int index) {
+    // Deliberately NOT `const` — a `const` widget here would be the exact
+    // same canonical instance on every call, and Flutter's element diffing
+    // skips rebuilding a child entirely when the new widget is `identical`
+    // to the old one. That silently broke dark-mode reactivity for every
+    // tab except the one the user was actively interacting with (which
+    // rebuilds anyway via its own bloc/setState), since this switch's
+    // result is exactly what changes when `DashboardView` rebuilds on a
+    // theme change.
     return switch (index) {
-      _homeTabIndex => const HomeTabView(),
-      _quizTabIndex => const QuizTabView(),
-      _eventsTabIndex => const EventsListView(),
-      _libraryTabIndex => const LibraryView(),
-      // _queryTabIndex => const QueryFormView(showBackButton: false),
-      _ => const HomeTabView(),
+      _homeTabIndex => HomeTabView(),
+      _quizTabIndex => QuizTabView(),
+      _eventsTabIndex => EventsListView(),
+      _libraryTabIndex => LibraryView(),
+      // _queryTabIndex => QueryFormView(showBackButton: false),
+      _ => HomeTabView(),
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DashboardBloc, DashboardState>(
-      builder: (context, state) {
-        return Scaffold(
-          backgroundColor: AppColors.white,
-          appBar: switch (state.currentTabIndex) {
-            _quizTabIndex ||
-            _eventsTabIndex => const RespiLinkAppBar(showBackButton: false),
-            _libraryTabIndex => const RespiLinkAppBar(
-              showBackButton: false,
-              showSearchAction: false,
-            ),
-            _ => null,
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            return Scaffold(
+              backgroundColor: AppColors.background,
+              appBar: switch (state.currentTabIndex) {
+                _quizTabIndex ||
+                _eventsTabIndex => RespiLinkAppBar(showBackButton: false),
+                _libraryTabIndex => RespiLinkAppBar(
+                  showBackButton: false,
+                  showSearchAction: false,
+                ),
+                _ => null,
+              },
+              body: _tabContent(state.currentTabIndex),
+              bottomNavigationBar: DashboardBottomNavBar(
+                currentIndex: state.currentTabIndex,
+                onTap: (index) => context.read<DashboardBloc>().add(
+                  ChangeTabRequested(index),
+                ),
+              ),
+            );
           },
-          body: _tabContent(state.currentTabIndex),
-          bottomNavigationBar: DashboardBottomNavBar(
-            currentIndex: state.currentTabIndex,
-            onTap: (index) =>
-                context.read<DashboardBloc>().add(ChangeTabRequested(index)),
-          ),
         );
       },
     );

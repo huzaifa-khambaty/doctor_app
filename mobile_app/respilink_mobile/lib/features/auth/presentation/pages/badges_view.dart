@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_mobile/core/network/api_endpoints.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/auth/presentation/bloc/badges_bloc.dart';
 import 'package:respilink_mobile/features/auth/presentation/bloc/badges_event.dart';
 import 'package:respilink_mobile/features/auth/presentation/bloc/badges_state.dart';
@@ -25,46 +26,54 @@ class _BadgesViewState extends State<BadgesView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, size: 18.sp, color: AppColors.black),
-          onPressed: () => locator<NavigationService>().pop(),
-        ),
-        title: AppText.medium(
-          label: 'Badges',
-          fontWeight: FontWeight.bold,
-          color: AppColors.primary,
-        ),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16.w),
-            child: AppNotificationBell(color: AppColors.black),
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            centerTitle: false,
+            titleSpacing: 0,
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios,
+                size: 18.sp,
+                color: AppColors.black,
+              ),
+              onPressed: () => locator<NavigationService>().pop(),
+            ),
+            title: AppText.medium(
+              label: 'Badges',
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
+            actions: [
+              Padding(
+                padding: EdgeInsets.only(right: 16.w),
+                child: AppNotificationBell(color: AppColors.black),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: BlocBuilder<BadgesBloc, BadgesState>(
-          builder: (context, state) {
-            if (state is BadgesFailed) {
-              return RequestFailed(message: state.message);
-            }
+          body: SafeArea(
+            top: false,
+            child: BlocBuilder<BadgesBloc, BadgesState>(
+              builder: (context, state) {
+                if (state is BadgesFailed) {
+                  return RequestFailed(message: state.message);
+                }
 
-            if (state is! BadgesLoaded) {
-              return const _BadgesSkeleton();
-            }
+                if (state is! BadgesLoaded) {
+                  return const _BadgesSkeleton();
+                }
 
-            return _BadgesBody(badges: state.badges);
-          },
-        ),
-      ),
+                return _BadgesBody(badges: state.badges);
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -158,7 +167,7 @@ class _MilestonesCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8.h,
-              backgroundColor: AppColors.white.withValues(alpha: 0.2),
+              backgroundColor: AppColors.background.withValues(alpha: 0.2),
               valueColor: AlwaysStoppedAnimation(AppColors.yellow),
             ),
           ),
@@ -251,7 +260,7 @@ class _BadgeTile extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 10.w),
       decoration: BoxDecoration(
-        color: earned ? AppColors.white : AppColors.fieldColor,
+        color: AppColors.fieldColor,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: earned ? AppColors.fieldColor : Colors.transparent,
@@ -295,7 +304,7 @@ class _BadgeTile extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.all(3.r),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.background,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.fieldColor, width: 1),
                     ),
@@ -337,7 +346,11 @@ class _BadgesSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppSkeleton(width: double.infinity, height: 140.h, borderRadius: 20.r),
+          AppSkeleton(
+            width: double.infinity,
+            height: 140.h,
+            borderRadius: 20.r,
+          ),
           SizedBox(height: 24.h),
           for (var i = 0; i < 2; i++) ...[
             Row(

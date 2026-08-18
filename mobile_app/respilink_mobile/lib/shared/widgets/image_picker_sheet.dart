@@ -53,7 +53,6 @@ class AppImagePickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     // Responsive: cap sheet width on tablets/landscape.
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth > 600;
@@ -65,7 +64,7 @@ class AppImagePickerSheet extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: AppColors.background,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(

@@ -1,4 +1,6 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:respilink_mobile/core/network/api_endpoints.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/core/utils/global_notifiers.dart';
 import 'package:respilink_mobile/features/auth/data/sources/auth_local_manager.dart';
 import 'package:respilink_mobile/features/auth/domain/models/user_model.dart';
@@ -27,6 +29,17 @@ class _SettingsViewState extends State<SettingsView> {
   void initState() {
     super.initState();
     _loadBiometricState();
+    // ThemeCubit is provided app-wide (above the router), so it's already
+    // available here — this is a synchronous snapshot; the BlocListener in
+    // build() below keeps it in sync if the cubit's own persisted-preference
+    // load resolves after this screen has already mounted.
+    _darkMode = context.read<ThemeCubit>().state == ThemeMode.dark;
+  }
+
+  Future<void> _onDarkModeToggle(bool enabled) async {
+    await context.read<ThemeCubit>().setDarkMode(enabled);
+    if (!mounted) return;
+    setState(() => _darkMode = enabled);
   }
 
   Future<void> _loadBiometricState() async {
@@ -65,172 +78,180 @@ class _SettingsViewState extends State<SettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        titleSpacing: 0,
-        automaticallyImplyLeading: false,
-        leading: widget.showBackButton
-            ? IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  size: 18.sp,
-                  color: AppColors.black,
-                ),
-                onPressed: () => locator<NavigationService>().pop(),
-              )
-            : null,
-        title: AppText.medium(
-          label: 'Settings',
-          fontWeight: FontWeight.bold,
-          color: AppColors.black,
-        ),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16.w),
-            child: AppNotificationBell(color: AppColors.black),
+    return BlocListener<ThemeCubit, ThemeMode>(
+      listener: (context, themeMode) {
+        final isDark = themeMode == ThemeMode.dark;
+        if (isDark != _darkMode) setState(() => _darkMode = isDark);
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: false,
+          titleSpacing: 0,
+          automaticallyImplyLeading: false,
+          leading: widget.showBackButton
+              ? IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios,
+                    size: 18.sp,
+                    color: AppColors.black,
+                  ),
+                  onPressed: () => locator<NavigationService>().pop(),
+                )
+              : null,
+          title: AppText.medium(
+            label: 'Settings',
+            fontWeight: FontWeight.bold,
+            color: AppColors.black,
           ),
-        ],
-      ),
-      body: ValueListenableBuilder<Doctor?>(
-        valueListenable: GlobalNotifiers.userNotifier,
-        builder: (context, user, child) {
-          return SafeArea(
-            top: false,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Column(
-                      children: [
-                        user?.profilePhotoPath != null
-                            ? AppNetworkImage(
-                                imageUrl:
-                                    "${ApiEndpoints.imageUrl}/${user!.profilePhotoPath}",
-                                width: 80.r,
-                                height: 80.r,
-                                isCircle: true,
-                              )
-                            : CircleAvatar(
-                                radius: 40.r,
-                                backgroundColor: AppColors.fieldColor,
-                                child: Icon(
-                                  Icons.person,
-                                  color: AppColors.grey,
-                                  size: 40.sp,
+          actions: [
+            Padding(
+              padding: EdgeInsets.only(right: 16.w),
+              child: AppNotificationBell(color: AppColors.black),
+            ),
+          ],
+        ),
+        body: ValueListenableBuilder<Doctor?>(
+          valueListenable: GlobalNotifiers.userNotifier,
+          builder: (context, user, child) {
+            return SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Column(
+                        children: [
+                          user?.profilePhotoPath != null
+                              ? AppNetworkImage(
+                                  imageUrl:
+                                      "${ApiEndpoints.imageUrl}/${user!.profilePhotoPath}",
+                                  width: 80.r,
+                                  height: 80.r,
+                                  isCircle: true,
+                                )
+                              : CircleAvatar(
+                                  radius: 40.r,
+                                  backgroundColor: AppColors.fieldColor,
+                                  child: Icon(
+                                    Icons.person,
+                                    color: AppColors.grey,
+                                    size: 40.sp,
+                                  ),
                                 ),
-                              ),
-                        SizedBox(height: 12.h),
-                        AppText.large(
-                          label: user?.fullName ?? 'Dr. Sarah Jenkins',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18.sp,
+                          SizedBox(height: 12.h),
+                          AppText.large(
+                            label: user?.fullName ?? 'Dr. Sarah Jenkins',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.sp,
+                          ),
+                          SizedBox(height: 4.h),
+                          AppText.small(
+                            label:
+                                "${user?.specialties?.map((e) => e.name).whereType<String>().join(", ") ?? 'General Physician'}\n${user?.hospitalAffiliation ?? 'St. Mary'}",
+                            color: AppColors.grey,
+                            textAlign: .center,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: 28.h),
+
+                    _SettingsGroup(
+                      title: 'Account',
+                      children: [
+                        _SettingsRow(
+                          icon: Icons.person_outline,
+                          label: 'Personal Information',
+                          onTap: () => locator<NavigationService>().navigate(
+                            RouterStrings.editProfile,
+                          ),
                         ),
-                        SizedBox(height: 4.h),
-                        AppText.small(
-                          label: "${user?.specialties?.map((e) => e.name).whereType<String>().join(", ") ?? 'General Physician'}\n${user?.hospitalAffiliation ?? 'St. Mary'}",
-                          color: AppColors.grey,
-                          textAlign: .center,
+                        _SettingsRow(
+                          icon: Icons.mail_outline,
+                          label: 'Email Address',
+                          trailingText: user?.email ?? 's.jenkins@hospital.org',
+                          onTap: () {},
+                          isLast: true,
                         ),
                       ],
                     ),
-                  ),
 
-                  SizedBox(height: 28.h),
+                    SizedBox(height: 20.h),
 
-                  _SettingsGroup(
-                    title: 'Account',
-                    children: [
-                      _SettingsRow(
-                        icon: Icons.person_outline,
-                        label: 'Personal Information',
-                        onTap: () => locator<NavigationService>().navigate(
-                          RouterStrings.editProfile,
-                        ),
-                      ),
-                      _SettingsRow(
-                        icon: Icons.mail_outline,
-                        label: 'Email Address',
-                        trailingText: user?.email ?? 's.jenkins@hospital.org',
-                        onTap: () {},
-                        isLast: true,
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 20.h),
-
-                  _SettingsGroup(
-                    title: 'Notifications',
-                    children: [
-                      _SettingsRow(
-                        icon: Icons.notifications_none_outlined,
-                        label: 'Push Notifications',
-                        subtitle: 'Alerts for new events & messages',
-                        toggleValue: _pushNotifications,
-                        onToggle: (v) => setState(() => _pushNotifications = v),
-                      ),
-                      _SettingsRow(
-                        icon: Icons.mail_outline,
-                        label: 'Newsletter & Updates',
-                        toggleValue: _newsletter,
-                        onToggle: (v) => setState(() => _newsletter = v),
-                        isLast: true,
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 20.h),
-
-                  _SettingsGroup(
-                    title: 'Privacy & Security',
-                    children: [
-                      _SettingsRow(
-                        icon: Icons.lock_outline,
-                        label: 'Change Password',
-                        onTap: () => locator<NavigationService>().navigate(
-                          RouterStrings.changePassword,
-                        ),
-                        isLast: !_biometricAvailable,
-                      ),
-                      if (_biometricAvailable)
+                    _SettingsGroup(
+                      title: 'Notifications',
+                      children: [
                         _SettingsRow(
-                          icon: Icons.fingerprint,
-                          label: 'Biometric Login',
-                          toggleValue: _biometricLogin,
-                          onToggle: _onBiometricToggle,
+                          icon: Icons.notifications_none_outlined,
+                          label: 'Push Notifications',
+                          subtitle: 'Alerts for new events & messages',
+                          toggleValue: _pushNotifications,
+                          onToggle: (v) =>
+                              setState(() => _pushNotifications = v),
+                        ),
+                        _SettingsRow(
+                          icon: Icons.mail_outline,
+                          label: 'Newsletter & Updates',
+                          toggleValue: _newsletter,
+                          onToggle: (v) => setState(() => _newsletter = v),
                           isLast: true,
                         ),
-                    ],
-                  ),
+                      ],
+                    ),
 
-                  SizedBox(height: 20.h),
+                    SizedBox(height: 20.h),
 
-                  // _SettingsGroup(
-                  //   title: 'Appearance',
-                  //   children: [
-                  //     _SettingsRow(
-                  //       icon: Icons.dark_mode_outlined,
-                  //       label: 'Dark Mode',
-                  //       toggleValue: _darkMode,
-                  //       onToggle: (v) => setState(() => _darkMode = v),
-                  //       isLast: true,
-                  //     ),
-                  //   ],
-                  // ),
+                    _SettingsGroup(
+                      title: 'Privacy & Security',
+                      children: [
+                        _SettingsRow(
+                          icon: Icons.lock_outline,
+                          label: 'Change Password',
+                          onTap: () => locator<NavigationService>().navigate(
+                            RouterStrings.changePassword,
+                          ),
+                          isLast: !_biometricAvailable,
+                        ),
+                        if (_biometricAvailable)
+                          _SettingsRow(
+                            icon: Icons.fingerprint,
+                            label: 'Biometric Login',
+                            toggleValue: _biometricLogin,
+                            onToggle: _onBiometricToggle,
+                            isLast: true,
+                          ),
+                      ],
+                    ),
 
-                  SizedBox(height: 16.h),
-                ],
+                    SizedBox(height: 20.h),
+
+                    _SettingsGroup(
+                      title: 'Appearance',
+                      children: [
+                        _SettingsRow(
+                          icon: Icons.dark_mode_outlined,
+                          label: 'Dark Mode',
+                          toggleValue: _darkMode,
+                          onToggle: _onDarkModeToggle,
+                          isLast: true,
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 16.h),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -302,7 +323,7 @@ class _SettingsRow extends StatelessWidget {
           border: isLast
               ? null
               : Border(
-                  bottom: BorderSide(color: AppColors.white, width: 1.5.h),
+                  bottom: BorderSide(color: AppColors.background, width: 1.5.h),
                 ),
         ),
         child: Row(
@@ -345,6 +366,7 @@ class _SettingsRow extends StatelessWidget {
                   onChanged: onToggle,
                   activeThumbColor: AppColors.white,
                   activeTrackColor: AppColors.primary,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               )
             else

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_leaderboard_bloc.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_leaderboard_event.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_leaderboard_state.dart';
@@ -31,53 +32,58 @@ class _LeaderboardViewState extends State<LeaderboardView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: const LeaderboardAppBar(),
-      body: SafeArea(
-        top: false,
-        child: BlocBuilder<QuizLeaderboardBloc, QuizLeaderboardState>(
-          builder: (context, state) {
-            if (state is QuizLeaderboardFailed) {
-              return RequestFailed(message: state.message);
-            }
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: const LeaderboardAppBar(),
+          body: SafeArea(
+            top: false,
+            child: BlocBuilder<QuizLeaderboardBloc, QuizLeaderboardState>(
+              builder: (context, state) {
+                if (state is QuizLeaderboardFailed) {
+                  return RequestFailed(message: state.message);
+                }
 
-            if (state is! QuizLeaderboardLoaded) {
-              return const QuizLeaderboardSkeleton();
-            }
+                if (state is! QuizLeaderboardLoaded) {
+                  return const QuizLeaderboardSkeleton();
+                }
 
-            return SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MedicalLeaderboardWidget(topThree: state.topThree),
-
-                  SizedBox(height: 12.h),
-
-                  RankingsSectionHeader(
-                    onAllSpecialtiesTap: null,
+                return SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 16.h,
                   ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      MedicalLeaderboardWidget(topThree: state.topThree),
 
-                  SizedBox(height: 8.h),
+                      SizedBox(height: 12.h),
 
-                  for (final entry in state.rankings)
-                    RankingRow(entry: entry),
+                      RankingsSectionHeader(onAllSpecialtiesTap: null),
 
-                  if (state.currentUser != null) ...[
-                    SizedBox(height: 8.h),
-                    RankingRow(
-                      entry: state.currentUser!,
-                      onViewBadgeTap: () => locator<NavigationService>()
-                          .navigate(RouterStrings.badges),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          },
-        ),
-      ),
+                      SizedBox(height: 8.h),
+
+                      for (final entry in state.rankings)
+                        RankingRow(entry: entry),
+
+                      if (state.currentUser != null) ...[
+                        SizedBox(height: 8.h),
+                        RankingRow(
+                          entry: state.currentUser!,
+                          onViewBadgeTap: () => locator<NavigationService>()
+                              .navigate(RouterStrings.badges),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

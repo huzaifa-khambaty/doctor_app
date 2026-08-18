@@ -1,3 +1,4 @@
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/core/utils/handlers.dart';
 import 'package:respilink_mobile/core/validators/validators.dart';
 import 'package:respilink_mobile/features/auth/data/models/requests/forget_password_request.dart';
@@ -29,44 +30,53 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is ForgetPasswordSuccess) {
-          Handlers.onForgetPassword(_emailCtrl.text);
-        } else if (state is AuthFailed) {
-          SnackbarUtil.showSnackbar(message: state.message, isError: true);
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: AppColors.white,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            centerTitle: true,
-            iconTheme: IconThemeData(color: AppColors.black),
-            title: AppText.medium(
-              label: 'Forgot Password',
-              fontWeight: FontWeight.bold,
-              color: AppColors.black,
-            ),
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-              child: _FormView(
-                formKey: _formKey,
-                emailCtrl: _emailCtrl,
-                onSubmit: () {
-                  final request = ForgetPasswordRequest(email: _emailCtrl.text);
-                  BlocProvider.of<AuthBloc>(
-                    context,
-                  ).add(ForgetPasswordRequested(request: request));
-                },
-                state: state,
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is ForgetPasswordSuccess) {
+              Handlers.onForgetPassword(_emailCtrl.text);
+            } else if (state is AuthFailed) {
+              SnackbarUtil.showSnackbar(message: state.message, isError: true);
+            }
+          },
+          builder: (context, state) {
+            return Scaffold(
+              appBar: AppBar(
+                backgroundColor: AppColors.background,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                centerTitle: true,
+                iconTheme: IconThemeData(color: AppColors.black),
+                title: AppText.medium(
+                  label: 'Forgot Password',
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.black,
+                ),
               ),
-            ),
-          ),
+              body: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 16.h,
+                  ),
+                  child: _FormView(
+                    formKey: _formKey,
+                    emailCtrl: _emailCtrl,
+                    onSubmit: () {
+                      final request = ForgetPasswordRequest(
+                        email: _emailCtrl.text,
+                      );
+                      BlocProvider.of<AuthBloc>(
+                        context,
+                      ).add(ForgetPasswordRequested(request: request));
+                    },
+                    state: state,
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );

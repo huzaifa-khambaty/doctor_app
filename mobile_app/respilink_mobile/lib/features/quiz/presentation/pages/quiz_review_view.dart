@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/core/theme/theme_cubit.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_review_bloc.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_review_event.dart';
 import 'package:respilink_mobile/features/quiz/presentation/bloc/quiz_review_state.dart';
@@ -32,72 +33,76 @@ class _QuizReviewViewState extends State<QuizReviewView> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) _exitToDashboard();
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.white,
-        appBar: AppBar(
-          backgroundColor: AppColors.white,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios,
-              size: 18.sp,
-              color: AppColors.black,
-            ),
-            onPressed: _exitToDashboard,
-          ),
-          title: AppText.medium(
-            label: 'Quiz Review',
-            fontWeight: FontWeight.bold,
-            color: AppColors.black,
-          ),
-        ),
-        body: SafeArea(top: false, child: _buildBody()),
-        bottomNavigationBar: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => locator<NavigationService>().navigate(
-                  RouterStrings.quizResults,
-                  arguments: widget.quizId,
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) _exitToDashboard();
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: AppBar(
+              backgroundColor: AppColors.background,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              centerTitle: true,
+              leading: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  size: 18.sp,
+                  color: AppColors.black,
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: EdgeInsets.symmetric(vertical: 14.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14.r),
+                onPressed: _exitToDashboard,
+              ),
+              title: AppText.medium(
+                label: 'Quiz Review',
+                fontWeight: FontWeight.bold,
+                color: AppColors.black,
+              ),
+            ),
+            body: SafeArea(top: false, child: _buildBody()),
+            bottomNavigationBar: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.black.withValues(alpha: 0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, -2),
                   ),
-                  elevation: 0,
-                ),
-                child: AppText.medium(
-                  label: 'Get Quiz Results',
-                  color: AppColors.white,
-                  fontWeight: FontWeight.bold,
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => locator<NavigationService>().navigate(
+                      RouterStrings.quizResults,
+                      arguments: widget.quizId,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14.r),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: AppText.medium(
+                      label: 'Get Quiz Results',
+                      color: AppColors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

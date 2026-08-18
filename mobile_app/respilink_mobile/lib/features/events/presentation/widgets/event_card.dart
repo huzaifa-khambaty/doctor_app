@@ -56,7 +56,7 @@ class EventCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(18.r),
           border: Border.all(color: AppColors.fieldColor, width: 1),
         ),
@@ -132,11 +132,19 @@ class EventCard extends StatelessWidget {
                     runSpacing: 4.h,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      _MetaItem(icon: Icons.calendar_today_outlined, label: _dateLabel),
+                      _MetaItem(
+                        icon: Icons.calendar_today_outlined,
+                        label: _dateLabel,
+                      ),
                       if (_timeLabel.isNotEmpty)
                         _MetaItem(icon: Icons.access_time, label: _timeLabel),
                       if (event.location != null)
-                        _MetaItem(icon: Icons.location_on_outlined, label: event.type?.toLowerCase() == 'webinar' ? 'Online' : event.location!),
+                        _MetaItem(
+                          icon: Icons.location_on_outlined,
+                          label: event.type?.toLowerCase() == 'webinar'
+                              ? 'Online'
+                              : event.location!,
+                        ),
                     ],
                   ),
                 ],
