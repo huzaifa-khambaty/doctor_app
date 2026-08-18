@@ -60,7 +60,7 @@ class _WebinarDetailViewState extends State<WebinarDetailView> {
                 }
 
                 if (state is! WebinarDetailLoaded) {
-                  return const EventDetailSkeleton();
+                  return EventDetailSkeleton();
                 }
 
                 final detail = state.detail;

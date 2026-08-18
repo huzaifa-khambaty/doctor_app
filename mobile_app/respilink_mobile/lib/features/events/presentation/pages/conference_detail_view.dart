@@ -41,7 +41,7 @@ class _ConferenceDetailViewState extends State<ConferenceDetailView> {
       builder: (context, themeMode) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: const EventDetailAppBar(title: 'Conference Detail'),
+          appBar: EventDetailAppBar(title: 'Conference Detail'),
           body: SafeArea(
             top: false,
             child: BlocConsumer<EventDetailBloc, EventDetailState>(
@@ -59,7 +59,7 @@ class _ConferenceDetailViewState extends State<ConferenceDetailView> {
                 }
 
                 if (state is! ConferenceDetailLoaded) {
-                  return const ConferenceDetailSkeleton();
+                  return ConferenceDetailSkeleton();
                 }
 
                 final detail = state.detail;

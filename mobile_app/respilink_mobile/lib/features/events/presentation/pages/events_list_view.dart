@@ -98,7 +98,7 @@ class _EventsListViewState extends State<EventsListView> {
     }
 
     if (state is! EventsLoaded) {
-      return const EventsListSkeleton();
+      return EventsListSkeleton();
     }
 
     return AppRefreshIndicator(
