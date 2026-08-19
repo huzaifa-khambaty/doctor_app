@@ -152,54 +152,187 @@ class _PermissionsBodyState extends State<_PermissionsBody> {
   // ── Permission display metadata ──────────────────────────────────────────
 
   static const Map<String, _PermMeta> _meta = {
-    'view_dashboard': _PermMeta(
-      category: 'user_practitioner',
-      label: 'Access Main Admin Dashboard View',
-      description: 'Grabs basic analytical dashboard overview entry rights.',
+    // Users
+    'users.view': _PermMeta(
+      category: 'users',
+      label: 'View Users',
+      description: 'Access the users and practitioners list.',
     ),
-    'edit_users': _PermMeta(
-      category: 'user_practitioner',
-      label: 'Modify System Profiles & Edit Access Tiers',
-      description: 'Permits account updating, banning, or role shifts.',
+    'users.create': _PermMeta(
+      category: 'users',
+      label: 'Create Users',
+      description: 'Manually enroll and create new practitioner accounts.',
     ),
-    'enroll_practitioners': _PermMeta(
-      category: 'user_practitioner',
-      label: 'Onboard & Execute Manual Practitioner Enrollments',
-      description:
-          'Allows direct entry addition bypass authorization workflows.',
+    'users.edit': _PermMeta(
+      category: 'users',
+      label: 'Edit Users',
+      description: 'Update user profiles and account details.',
     ),
-    'publish_content': _PermMeta(
-      category: 'content_events',
-      label: 'Publish Content, Scientific Papers, and Clinical Modules',
-      description:
-          'Grants creation/publishing privileges to Content Repository.',
+    'users.verify': _PermMeta(
+      category: 'users',
+      label: 'Verify Users',
+      description: 'Approve or override practitioner credential verifications.',
     ),
-    'create_quizzes': _PermMeta(
-      category: 'content_events',
-      label: 'Draft & Publish Interactive Assessments / Quizzes',
-      description: 'Allows authoring clinician tests or certification checks.',
+    'users.suspend': _PermMeta(
+      category: 'users',
+      label: 'Suspend Users',
+      description: 'Temporarily suspend user access.',
     ),
-    'manage_events': _PermMeta(
-      category: 'content_events',
-      label: 'Schedule New Events, Webinars & Summits',
-      description: 'Grants control mapping of upcoming live streams.',
+    'users.manage': _PermMeta(
+      category: 'users',
+      label: 'Manage Users',
+      description: 'Full user management including role assignments.',
     ),
-    'bypass_credentials': _PermMeta(
+    'users.delete': _PermMeta(
+      category: 'users',
+      label: 'Delete Users',
+      description: 'Soft-delete user accounts.',
+    ),
+    'users.restore': _PermMeta(
+      category: 'users',
+      label: 'Restore Users',
+      description: 'Restore previously deleted user accounts.',
+    ),
+    'users.force_delete': _PermMeta(
+      category: 'users',
+      label: 'Force Delete Users',
+      description: 'Permanently remove user accounts from the system.',
+    ),
+    // Admins
+    'admins.view': _PermMeta(
       category: 'admin',
-      label: 'Execute Manual Verification Overrides',
-      description:
-          'Bypass automated medical certification and license tracking validations.',
+      label: 'View Admins',
+      description: 'View admin users and analytics.',
     ),
-    'view_analytics': _PermMeta(
+    'admins.create': _PermMeta(
       category: 'admin',
-      label: 'Export Analytics Reports & Platform Engagement Stream',
-      description: 'Permits reading and downloading systemic interaction logs.',
+      label: 'Create Admins',
+      description: 'Create new admin accounts.',
     ),
-    'modify_settings': _PermMeta(
+    'admins.edit': _PermMeta(
       category: 'admin',
-      label: 'Alter Core Platform Settings & Activate Maintenance Mode',
-      description:
-          'Grants global operational override rights to structural setups.',
+      label: 'Edit Admins',
+      description: 'Update admin profiles and credentials.',
+    ),
+    'admins.delete': _PermMeta(
+      category: 'admin',
+      label: 'Delete Admins',
+      description: 'Remove admin accounts from the system.',
+    ),
+    'roles.manage': _PermMeta(
+      category: 'admin',
+      label: 'Manage Roles & Permissions',
+      description: 'Create, edit, and assign roles and their permissions.',
+    ),
+    // Events
+    'events.view': _PermMeta(
+      category: 'events',
+      label: 'View Events',
+      description: 'Access the events listing.',
+    ),
+    'events.create': _PermMeta(
+      category: 'events',
+      label: 'Create Events',
+      description: 'Schedule new events and webinars.',
+    ),
+    'events.edit': _PermMeta(
+      category: 'events',
+      label: 'Edit Events',
+      description: 'Update event details and scheduling.',
+    ),
+    'events.publish': _PermMeta(
+      category: 'events',
+      label: 'Publish Events',
+      description: 'Publish events to make them visible to users.',
+    ),
+    'events.delete': _PermMeta(
+      category: 'events',
+      label: 'Delete Events',
+      description: 'Remove events from the platform.',
+    ),
+    // Quizzes
+    'quizzes.view': _PermMeta(
+      category: 'quizzes',
+      label: 'View Quizzes',
+      description: 'Access the quiz directory.',
+    ),
+    'quizzes.create': _PermMeta(
+      category: 'quizzes',
+      label: 'Create Quizzes',
+      description: 'Draft and create new clinical assessments.',
+    ),
+    'quizzes.edit': _PermMeta(
+      category: 'quizzes',
+      label: 'Edit Quizzes',
+      description: 'Update quiz questions and options.',
+    ),
+    'quizzes.publish': _PermMeta(
+      category: 'quizzes',
+      label: 'Publish Quizzes',
+      description: 'Publish quizzes to make them available to users.',
+    ),
+    'quizzes.delete': _PermMeta(
+      category: 'quizzes',
+      label: 'Delete Quizzes',
+      description: 'Remove quizzes from the platform.',
+    ),
+    'quizzes.leaderboard.manage': _PermMeta(
+      category: 'quizzes',
+      label: 'Manage Quiz Leaderboard',
+      description: 'View and manage quiz leaderboard entries.',
+    ),
+    // Content
+    'content.view': _PermMeta(
+      category: 'content',
+      label: 'View Content',
+      description: 'Access the content repository.',
+    ),
+    'content.create': _PermMeta(
+      category: 'content',
+      label: 'Create Content',
+      description: 'Upload and create new content items.',
+    ),
+    'content.edit': _PermMeta(
+      category: 'content',
+      label: 'Edit Content',
+      description: 'Update existing content details.',
+    ),
+    'content.publish': _PermMeta(
+      category: 'content',
+      label: 'Publish Content',
+      description: 'Publish content to make it visible to users.',
+    ),
+    'content.delete': _PermMeta(
+      category: 'content',
+      label: 'Delete Content',
+      description: 'Remove content from the platform.',
+    ),
+    // Settings
+    'settings.view': _PermMeta(
+      category: 'settings',
+      label: 'View Settings',
+      description: 'Access platform settings.',
+    ),
+    'settings.update': _PermMeta(
+      category: 'settings',
+      label: 'Update Settings',
+      description: 'Modify platform configuration and settings.',
+    ),
+    // Notifications
+    'notifications.view': _PermMeta(
+      category: 'notifications',
+      label: 'View Notifications',
+      description: 'View scheduled and sent notifications.',
+    ),
+    'notifications.create': _PermMeta(
+      category: 'notifications',
+      label: 'Create Notifications',
+      description: 'Send and schedule push notifications.',
+    ),
+    'notifications.delete': _PermMeta(
+      category: 'notifications',
+      label: 'Delete Notifications',
+      description: 'Remove scheduled or sent notifications.',
     ),
   };
 
@@ -355,27 +488,58 @@ class _PermissionsBodyState extends State<_PermissionsBody> {
                     ),
                   )
                 else ...[
-                  if (byCategory['user_practitioner'] != null)
+                  if (byCategory['users'] != null)
                     _buildCategoryBlock(
-                      title: 'User & Practitioner Matrix Access',
+                      title: 'Users & Practitioners',
                       icon: Icons.people_alt_outlined,
-                      perms: byCategory['user_practitioner']!,
+                      perms: byCategory['users']!,
                     ),
-                  if (byCategory['content_events'] != null) ...[
+                  if (byCategory['content'] != null) ...[
                     const SizedBox(height: 20),
                     _buildCategoryBlock(
-                      title: 'Content & Event Repository Matrix',
-                      icon: Icons.assignment_outlined,
-                      perms: byCategory['content_events']!,
+                      title: 'Content',
+                      icon: Icons.description_outlined,
+                      perms: byCategory['content']!,
+                    ),
+                  ],
+                  if (byCategory['events'] != null) ...[
+                    const SizedBox(height: 20),
+                    _buildCategoryBlock(
+                      title: 'Events',
+                      icon: Icons.calendar_today_outlined,
+                      perms: byCategory['events']!,
+                    ),
+                  ],
+                  if (byCategory['quizzes'] != null) ...[
+                    const SizedBox(height: 20),
+                    _buildCategoryBlock(
+                      title: 'Quizzes',
+                      icon: Icons.quiz_outlined,
+                      perms: byCategory['quizzes']!,
                     ),
                   ],
                   if (byCategory['admin'] != null) ...[
                     const SizedBox(height: 20),
                     _buildCategoryBlock(
-                      title:
-                          'Administrative Overrides & Base System Configuration',
-                      icon: Icons.gavel_rounded,
+                      title: 'Admin Management',
+                      icon: Icons.admin_panel_settings_outlined,
                       perms: byCategory['admin']!,
+                    ),
+                  ],
+                  if (byCategory['settings'] != null) ...[
+                    const SizedBox(height: 20),
+                    _buildCategoryBlock(
+                      title: 'Settings',
+                      icon: Icons.settings_outlined,
+                      perms: byCategory['settings']!,
+                    ),
+                  ],
+                  if (byCategory['notifications'] != null) ...[
+                    const SizedBox(height: 20),
+                    _buildCategoryBlock(
+                      title: 'Notifications',
+                      icon: Icons.notifications_outlined,
+                      perms: byCategory['notifications']!,
                     ),
                   ],
                   if (byCategory['other'] != null) ...[

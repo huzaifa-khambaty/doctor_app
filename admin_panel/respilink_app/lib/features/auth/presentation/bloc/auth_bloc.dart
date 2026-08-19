@@ -1,3 +1,4 @@
+import 'package:respilink_app/core/utils/global_notifiers.dart';
 import 'package:respilink_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_state.dart';
@@ -12,6 +13,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<LogoutRequested>(_logout);
 
+    on<FetchMeRequested>(_fetchMe);
     on<UpdateProfileEvent>(_updateProfile);
     on<UpdateAdminRequested>(_updateAdmin);
     on<ChangeAdminPasswordRequested>(_changeAdminPassword);
@@ -44,6 +46,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthSuccess(model: res.data));
     } else {
       emit(AuthFailed(message: res.fullErrorMessage));
+    }
+  }
+
+  void _fetchMe(FetchMeRequested event, Emitter<AuthState> emit) async {
+    final res = await _repository.me();
+    if (res.success && res.data != null) {
+      final existing = GlobalNotifiers.adminNotifier.value;
+      final updated = res.data!;
+      // /me may not return roles/permissions — preserve them from the cached admin
+      if ((updated.roles == null || updated.roles!.isEmpty) && existing != null) {
+        updated.roles = existing.roles;
+      }
+      if ((updated.permissions == null || updated.permissions!.isEmpty) && existing != null) {
+        updated.permissions = existing.permissions;
+      }
+      GlobalNotifiers.adminNotifier.value = updated;
     }
   }
 

@@ -23,16 +23,6 @@ class MySidebarContent extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: GlobalNotifiers.adminNotifier,
       builder: (context, admin, _) {
-        // PERMISSION GATING DISABLED — re-enable by removing the `return true` lines
-        bool hasPerm(String p) => true;
-        bool hasAnyPerm(List<String> perms) => true;
-        // bool hasPerm(String p) {
-        //   if (admin == null) return false;
-        //   if (admin.roles?.contains('super_admin') == true) return true;
-        //   return admin.permissions?.contains(p) == true;
-        // }
-        // bool hasAnyPerm(List<String> perms) => perms.any(hasPerm);
-
         return Container(
           color: AppColors.sidebarBg,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
@@ -69,24 +59,22 @@ class MySidebarContent extends StatelessWidget {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
-                    if (hasPerm('users.view'))
-                      _SidebarItem(
-                        icon: Icons.grid_view_rounded,
-                        title: 'Dashboard',
-                        isActive: selectedIndex == 0,
-                        isCollapsed: isCollapsed,
-                        onTap: (v) => onDestinationSelected?.call(v),
-                        index: 0,
-                      ),
-                    if (hasPerm('users.view'))
-                      _SidebarItem(
-                        icon: Icons.people_outline_rounded,
-                        title: 'Users',
-                        isCollapsed: isCollapsed,
-                        isActive: selectedIndex == 1,
-                        onTap: (v) => onDestinationSelected?.call(v),
-                        index: 1,
-                      ),
+                    _SidebarItem(
+                      icon: Icons.grid_view_rounded,
+                      title: 'Dashboard',
+                      isActive: selectedIndex == 0,
+                      isCollapsed: isCollapsed,
+                      onTap: (v) => onDestinationSelected?.call(v),
+                      index: 0,
+                    ),
+                    _SidebarItem(
+                      icon: Icons.people_outline_rounded,
+                      title: 'Users',
+                      isCollapsed: isCollapsed,
+                      isActive: selectedIndex == 1,
+                      onTap: (v) => onDestinationSelected?.call(v),
+                      index: 1,
+                    ),
                     _SidebarItem(
                       icon: Icons.description_outlined,
                       title: 'Content',
@@ -95,24 +83,22 @@ class MySidebarContent extends StatelessWidget {
                       onTap: (v) => onDestinationSelected?.call(v),
                       index: 2,
                     ),
-                    if (hasPerm('quizzes.view'))
-                      _SidebarItem(
-                        icon: Icons.quiz_outlined,
-                        title: 'Quizzes',
-                        isCollapsed: isCollapsed,
-                        isActive: selectedIndex == 3,
-                        onTap: (v) => onDestinationSelected?.call(v),
-                        index: 3,
-                      ),
-                    if (hasPerm('events.view'))
-                      _SidebarItem(
-                        icon: Icons.calendar_today_outlined,
-                        title: 'Events',
-                        isCollapsed: isCollapsed,
-                        isActive: selectedIndex == 4,
-                        onTap: (v) => onDestinationSelected?.call(v),
-                        index: 4,
-                      ),
+                    _SidebarItem(
+                      icon: Icons.quiz_outlined,
+                      title: 'Quizzes',
+                      isCollapsed: isCollapsed,
+                      isActive: selectedIndex == 3,
+                      onTap: (v) => onDestinationSelected?.call(v),
+                      index: 3,
+                    ),
+                    _SidebarItem(
+                      icon: Icons.calendar_today_outlined,
+                      title: 'Events',
+                      isCollapsed: isCollapsed,
+                      isActive: selectedIndex == 4,
+                      onTap: (v) => onDestinationSelected?.call(v),
+                      index: 4,
+                    ),
                     // _SidebarItem(
                     //   icon: Icons.help_outline_rounded,
                     //   title: 'Queries',
@@ -121,17 +107,15 @@ class MySidebarContent extends StatelessWidget {
                     //   onTap: (v) => onDestinationSelected?.call(v),
                     //   index: 5,
                     // ),
-                    if (hasAnyPerm(['admins.view', 'users.view']))
-                      _SidebarItem(
-                        icon: Icons.analytics_outlined,
-                        title: 'Analytics',
-                        isCollapsed: isCollapsed,
-                        isActive: selectedIndex == 6,
-                        onTap: (v) => onDestinationSelected?.call(v),
-                        index: 6,
-                      ),
-                    if (hasAnyPerm(['admins.view', 'roles.manage']))
-                      _ExpandableSidebarGroup(
+                    _SidebarItem(
+                      icon: Icons.analytics_outlined,
+                      title: 'Analytics',
+                      isCollapsed: isCollapsed,
+                      isActive: selectedIndex == 6,
+                      onTap: (v) => onDestinationSelected?.call(v),
+                      index: 6,
+                    ),
+                    _ExpandableSidebarGroup(
                         icon: Icons.admin_panel_settings_outlined,
                         title: 'Admin Management',
                         isCollapsed: isCollapsed,
@@ -154,17 +138,15 @@ class MySidebarContent extends StatelessWidget {
               ),
 
               const Divider(color: Colors.white12, height: 20),
-              if (hasAnyPerm(['admins.view', 'roles.manage'])) ...[
-                _SidebarItem(
-                  icon: Icons.settings_outlined,
-                  title: 'Settings',
-                  isCollapsed: isCollapsed,
-                  isActive: selectedIndex == 9,
-                  onTap: (v) => onDestinationSelected?.call(v),
-                  index: 9,
-                ),
-                const SizedBox(height: 4),
-              ],
+              _SidebarItem(
+                icon: Icons.settings_outlined,
+                title: 'Settings',
+                isCollapsed: isCollapsed,
+                isActive: selectedIndex == 9,
+                onTap: (v) => onDestinationSelected?.call(v),
+                index: 9,
+              ),
+              const SizedBox(height: 4),
 
               _LogoutButton(isCollapsed: isCollapsed),
               const SizedBox(height: 10),

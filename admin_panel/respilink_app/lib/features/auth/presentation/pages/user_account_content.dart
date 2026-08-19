@@ -26,25 +26,45 @@ class UserAccountContent extends StatefulWidget {
 }
 
 class _UserAccountContentState extends State<UserAccountContent> {
-  late final AuthBloc _authBloc;
   late final TextEditingController _nameCtrl;
   late final TextEditingController _emailCtrl;
 
   Uint8List? _photoBytes;
   String? _photoName;
 
+  // True once we've populated the controllers from a non-null admin.
+  bool _formInitialized = false;
+
   @override
   void initState() {
     super.initState();
-    _authBloc = locator<AuthBloc>();
     final admin = GlobalNotifiers.adminNotifier.value;
-    _nameCtrl  = TextEditingController(text: admin?.name  ?? '');
-    _emailCtrl = TextEditingController(text: admin?.email ?? '');
+    if (admin != null) {
+      _nameCtrl = TextEditingController(text: admin.name ?? '');
+      _emailCtrl = TextEditingController(text: admin.email ?? '');
+      _formInitialized = true;
+    } else {
+      _nameCtrl = TextEditingController();
+      _emailCtrl = TextEditingController();
+      // Admin data not yet available — fetch it now.
+      locator<AuthBloc>().add(FetchMeRequested());
+    }
+    GlobalNotifiers.adminNotifier.addListener(_onAdminChanged);
+  }
+
+  void _onAdminChanged() {
+    if (_formInitialized) return;
+    final admin = GlobalNotifiers.adminNotifier.value;
+    if (admin != null) {
+      _nameCtrl.text = admin.name ?? '';
+      _emailCtrl.text = admin.email ?? '';
+      _formInitialized = true;
+    }
   }
 
   @override
   void dispose() {
-    _authBloc.close();
+    GlobalNotifiers.adminNotifier.removeListener(_onAdminChanged);
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     super.dispose();
@@ -79,12 +99,13 @@ class _UserAccountContentState extends State<UserAccountContent> {
       SnackbarUtil.showSnackbar(context, message: 'Admin ID not found', isError: true);
       return;
     }
+    final authBloc = context.read<AuthBloc>();
     showDialog(
       context: context,
       builder: (dialogContext) => _ChangePasswordDialog(
         onSubmit: (current, password, confirm) {
           Navigator.of(dialogContext).pop();
-          _authBloc.add(ChangeAdminPasswordRequested(
+          authBloc.add(ChangeAdminPasswordRequested(
             adminId: admin!.id!,
             request: ChangePasswordRequest(
               current: current,
@@ -112,7 +133,7 @@ class _UserAccountContentState extends State<UserAccountContent> {
       SnackbarUtil.showSnackbar(context, message: 'Admin ID not found', isError: true);
       return;
     }
-    _authBloc.add(UpdateAdminRequested(
+    context.read<AuthBloc>().add(UpdateAdminRequested(
       adminId: admin!.id!,
       request: EditProfileRequest(
         name: name,
@@ -125,13 +146,17 @@ class _UserAccountContentState extends State<UserAccountContent> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _authBloc,
-      child: BlocConsumer<AuthBloc, AuthState>(
+    return BlocConsumer<AuthBloc, AuthState>(
         listenWhen: (prev, curr) =>
             curr is AuthSuccess || curr is AuthFailed || curr is ChangePasswordSuccess,
         listener: (context, state) {
           if (state is AuthSuccess) {
+            final admin = GlobalNotifiers.adminNotifier.value;
+            if (admin != null) {
+              _nameCtrl.text = admin.name ?? '';
+              _emailCtrl.text = admin.email ?? '';
+              _formInitialized = true;
+            }
             setState(() { _photoBytes = null; _photoName = null; });
             SnackbarUtil.showSnackbar(context, message: 'Profile updated successfully');
           } else if (state is ChangePasswordSuccess) {
@@ -282,7 +307,7 @@ class _UserAccountContentState extends State<UserAccountContent> {
                                   ),
                                   const SizedBox(height: 2),
                                   const Text(
-                                    'Super Admin Profile',
+                                    'Profile',
                                     style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600),
                                   ),
                                   const SizedBox(height: 4),
@@ -438,8 +463,7 @@ class _UserAccountContentState extends State<UserAccountContent> {
             },
           );
         },
-      ),
-    );
+      );
   }
 
   String _formatDate(String? raw) {

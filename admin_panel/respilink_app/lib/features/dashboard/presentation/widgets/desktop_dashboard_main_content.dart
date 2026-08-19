@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/core/utils/export/app_exporter.dart';
 import 'package:respilink_app/core/utils/export/dashboard_export_builder.dart';
@@ -9,12 +8,10 @@ import 'package:respilink_app/core/utils/snackbar_util.dart';
 import 'package:respilink_app/features/auth/data/models/dashboard_model.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:respilink_app/features/auth/presentation/bloc/auth_event.dart';
-import 'package:respilink_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:respilink_app/features/dashboard/data/model/engagement_data.dart';
 import 'package:respilink_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:respilink_app/features/dashboard/presentation/bloc/dashboard_state.dart';
 import 'package:respilink_app/features/dashboard/presentation/widgets/engagement_chart.dart';
-import 'package:respilink_app/routes/router_strings.dart';
 import 'package:respilink_app/shared/model/admin_mode.dart';
 import 'package:respilink_app/features/practioner/data/model/practioner_model.dart';
 import 'package:respilink_app/features/practioner/presentation/bloc/practioner_bloc.dart';
@@ -38,13 +35,7 @@ class DesktopDashboardMainContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthLogoutSuccess) {
-          context.go(RouterStrings.initial);
-        }
-      },
-      child: Padding(
+    return Padding(
         padding: const EdgeInsets.all(32.0),
         child: BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, dashState) {
@@ -83,7 +74,6 @@ class DesktopDashboardMainContent extends StatelessWidget {
             );
           },
         ),
-      ),
     );
   }
 }

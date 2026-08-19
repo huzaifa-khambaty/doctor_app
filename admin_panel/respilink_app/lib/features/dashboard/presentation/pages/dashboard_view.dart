@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:respilink_app/routes/router_strings.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
 import 'package:respilink_app/features/analytics/presentation/bloc/analytics_bloc.dart';
 import 'package:respilink_app/features/analytics/presentation/bloc/analytics_event.dart';
@@ -32,12 +35,16 @@ import 'package:respilink_app/features/quiz/presentation/pages/edit_quiz_content
 import 'package:respilink_app/features/quiz/presentation/pages/quiz_directory_view.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_bloc.dart';
 import 'package:respilink_app/features/quiz/presentation/bloc/quiz_event.dart';
+import 'package:respilink_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:respilink_app/features/auth/presentation/bloc/auth_event.dart';
+import 'package:respilink_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:respilink_app/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:respilink_app/features/settings/presentation/bloc/settings_event.dart';
+import 'package:respilink_app/features/settings/presentation/bloc/settings_state.dart';
 import 'package:respilink_app/features/settings/presentation/pages/setttings_view.dart';
 import 'package:respilink_app/features/settings/presentation/pages/admin_user_management_view.dart';
 import 'package:respilink_app/features/settings/presentation/pages/user_permission_content_view.dart';
-// import 'package:respilink_app/core/utils/global_notifiers.dart'; // re-enable with permission gating
+import 'package:respilink_app/core/utils/global_notifiers.dart';
 import 'package:respilink_app/shared/widgets/app_network_image.dart';
 import 'package:respilink_app/shared/widgets/responsive_layout.dart';
 import 'package:respilink_app/shared/widgets/sidebar_content.dart';
@@ -90,8 +97,25 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   late final AnalyticsBloc _analyticsBloc = locator<AnalyticsBloc>()
     ..add(FetchAnalyticsRequested());
 
+  late final StreamSubscription<SettingsState> _settingsSub;
+
+  @override
+  void initState() {
+    super.initState();
+    GlobalNotifiers.adminNotifier.addListener(_onAdminChanged);
+    _settingsSub = _settingsBloc.stream.listen((state) {
+      if (state.updateRoleSuccess) {
+        locator<AuthBloc>().add(FetchMeRequested());
+      }
+    });
+  }
+
+  void _onAdminChanged() => setState(() {});
+
   @override
   void dispose() {
+    GlobalNotifiers.adminNotifier.removeListener(_onAdminChanged);
+    _settingsSub.cancel();
     _dashboardBloc.close();
     _practionerBloc.close();
     _eventsBloc.close();
@@ -105,7 +129,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   Widget _getContentBody(int index) {
     switch (index) {
       case 0:
-        if (!_hasPerm('users.view')) return const _AccessDeniedContent();
         return MultiBlocProvider(
           providers: [
             BlocProvider<PractionerBloc>.value(value: _practionerBloc),
@@ -155,6 +178,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                     ),
         );
       case 2:
+        if (!_hasPerm('content.view')) return const _AccessDeniedContent();
         return BlocProvider<ContentBloc>.value(
           value: _contentBloc,
           child: (_showAddContentForm || _editingContent != null)
@@ -166,10 +190,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                   }),
                 )
               : ContentRepositoryContent(
-                  onAddContentClicked: () =>
-                      setState(() => _showAddContentForm = true),
-                  onEditContentClicked: (item) =>
-                      setState(() => _editingContent = item),
+                  onAddContentClicked: _hasPerm('content.create')
+                      ? () => setState(() => _showAddContentForm = true)
+                      : null,
+                  onEditContentClicked: _hasPerm('content.edit')
+                      ? (item) => setState(() => _editingContent = item)
+                      : null,
                   onNotificationTapped: () => setState(() {
                     _currentNavigationIndex = 0;
                     _showNotificationHistory = true;
@@ -216,7 +242,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                       onBackToEvents: () => setState(() => _selectedEvent = null),
                     )
                   : EventManagementContent(
-                      onCreateEventClicked: () => setState(() => _showCreateEventForm = true),
+                      onCreateEventClicked: () =>
+                          setState(() => _showCreateEventForm = true),
                       onEventTapped: (e) => setState(() => _selectedEvent = e),
                       onNotificationTapped: () => setState(() {
                         _currentNavigationIndex = 0;
@@ -227,7 +254,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       // case 5:
       //   return QueryInboxContent();
       case 6:
-        if (!_hasAnyPerm(['admins.view', 'users.view'])) return const _AccessDeniedContent();
+        if (!_hasPerm('admins.view')) return const _AccessDeniedContent();
         return MultiBlocProvider(
           providers: [
             BlocProvider<AnalyticsBloc>.value(value: _analyticsBloc),
@@ -236,19 +263,23 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
           child: const EngagementAnalyticsContent(),
         );
       case 7:
-        if (!_hasAnyPerm(['admins.view', 'roles.manage'])) return const _AccessDeniedContent();
+        if (!_hasPerm('admins.view') && !_hasPerm('admins.create') &&
+            !_hasPerm('admins.edit') && !_hasPerm('admins.delete') &&
+            !_hasPerm('roles.manage')) {
+          return const _AccessDeniedContent();
+        }
         return BlocProvider<SettingsBloc>.value(
           value: _settingsBloc,
           child: const AdminUserManagementContent(),
         );
       case 8:
-        if (!_hasAnyPerm(['admins.view', 'roles.manage'])) return const _AccessDeniedContent();
+        if (!_hasPerm('roles.manage')) return const _AccessDeniedContent();
         return BlocProvider<SettingsBloc>.value(
           value: _settingsBloc,
           child: const UserPermissionsContent(),
         );
       case 9:
-        if (!_hasAnyPerm(['admins.view', 'roles.manage'])) return const _AccessDeniedContent();
+        if (!_hasPerm('settings.view')) return const _AccessDeniedContent();
         return SettingsContent();
       case 10:
         return UserAccountContent();
@@ -272,17 +303,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     }
   }
 
-  // PERMISSION GATING DISABLED — re-enable by removing the `return true` lines
-  bool _hasPerm(String permission) => true;
-  bool _hasAnyPerm(List<String> permissions) => true;
-  // bool _hasPerm(String permission) {
-  //   final admin = GlobalNotifiers.adminNotifier.value;
-  //   if (admin == null) return false;
-  //   if (admin.roles?.contains('super_admin') == true) return true;
-  //   return admin.permissions?.contains(permission) == true;
-  // }
-  // bool _hasAnyPerm(List<String> permissions) =>
-  //     permissions.any((p) => _hasPerm(p));
+  bool _hasPerm(String permission) {
+    final admin = GlobalNotifiers.adminNotifier.value;
+    if (admin == null) return false;
+    if (admin.roles?.contains('super_admin') == true) return true;
+    return admin.permissions?.contains(permission) == true;
+  }
 
   void _onNavigationChanged(int index) {
     setState(() {
@@ -308,7 +334,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     final Widget dynamicMainContent = _getContentBody(_currentNavigationIndex);
     final bool isMobile = ResponsiveLayout.isMobile(context);
 
-    return Scaffold(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthLogoutSuccess) {
+          context.go(RouterStrings.initial);
+        }
+      },
+      child: Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: isMobile
           ? AppBar(
@@ -399,6 +431,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 24),
             )
           : SizedBox.shrink(),
+      ),
     );
   }
 }
