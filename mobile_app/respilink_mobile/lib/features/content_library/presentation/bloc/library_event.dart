@@ -22,3 +22,9 @@ class LibrarySearchChanged extends LibraryEvent {
 
   LibrarySearchChanged({required this.query});
 }
+
+class LibraryBookmarkToggled extends LibraryEvent {
+  final int id;
+
+  LibraryBookmarkToggled({required this.id});
+}

@@ -39,31 +39,32 @@ class SplashView extends StatelessWidget {
             body: Container(
               width: double.infinity,
               height: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.tealGradientStart,
-                    AppColors.tealGradientStart,
-                  ],
-                ),
-              ),
+              color: AppColors.white,
+              // decoration: BoxDecoration(
+              //   gradient: LinearGradient(
+              //     begin: Alignment.topLeft,
+              //     end: Alignment.bottomRight,
+              //     colors: [
+              //       AppColors.tealGradientStart,
+              //       AppColors.tealGradientStart,
+              //     ],
+              //   ),
+              // ),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     AppNetworkImage(
                       imageUrl: "${AppConstants.imagePath}launcher.png",
-                      width: 90.r,
-                      height: 90.r,
+                      width: 100.r,
+                      height: 100.r,
                     ),
                     SizedBox(height: 20.h),
                     AppText.large(
                       label: 'MedSynapse',
                       fontSize: 26.sp,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.white,
+                      color: AppColors.primary,
                     ),
                   ],
                 ),

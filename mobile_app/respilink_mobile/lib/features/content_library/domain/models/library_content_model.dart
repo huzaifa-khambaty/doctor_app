@@ -57,4 +57,26 @@ class LibraryContentModel {
     this.quizId,
     this.pdfUrl,
   });
+
+  LibraryContentModel copyWith({bool? isBookmarked}) {
+    return LibraryContentModel(
+      id: id,
+      type: type,
+      category: category,
+      categoryColor: categoryColor,
+      title: title,
+      description: description,
+      image: image,
+      duration: duration,
+      fileSize: fileSize,
+      metaLeft: metaLeft,
+      metaLeftIcon: metaLeftIcon,
+      metaRight: metaRight,
+      metaRightIcon: metaRightIcon,
+      ctaLabel: ctaLabel,
+      isBookmarked: isBookmarked ?? this.isBookmarked,
+      quizId: quizId,
+      pdfUrl: pdfUrl,
+    );
+  }
 }

@@ -16,9 +16,13 @@ class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     on<LibraryFilterChanged>(_changeFilter);
     on<LibrarySearchChanged>(_search);
     on<LibraryLoadMoreRequested>(_loadMore);
+    on<LibraryBookmarkToggled>(_toggleBookmark);
   }
 
-  Future<void> _fetch(LibraryRequested event, Emitter<LibraryState> emit) async {
+  Future<void> _fetch(
+    LibraryRequested event,
+    Emitter<LibraryState> emit,
+  ) async {
     emit(LibraryLoading());
 
     final res = await _repository.getLibrary(
@@ -60,10 +64,7 @@ class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     );
   }
 
-  Future<void> _search(
-    LibrarySearchChanged event,
-    Emitter<LibraryState> emit,
-  ) {
+  Future<void> _search(LibrarySearchChanged event, Emitter<LibraryState> emit) {
     return _fetch(
       LibraryRequested(filter: _currentFilter, search: event.query),
       emit,
@@ -87,7 +88,9 @@ class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     Emitter<LibraryState> emit,
   ) async {
     final current = state;
-    if (current is! LibraryLoaded || current.isLoadingMore || !current.hasMore) {
+    if (current is! LibraryLoaded ||
+        current.isLoadingMore ||
+        !current.hasMore) {
       return;
     }
 
@@ -114,6 +117,44 @@ class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
       );
     } else {
       emit(current.copyWith(isLoadingMore: false));
+    }
+  }
+
+  /// Optimistic toggle — flips the flag immediately so the button feels
+  /// instant, then reverts it if the API call actually fails.
+  Future<void> _toggleBookmark(
+    LibraryBookmarkToggled event,
+    Emitter<LibraryState> emit,
+  ) async {
+    final current = state;
+    if (current is! LibraryLoaded) return;
+
+    final index = current.items.indexWhere((item) => item.id == event.id);
+    if (index == -1) return;
+
+    final wasBookmarked = current.items[index].isBookmarked;
+    final optimisticItems = [...current.items];
+    optimisticItems[index] = optimisticItems[index].copyWith(
+      isBookmarked: !wasBookmarked,
+    );
+    emit(current.copyWith(items: optimisticItems));
+
+    final res = wasBookmarked
+        ? await _repository.removeBookmark(event.id)
+        : await _repository.bookmark(event.id);
+
+    if (!res.success) {
+      final latest = state;
+      if (latest is! LibraryLoaded) return;
+      final revertIndex = latest.items.indexWhere(
+        (item) => item.id == event.id,
+      );
+      if (revertIndex == -1) return;
+      final revertedItems = [...latest.items];
+      revertedItems[revertIndex] = revertedItems[revertIndex].copyWith(
+        isBookmarked: wasBookmarked,
+      );
+      emit(latest.copyWith(items: revertedItems));
     }
   }
 

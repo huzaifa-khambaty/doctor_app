@@ -124,26 +124,26 @@ class _LibraryViewState extends State<LibraryView> {
     return switch (content.type) {
       LibraryContentType.article ||
       LibraryContentType.webinar => MediaLibraryCard(
-          content: content,
-          isLoading: _loadingContentId == content.id,
-          onTap: () => _openContent(content),
-          onBookmarkTap: () {
-            // TODO: wire to the bookmark/save API once it exists.
-          },
+        content: content,
+        isLoading: _loadingContentId == content.id,
+        onTap: () => _openContent(content),
+        onBookmarkTap: () => context.read<LibraryBloc>().add(
+          LibraryBookmarkToggled(id: content.id),
         ),
+      ),
       LibraryContentType.pdf => DocumentLibraryCard(
-          content: content,
-          isLoading: _loadingContentId == content.id,
-          onTap: () => _openPdf(content),
-          onBookmarkTap: () {
-            // TODO: wire to the bookmark/save API once it exists.
-          },
+        content: content,
+        isLoading: _loadingContentId == content.id,
+        onTap: () => _openPdf(content),
+        onBookmarkTap: () => context.read<LibraryBloc>().add(
+          LibraryBookmarkToggled(id: content.id),
         ),
+      ),
       LibraryContentType.quiz => AssessmentLibraryCard(
-          content: content,
-          isLoading: _startingQuizId != null && _startingQuizId == content.quizId,
-          onStart: () => _startQuiz(content.quizId),
-        ),
+        content: content,
+        isLoading: _startingQuizId != null && _startingQuizId == content.quizId,
+        onStart: () => _startQuiz(content.quizId),
+      ),
     };
   }
 
@@ -194,7 +194,8 @@ class _LibraryViewState extends State<LibraryView> {
               },
               child: CustomScrollView(
                 controller: _scrollController,
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverPadding(
