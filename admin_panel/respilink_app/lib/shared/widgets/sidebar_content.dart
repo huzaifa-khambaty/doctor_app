@@ -33,24 +33,75 @@ class MySidebarContent extends StatelessWidget {
             children: [
               if (!isCollapsed) ...[
                 ValueListenableBuilder<String?>(
-                  valueListenable: GlobalNotifiers.appNameNotifier,
-                  builder: (_, appName, _) => Text(
-                    appName ?? 'MedSynapse Admin',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                  valueListenable: GlobalNotifiers.appLogoNotifier,
+                  builder: (_, logoUrl, _) => ValueListenableBuilder<String?>(
+                    valueListenable: GlobalNotifiers.appNameNotifier,
+                    builder: (_, appName, _) => Row(
+                      children: [
+                        if (logoUrl != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: AppNetworkImage(
+                                imageUrl: logoUrl,
+                                width: 32,
+                                height: 32,
+                                fit: BoxFit.contain,
+                                errorWidget: const Icon(
+                                  Icons.medical_information,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                            ),
+                          ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                appName ?? 'MedSynapse Admin',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const Text(
+                                'Clinical Management',
+                                style: TextStyle(color: Colors.white60, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Clinical Management',
-                  style: TextStyle(color: Colors.white60, fontSize: 11),
-                ),
               ] else ...[
-                Icon(Icons.medical_information, color: Colors.white, size: 28),
+                ValueListenableBuilder<String?>(
+                  valueListenable: GlobalNotifiers.appLogoNotifier,
+                  builder: (_, logoUrl, _) => logoUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: AppNetworkImage(
+                            imageUrl: logoUrl,
+                            width: 28,
+                            height: 28,
+                            fit: BoxFit.contain,
+                            errorWidget: const Icon(
+                              Icons.medical_information,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.medical_information, color: Colors.white, size: 28),
+                ),
               ],
 
               const SizedBox(height: 16),

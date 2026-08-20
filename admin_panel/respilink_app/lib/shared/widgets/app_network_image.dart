@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:respilink_app/core/theme/app_colors.dart';
+import 'package:respilink_app/shared/widgets/app_loader.dart';
 
 class AppNetworkImage extends StatelessWidget {
   const AppNetworkImage({
@@ -53,7 +54,7 @@ class AppNetworkImage extends StatelessWidget {
         SizedBox(
           width: width,
           height: height,
-          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          child: AppLoader(),
         );
   }
 

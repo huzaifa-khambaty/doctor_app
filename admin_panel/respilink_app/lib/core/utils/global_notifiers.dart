@@ -6,4 +6,5 @@ class GlobalNotifiers {
 
   static ValueNotifier<Admin?> adminNotifier = ValueNotifier(Admin());
   static ValueNotifier<String?> appNameNotifier = ValueNotifier(null);
+  static ValueNotifier<String?> appLogoNotifier = ValueNotifier(null);
 }

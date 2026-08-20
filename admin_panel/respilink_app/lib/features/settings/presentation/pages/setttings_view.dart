@@ -67,6 +67,11 @@ class _SettingsContentState extends State<SettingsContent> {
     if (s.appName != null && s.appName!.isNotEmpty) {
       GlobalNotifiers.appNameNotifier.value = s.appName;
     }
+    if (s.appLogo != null && s.appLogo!.isNotEmpty) {
+      GlobalNotifiers.appLogoNotifier.value = s.appLogo!.startsWith('http')
+          ? s.appLogo!
+          : '${ApiEndpoints.imageUrl}${s.appLogo!}';
+    }
     if (s.timeZone != null && _timezones.contains(s.timeZone)) {
       _selectedTimezone = s.timeZone!;
     }
@@ -125,6 +130,12 @@ class _SettingsContentState extends State<SettingsContent> {
           setState(() => _logoBytes = null);
           final savedName = _appNameCtrl.text.trim();
           if (savedName.isNotEmpty) GlobalNotifiers.appNameNotifier.value = savedName;
+          final logo = state.appSettings?.appLogo;
+          if (logo != null && logo.isNotEmpty) {
+            GlobalNotifiers.appLogoNotifier.value = logo.startsWith('http')
+                ? logo
+                : '${ApiEndpoints.imageUrl}$logo';
+          }
           SnackbarUtil.showSnackbar(context, message: 'Settings saved successfully');
         }
         if (state.error != null && !state.isLoadingSettings && !state.isSavingSettings) {
