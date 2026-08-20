@@ -659,16 +659,19 @@ class _TopPerformingContentCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text('${item.viewsCount ?? 0}', style: const TextStyle(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w500)),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            children: [
-               Icon(Icons.thumb_up, color: AppColors.primary, size: 14),
-              const SizedBox(width: 4),
-              Text('${item.likesCount ?? 0}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-            ],
+        if (type == 'Quiz' || type == 'PDF')
+          const SizedBox()
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              children: [
+                const Icon(Icons.thumb_up, color: AppColors.primary, size: 14),
+                const SizedBox(width: 4),
+                Text('${item.likesCount ?? 0}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
