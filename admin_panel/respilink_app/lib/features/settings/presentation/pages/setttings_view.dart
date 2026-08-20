@@ -17,7 +17,9 @@ import 'package:respilink_app/shared/widgets/app_network_image.dart';
 import 'package:respilink_app/shared/widgets/app_skeleton.dart';
 
 class SettingsContent extends StatefulWidget {
-  const SettingsContent({super.key});
+  const SettingsContent({super.key, this.onNavigateToDashboard});
+
+  final VoidCallback? onNavigateToDashboard;
 
   @override
   State<SettingsContent> createState() => _SettingsContentState();
@@ -84,6 +86,7 @@ class _SettingsContentState extends State<SettingsContent> {
   void _discard(AppSettingsModel? s) {
     if (s != null) _populate(s);
     setState(() => _logoBytes = null);
+    widget.onNavigateToDashboard?.call();
   }
 
   void _save() {

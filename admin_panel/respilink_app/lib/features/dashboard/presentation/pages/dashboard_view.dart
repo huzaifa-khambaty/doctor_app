@@ -280,7 +280,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
         );
       case 9:
         if (!_hasPerm('settings.view')) return const _AccessDeniedContent();
-        return SettingsContent();
+        return SettingsContent(
+          onNavigateToDashboard: () => setState(() => _currentNavigationIndex = 0),
+        );
       case 10:
         return UserAccountContent();
       default:
