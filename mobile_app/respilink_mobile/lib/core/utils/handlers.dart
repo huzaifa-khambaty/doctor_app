@@ -22,7 +22,10 @@ class Handlers {
       RouterStrings.otpVerificationView,
       // Registration may not return a doctor object yet (pending OTP
       // verification) — fall back to the email the user just typed.
-      arguments: {"email": model?.email ?? fallbackEmail, "purpose": "register"},
+      arguments: {
+        "email": model?.email ?? fallbackEmail,
+        "purpose": "register",
+      },
     );
   }
 
@@ -31,6 +34,22 @@ class Handlers {
       RouterStrings.otpVerificationView,
       arguments: {"email": email, "purpose": "reset"},
     );
+  }
+
+  static void onLoginRequiresOtp(String identifier) {
+    locator<NavigationService>().navigateAndRemove(
+      RouterStrings.otpVerificationView,
+      arguments: {"email": identifier, "purpose": "register"},
+    );
+  }
+
+  /// Verifying the OTP here only clears the account's pending-verification
+  /// flag — the backend doesn't hand back a session (no token) for this
+  /// path, so this is deliberately NOT [onOtpVerified]: it can't log the
+  /// user in, only send them back to log in for real with their credentials.
+  static void onLoginOtpVerified(String message) {
+    SnackbarUtil.showSnackbar(message: message);
+    locator<NavigationService>().navigateAndRemove(RouterStrings.login);
   }
 
   static void onOtpVerified(Doctor? model) async {
@@ -57,14 +76,16 @@ class Handlers {
     locator<NavigationService>().navigateAndRemove(RouterStrings.login);
   }
 
-    static void onPasswordReset() {
+  static void onPasswordReset() {
     SnackbarUtil.showSnackbar(message: "Password reset successfully");
     locator<NavigationService>().navigateAndRemove(RouterStrings.login);
   }
 
   static void onLogout(BuildContext context) async {
     await locator<PusherService>().disconnect();
-    if(context.mounted) BlocProvider.of<DashboardBloc>(context).add(ChangeTabRequested(0));
+    if (context.mounted) {
+      BlocProvider.of<DashboardBloc>(context).add(ChangeTabRequested(0));
+    }
     locator<NavigationService>().navigateAndRemove(RouterStrings.login);
   }
 }

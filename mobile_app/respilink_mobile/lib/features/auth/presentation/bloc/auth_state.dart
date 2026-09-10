@@ -37,8 +37,9 @@ class ForgetPasswordSuccess extends AuthState {
 
 class OptVerifiedSuccess<T> extends AuthState {
   final T? data;
+  final String? message;
 
-  OptVerifiedSuccess({this.data});
+  OptVerifiedSuccess({this.data, this.message});
 }
 
 class AuthLogoutSuccess extends AuthState {
@@ -61,6 +62,17 @@ class AuthFailed extends AuthState {
   String message;
 
   AuthFailed({required this.message});
+}
+
+/// Login rejected because the account's email/phone isn't OTP-verified yet.
+/// A resend (`auth/otp/send`) is already in flight to [identifier] by the
+/// time this is emitted — the listener just needs to navigate to the OTP
+/// screen with purpose "login" so the rest of the flow matches register/
+/// reset (see [OptVerifiedSuccess]).
+class LoginRequiresOtp extends AuthState {
+  final String identifier;
+
+  LoginRequiresOtp({required this.identifier});
 }
 
 class SpecialitiesLoading extends AuthState {

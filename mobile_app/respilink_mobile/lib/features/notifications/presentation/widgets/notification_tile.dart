@@ -30,9 +30,9 @@ class NotificationTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: isUnread
               ? _accentColor.withValues(alpha: 0.06)
-              : AppColors.background,
+              : AppColors.fieldColor,
           borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: AppColors.fieldColor, width: 1),
+          border: Border.all(color: AppColors.outlineVariant, width: 1),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

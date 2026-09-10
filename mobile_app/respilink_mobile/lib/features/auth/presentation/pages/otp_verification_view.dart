@@ -106,6 +106,10 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
 
               if (widget.purpose == "reset") {
                 Handlers.onOtpVerifiedReset(widget.email, _otpCode);
+              } else if (widget.purpose == "register") {
+                Handlers.onLoginOtpVerified(
+                  state.message ?? 'OTP verified successfully.',
+                );
               } else {
                 Handlers.onOtpVerified(state.data as Doctor?);
               }

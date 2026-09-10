@@ -37,7 +37,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(Unauthenticated());
     }
   }
-  
+
   void _login(LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
 
@@ -48,6 +48,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     if (res.success) {
       emit(AuthSuccess(model: res.data));
+    } else if (res.requiresOtp) {
+      final identifier = res.otpIdentifier ?? event.request.itsNumber;
+      add(
+        ResendOtpRequested(
+          request: ResendOtpRequest(email: identifier, purpose: "register"),
+        ),
+      );
+      emit(LoginRequiresOtp(identifier: identifier));
     } else {
       emit(AuthFailed(message: res.fullErrorMessage));
     }
@@ -71,11 +79,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final res = await _repository.verifyOtp(event.request);
 
     if (res.success) {
-
-      if(event.request.purpose == "reset") {
+      if (event.request.purpose == "reset") {
         emit(OptVerifiedSuccess(data: "OTP verified successfully."));
       } else {
-        emit(OptVerifiedSuccess<Doctor?>(data: res.data));
+        emit(OptVerifiedSuccess<Doctor?>(data: res.data, message: res.message));
       }
     } else {
       emit(AuthFailed(message: res.fullErrorMessage));
@@ -149,7 +156,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final res = await _repository.forgetPassword(event.request);
 
     if (res.success) {
-      add(ResendOtpRequested(request: ResendOtpRequest(email: event.request.email, purpose: "reset")));
+      add(
+        ResendOtpRequested(
+          request: ResendOtpRequest(
+            email: event.request.email,
+            purpose: "reset",
+          ),
+        ),
+      );
       emit(ForgetPasswordSuccess(message: res.message ?? ""));
     } else {
       emit(AuthFailed(message: res.fullErrorMessage));

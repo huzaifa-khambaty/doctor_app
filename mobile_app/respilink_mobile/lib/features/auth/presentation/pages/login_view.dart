@@ -90,6 +90,8 @@ class _LoginViewState extends State<LoginView> {
           listener: (context, state) async {
             if (state is AuthSuccess) {
               Handlers.onLogin(state.model);
+            } else if (state is LoginRequiresOtp) {
+              Handlers.onLoginRequiresOtp(state.identifier);
             } else if (state is AuthFailed) {
               SnackbarUtil.showSnackbar(message: state.message, isError: true);
             }

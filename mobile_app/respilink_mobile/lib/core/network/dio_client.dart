@@ -203,6 +203,19 @@ class DioClient {
 
       // Bare response (just the data object):
       debugPrint("Raw response body: $body");
+
+      // A bare `{message, requires_otp: true, identifier}` body (no
+      // `success` key) is a blocked request, not a successful one — e.g.
+      // login rejected because the account still needs OTP verification.
+      if (body is Map<String, dynamic> && body['requires_otp'] == true) {
+        return ApiResponse.failure(
+          statusCode: response.statusCode,
+          message: body['message'] as String?,
+          requiresOtp: true,
+          otpIdentifier: body['identifier'] as String?,
+        );
+      }
+
       return ApiResponse.success(
         statusCode: response.statusCode,
         data: fromJson != null ? fromJson(body) : body as T?,
@@ -235,6 +248,8 @@ class DioClient {
           statusCode: statusCode,
           message: message,
           errors: body is Map ? body['errors'] : null,
+          requiresOtp: body is Map && body['requires_otp'] == true,
+          otpIdentifier: body is Map ? body['identifier'] as String? : null,
         );
       case DioExceptionType.cancel:
         return ApiResponse.failure(message: 'Request was cancelled.');

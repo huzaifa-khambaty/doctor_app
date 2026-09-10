@@ -304,9 +304,12 @@ class _BadgeTile extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.all(3.r),
                     decoration: BoxDecoration(
-                      color: AppColors.background,
+                      color: AppColors.fieldColor,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.fieldColor, width: 1),
+                      border: Border.all(
+                        color: AppColors.outlineVariant,
+                        width: 1,
+                      ),
                     ),
                     child: Icon(
                       Icons.lock_outline,

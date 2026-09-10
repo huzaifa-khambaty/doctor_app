@@ -56,9 +56,9 @@ class EventCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: AppColors.fieldColor,
           borderRadius: BorderRadius.circular(18.r),
-          border: Border.all(color: AppColors.fieldColor, width: 1),
+          border: Border.all(color: AppColors.outlineVariant, width: 1),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -170,7 +170,15 @@ class _MetaItem extends StatelessWidget {
       children: [
         Icon(icon, color: AppColors.grey, size: 13.sp),
         SizedBox(width: 4.w),
-        AppText.small(label: label, color: AppColors.grey, fontSize: 11.sp),
+        Flexible(
+          child: AppText.small(
+            label: label,
+            color: AppColors.grey,
+            fontSize: 11.sp,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }
