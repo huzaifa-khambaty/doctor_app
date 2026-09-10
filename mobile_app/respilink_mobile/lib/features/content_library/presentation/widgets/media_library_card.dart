@@ -51,9 +51,9 @@ class MediaLibraryCard extends StatelessWidget {
       onTap: isLoading ? null : onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: AppColors.fieldColor,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: AppColors.fieldColor, width: 1),
+          border: Border.all(color: AppColors.outlineVariant, width: 1),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -61,11 +61,17 @@ class MediaLibraryCard extends StatelessWidget {
           children: [
             Stack(
               children: [
-                AppNetworkImage(
-                  imageUrl: _imageUrl,
-                  width: double.infinity,
-                  height: 140.h,
-                  fit: BoxFit.cover,
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16.r),
+                    topRight: Radius.circular(16.r),
+                  ),
+                  child: AppNetworkImage(
+                    imageUrl: _imageUrl,
+                    width: double.infinity,
+                    height: 140.h,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 Positioned(
                   top: 10.h,

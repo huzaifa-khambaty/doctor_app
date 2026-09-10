@@ -15,9 +15,9 @@ class NotificationsListSkeleton extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(14.w),
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: AppColors.fieldColor,
                 borderRadius: BorderRadius.circular(14.r),
-                border: Border.all(color: AppColors.fieldColor, width: 1),
+                border: Border.all(color: AppColors.outlineVariant, width: 1),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

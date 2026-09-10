@@ -9,9 +9,9 @@ class EventCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.fieldColor,
         borderRadius: BorderRadius.circular(18.r),
-        border: Border.all(color: AppColors.fieldColor, width: 1),
+        border: Border.all(color: AppColors.outlineVariant, width: 1),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(

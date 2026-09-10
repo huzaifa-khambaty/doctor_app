@@ -3,11 +3,9 @@ class ApiEndpoints {
 
   // Base Url
   //static const String baseUrl = 'http://192.168.100.115:8000/api/v1';
-
   //static const String imageUrl = "http://192.168.100.115:8000/storage/";
   
   static const String baseUrl = 'https://doctorapp.bharmalsystems.net/api/v1';
-
   static const String imageUrl = "https://doctorapp.bharmalsystems.net/storage/";
 
   /// Auth

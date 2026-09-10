@@ -26,10 +26,10 @@ class EventDetailAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: AppColors.black,
       ),
       actions: [
-        IconButton(
-          icon: Icon(Icons.ios_share_outlined, size: 20.sp, color: AppColors.black),
-          onPressed: onShare,
-        ),
+        // IconButton(
+        //   icon: Icon(Icons.ios_share_outlined, size: 20.sp, color: AppColors.black),
+        //   onPressed: onShare,
+        // ),
         Padding(
           padding: EdgeInsets.only(right: 12.w),
           child: AppNotificationBell(color: AppColors.black),

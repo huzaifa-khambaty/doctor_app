@@ -9,6 +9,13 @@ class ApiResponse<T> {
   final String? token;
   final Pagination? pagination;
 
+  /// Set when the backend blocks an otherwise-valid request because the
+  /// account's email/phone isn't OTP-verified yet (e.g. login before
+  /// completing signup verification) — [otpIdentifier] is who the OTP
+  /// should be (re)sent to.
+  final bool requiresOtp;
+  final String? otpIdentifier;
+
   const ApiResponse({
     required this.success,
     this.statusCode,
@@ -17,13 +24,14 @@ class ApiResponse<T> {
     this.errors,
     this.token,
     this.pagination,
+    this.requiresOtp = false,
+    this.otpIdentifier,
   });
 
   factory ApiResponse.fromJson(
     Map<String, dynamic> json,
     T Function(dynamic json)? fromJsonT,
   ) {
-
     Pagination? pagination;
     if (json['meta'] is Map<String, dynamic>) {
       final meta = json['meta'] as Map<String, dynamic>;
@@ -48,6 +56,8 @@ class ApiResponse<T> {
               ? json['data']['token'] as String?
               : null),
       pagination: pagination,
+      requiresOtp: json['requires_otp'] == true,
+      otpIdentifier: json['identifier'] as String?,
     );
   }
 
@@ -70,12 +80,16 @@ class ApiResponse<T> {
     int? statusCode,
     String? message,
     dynamic errors,
+    bool requiresOtp = false,
+    String? otpIdentifier,
   }) {
     return ApiResponse<T>(
       success: false,
       statusCode: statusCode,
       message: message,
       errors: errors,
+      requiresOtp: requiresOtp,
+      otpIdentifier: otpIdentifier,
     );
   }
 
