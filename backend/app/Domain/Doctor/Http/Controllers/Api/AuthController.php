@@ -115,8 +115,20 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials.'], 401);
         }
 
+        if ($user->status === 'suspended') {
+            return response()->json(['message' => 'Your account has been suspended. Please contact support.'], 403);
+        }
+
+        if ($user->status === 'rejected') {
+            return response()->json(['message' => 'Your account registration was rejected.'], 403);
+        }
+
         if (!$user->email_verified_at && !$user->phone_verified_at) {
-            return response()->json(['message' => 'Please verify your account (email or phone).'], 403);
+            return response()->json([
+                'message' => 'Please verify your account (email or phone).',
+                'requires_otp' => true,
+                'identifier' => $request->identifier,
+            ], 403);
         }
 
         // Update FCM token if provided

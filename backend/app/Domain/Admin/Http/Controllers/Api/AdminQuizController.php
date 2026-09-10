@@ -368,7 +368,7 @@ $validated = $request->validate([
         return response()->json(['message' => 'Quiz submitted for review.']);
     }
 
-    public function publish(Quiz $quiz)
+    public function publish(Request $request, Quiz $quiz)
     {
         Gate::authorize('quizzes.publish');
 
@@ -480,7 +480,7 @@ $validated = $request->validate([
         return response()->json(['message' => 'Leaderboard recalculated successfully.']);
     }
 
-    public function unpublish(Quiz $quiz)
+    public function unpublish(Request $request, Quiz $quiz)
     {
         Gate::authorize('quizzes.publish');
 
