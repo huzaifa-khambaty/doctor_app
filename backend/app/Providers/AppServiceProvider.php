@@ -21,6 +21,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::before(function ($user, $ability) {
+            if ($user instanceof \App\Domain\Admin\Models\Admin && ($user->hasRole('super_admin') || $user->hasRole('super_admin', 'admin'))) {
+                return true;
+            }
+        });
+
         Gate::policy(
             \App\Domain\Shared\Models\Event::class,
             \App\Domain\Admin\Policies\EventPolicy::class

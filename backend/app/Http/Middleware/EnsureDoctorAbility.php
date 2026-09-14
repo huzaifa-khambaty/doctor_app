@@ -19,6 +19,10 @@ class EnsureDoctorAbility
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
+        if (in_array($request->user()->status, ['suspended', 'rejected'])) {
+            return response()->json(['message' => 'Account is ' . $request->user()->status . '.'], 403);
+        }
+
         return $next($request);
     }
 }
