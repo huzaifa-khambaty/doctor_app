@@ -11,14 +11,33 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
     on<FetchEventsRequested>(_fetchEvents);
     on<LoadMoreEventsRequested>(_loadMoreEvents);
     on<EventFilterChanged>(_changeFilter);
+    on<EventsSearchChanged>(_search);
   }
 
   Future<void> _changeFilter(
     EventFilterChanged event,
     Emitter<EventsState> emit,
   ) {
-    return _fetchEvents(FetchEventsRequested(filter: event.filter), emit);
+    return _fetchEvents(
+      FetchEventsRequested(filter: event.filter, search: _currentSearch),
+      emit,
+    );
   }
+
+  /// Search is applied client-side over the already-fetched list (see
+  /// [EventsLoaded.visibleEvents]) — this deliberately never calls the API.
+  Future<void> _search(
+    EventsSearchChanged event,
+    Emitter<EventsState> emit,
+  ) async {
+    final current = state;
+    if (current is EventsLoaded) {
+      emit(current.copyWith(search: event.query));
+    }
+  }
+
+  String get _currentSearch =>
+      state is EventsLoaded ? (state as EventsLoaded).search : '';
 
   Future<void> _fetchEvents(
     FetchEventsRequested event,
@@ -37,6 +56,7 @@ class EventsBloc extends Bloc<EventsEvent, EventsState> {
         EventsLoaded(
           events: listing.data ?? [],
           filter: event.filter,
+          search: event.search,
           pagination: listing.pagination,
         ),
       );

@@ -27,6 +27,8 @@ abstract class AuthRepository {
 
   Future<ApiResponse<void>> logout();
 
+  Future<ApiResponse<void>> deleteAccount();
+
   Future<ApiResponse<Doctor>> updateProfile(EditProfileRequest request);
 
   Future<ApiResponse<void>> changePassword(ChangePasswordRequest request);

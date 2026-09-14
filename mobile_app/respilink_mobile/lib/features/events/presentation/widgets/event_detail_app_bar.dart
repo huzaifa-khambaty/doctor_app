@@ -6,7 +6,11 @@ class EventDetailAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final VoidCallback? onShare;
 
-  const EventDetailAppBar({super.key, this.title = 'Event Details', this.onShare});
+  const EventDetailAppBar({
+    super.key,
+    this.title = 'Event Details',
+    this.onShare,
+  });
 
   @override
   Widget build(BuildContext context) {

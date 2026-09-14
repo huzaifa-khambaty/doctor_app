@@ -14,28 +14,30 @@ class EventWebinarModel {
   int? registrationFee;
   bool? isRegistered;
 
-  EventWebinarModel(
-      {this.id,
-      this.title,
-      this.banner,
-      this.speaker,
-      this.date,
-      this.startTime,
-      this.endTime,
-      this.cmeCredits,
-      this.format,
-      this.description,
-      this.syllabus,
-      this.learningObjectives,
-      this.registrationFee,
-      this.isRegistered});
+  EventWebinarModel({
+    this.id,
+    this.title,
+    this.banner,
+    this.speaker,
+    this.date,
+    this.startTime,
+    this.endTime,
+    this.cmeCredits,
+    this.format,
+    this.description,
+    this.syllabus,
+    this.learningObjectives,
+    this.registrationFee,
+    this.isRegistered,
+  });
 
   EventWebinarModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     title = json['title'];
     banner = json['banner'];
-    speaker =
-        json['speaker'] != null ? Speaker.fromJson(json['speaker']) : null;
+    speaker = json['speaker'] != null
+        ? Speaker.fromJson(json['speaker'])
+        : null;
     date = json['date'];
     startTime = json['start_time'];
     endTime = json['end_time'];

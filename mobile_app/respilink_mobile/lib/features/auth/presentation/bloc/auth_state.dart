@@ -46,6 +46,10 @@ class AuthLogoutSuccess extends AuthState {
   AuthLogoutSuccess();
 }
 
+class AccountDeletedSuccess extends AuthState {
+  AccountDeletedSuccess();
+}
+
 class ResendOtpSuccess extends AuthState {
   String message;
 

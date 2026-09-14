@@ -17,12 +17,10 @@ class ConferenceAgendaSection extends StatefulWidget {
 class _ConferenceAgendaSectionState extends State<ConferenceAgendaSection>
     with SingleTickerProviderStateMixin {
   late final List<String> _days = widget.agendaByDay.keys.toList();
-  late final TabController _tabController = TabController(
-    length: _days.length,
-    vsync: this,
-  )..addListener(() {
-    if (!_tabController.indexIsChanging) setState(() {});
-  });
+  late final TabController _tabController =
+      TabController(length: _days.length, vsync: this)..addListener(() {
+        if (!_tabController.indexIsChanging) setState(() {});
+      });
 
   @override
   void dispose() {

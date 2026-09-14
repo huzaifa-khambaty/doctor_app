@@ -24,6 +24,8 @@ abstract class AuthRemoteDataSource {
 
   Future<ApiResponse<void>> logout();
 
+  Future<ApiResponse<void>> deleteAccount();
+
   Future<ApiResponse<void>> resendOtp(ResendOtpRequest request);
 
   Future<ApiResponse<Doctor>> updateProfile(EditProfileRequest request);
@@ -86,6 +88,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     return _client.post(
       ApiEndpoints.logout,
       data: {},
+      fromJson: (json) =>
+          ApiResponse.fromJson(json as Map<String, dynamic>, (val) {}),
+    );
+  }
+
+  @override
+  Future<ApiResponse<void>> deleteAccount() async {
+    return _client.delete(
+      ApiEndpoints.deleteAccount,
       fromJson: (json) =>
           ApiResponse.fromJson(json as Map<String, dynamic>, (val) {}),
     );

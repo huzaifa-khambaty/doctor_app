@@ -19,6 +19,7 @@ class ApiEndpoints {
   static const String notifications = '/notifications';
   static const String privacy = '/legal/privacy';
   static const String terms = 'legal/terms';
+  static const String deleteAccount = '/profile/delete';
 
   static const String editProfile = '/profile';
   static const String me = '/auth/me';

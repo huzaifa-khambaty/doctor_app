@@ -27,11 +27,7 @@ class EventDetailChecklist extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.check_circle,
-                  color: AppColors.primary,
-                  size: 16.sp,
-                ),
+                Icon(Icons.check_circle, color: AppColors.primary, size: 16.sp),
                 SizedBox(width: 8.w),
                 Expanded(
                   child: AppText.small(

@@ -16,21 +16,22 @@ class EventConferenceModel {
   String? currency;
   bool? isRegistered;
 
-  EventConferenceModel(
-      {this.id,
-      this.title,
-      this.banner,
-      this.duration,
-      this.dateFrom,
-      this.dateTo,
-      this.time,
-      this.format,
-      this.venue,
-      this.speakers,
-      this.agenda,
-      this.price,
-      this.currency,
-      this.isRegistered});
+  EventConferenceModel({
+    this.id,
+    this.title,
+    this.banner,
+    this.duration,
+    this.dateFrom,
+    this.dateTo,
+    this.time,
+    this.format,
+    this.venue,
+    this.speakers,
+    this.agenda,
+    this.price,
+    this.currency,
+    this.isRegistered,
+  });
 
   EventConferenceModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];

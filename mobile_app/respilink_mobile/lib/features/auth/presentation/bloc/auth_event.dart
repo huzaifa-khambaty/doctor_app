@@ -54,6 +54,10 @@ class LogoutRequested extends AuthEvent {
   LogoutRequested();
 }
 
+class DeleteAccountRequested extends AuthEvent {
+  DeleteAccountRequested();
+}
+
 class UpdateProfileEvent extends AuthEvent {
   final EditProfileRequest request;
 

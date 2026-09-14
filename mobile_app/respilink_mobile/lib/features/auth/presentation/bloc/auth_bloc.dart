@@ -15,6 +15,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<VerifyOtpRequested>(_verifyOtp);
     on<ResendOtpRequested>(_resendOtp);
     on<LogoutRequested>(_logout);
+    on<DeleteAccountRequested>(_deleteAccount);
     on<UpdateProfileEvent>(_updateProfile);
     on<ChangePasswordRequested>(_changePassword);
     on<ForgetPasswordRequested>(_forgetPassword);
@@ -115,6 +116,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     if (res.success) {
       emit(AuthLogoutSuccess());
+    } else {
+      emit(AuthFailed(message: res.fullErrorMessage));
+    }
+  }
+
+  void _deleteAccount(
+    DeleteAccountRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final res = await _repository.deleteAccount();
+
+    if (res.success) {
+      emit(AccountDeletedSuccess());
     } else {
       emit(AuthFailed(message: res.fullErrorMessage));
     }
