@@ -96,6 +96,18 @@ class ProfileController extends Controller
         return response()->json(['message' => 'Account deletion requested successfully.'], 201);
     }
 
+    public function destroyAccount(Request $request)
+    {
+        $user = $request->user();
+
+        activity()->causedBy($user)->log('Doctor deleted their own account');
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'Account deleted successfully.']);
+    }
+
     public function statistics(Request $request)
     {
         $user = $request->user();

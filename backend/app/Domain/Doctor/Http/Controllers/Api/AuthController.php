@@ -175,12 +175,16 @@ class AuthController extends Controller
     {
         $user = User::where('email', $request->identifier)->orWhere('phone', $request->identifier)->firstOrFail();
         
-        // $channel = filter_var($request->identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        // $this->otpService->verify($user, $channel, $request->code, 'reset');
+        $channel = filter_var($request->identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        
+        $updateData = ['password' => Hash::make($request->password)];
+        if ($channel === 'email' && !$user->email_verified_at) {
+            $updateData['email_verified_at'] = now();
+        } elseif ($channel === 'phone' && !$user->phone_verified_at) {
+            $updateData['phone_verified_at'] = now();
+        }
 
-        $user->update([
-            'password' => Hash::make($request->password)
-        ]);
+        $user->update($updateData);
 
         $user->tokens()->delete();
 

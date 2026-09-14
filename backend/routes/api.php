@@ -31,6 +31,8 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('profile')->middleware(['auth:sanctum', 'ability:doctor'])->group(function () {
         Route::put('/', [ProfileController::class, 'update']);
+        //Route::delete('/', [ProfileController::class, 'destroyAccount']);
+        Route::delete('delete', [ProfileController::class, 'destroyAccount']);
         Route::get('verification-status', [ProfileController::class, 'verificationStatus']);
         Route::post('deletion-request', [ProfileController::class, 'requestDeletion']);
         Route::get('statistics', [ProfileController::class, 'statistics']);
