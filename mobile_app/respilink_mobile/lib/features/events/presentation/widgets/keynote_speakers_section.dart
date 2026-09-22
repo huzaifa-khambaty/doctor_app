@@ -37,15 +37,13 @@ class KeynoteSpeakersSection extends StatelessWidget {
         ),
         SizedBox(height: 14.h),
         Row(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: speakers
-      .map(
-        (speaker) => Expanded(
-          child: _SpeakerAvatar(speaker: speaker),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: speakers
+              .map(
+                (speaker) => Expanded(child: _SpeakerAvatar(speaker: speaker)),
+              )
+              .toList(),
         ),
-      )
-      .toList(),
-)
       ],
     );
   }
@@ -110,31 +108,34 @@ class _SpeakerAvatar extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 fontSize: 14.sp,
               ),
-             
+
               if (speaker.specialties?.isNotEmpty ?? false) ...[
                 SizedBox(height: 6.h),
                 Wrap(
                   spacing: 6.w,
                   runSpacing: 6.h,
-                  children: speaker.specialties?.map(
-                        (specialty) => Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8.w,
-                            vertical: 3.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(999.r),
-                          ),
-                          child: AppText.small(
-                            label: specialty.name ?? "",
-                            color: AppColors.primary,
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                      .toList() ?? [],
+                  children:
+                      speaker.specialties
+                          ?.map(
+                            (specialty) => Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8.w,
+                                vertical: 3.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(999.r),
+                              ),
+                              child: AppText.small(
+                                label: specialty.name ?? "",
+                                color: AppColors.primary,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          )
+                          .toList() ??
+                      [],
                 ),
               ],
             ],

@@ -2,8 +2,13 @@ import '../../../../exports.dart';
 
 class LibrarySearchBar extends StatelessWidget {
   final ValueChanged<String>? onChanged;
+  final String hintText;
 
-  const LibrarySearchBar({super.key, this.onChanged});
+  const LibrarySearchBar({
+    super.key,
+    this.onChanged,
+    this.hintText = 'Search conditions, trials, or drugs...',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +34,7 @@ class LibrarySearchBar extends StatelessWidget {
                 isDense: true,
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 12.h),
-                hintText: 'Search conditions, trials, or drugs...',
+                hintText: hintText,
                 hintStyle: TextStyle(
                   fontSize: 13.sp,
                   fontFamily: AppConstants.fontFamily,

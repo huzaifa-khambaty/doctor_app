@@ -111,9 +111,19 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<ApiResponse<Doctor>> updateProfile(
-    EditProfileRequest request,
-  ) async {
+  Future<ApiResponse<void>> deleteAccount() async {
+    final response = await _remoteDataSource.deleteAccount();
+
+    if (response.success) {
+      await _localManager.clearAuthData();
+      await _localManager.clearBiometricSession();
+    }
+
+    return response;
+  }
+
+  @override
+  Future<ApiResponse<Doctor>> updateProfile(EditProfileRequest request) async {
     final response = await _remoteDataSource.updateProfile(request);
 
     if (response.success && response.data != null) {

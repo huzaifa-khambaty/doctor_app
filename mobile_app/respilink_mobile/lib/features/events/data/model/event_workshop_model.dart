@@ -15,22 +15,23 @@ class EventWorkshopModel {
   bool? isLive;
   String? externalJoinLink;
 
-  EventWorkshopModel(
-      {this.id,
-      this.title,
-      this.banner,
-      this.trainers,
-      this.date,
-      this.startTime,
-      this.endTime,
-      this.location,
-      this.fee,
-      this.currency,
-      this.description,
-      this.prerequisites,
-      this.isRegistered,
-      this.isLive,
-      this.externalJoinLink});
+  EventWorkshopModel({
+    this.id,
+    this.title,
+    this.banner,
+    this.trainers,
+    this.date,
+    this.startTime,
+    this.endTime,
+    this.location,
+    this.fee,
+    this.currency,
+    this.description,
+    this.prerequisites,
+    this.isRegistered,
+    this.isLive,
+    this.externalJoinLink,
+  });
 
   EventWorkshopModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];

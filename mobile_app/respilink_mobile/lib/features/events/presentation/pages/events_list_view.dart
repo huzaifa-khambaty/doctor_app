@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:respilink_mobile/features/content_library/presentation/widgets/library_search_bar.dart';
 import 'package:respilink_mobile/features/events/data/model/event_listing_model.dart';
 import 'package:respilink_mobile/features/events/domain/models/event_filter.dart';
 import 'package:respilink_mobile/features/events/presentation/bloc/events_bloc.dart';
@@ -20,6 +23,7 @@ class EventsListView extends StatefulWidget {
 
 class _EventsListViewState extends State<EventsListView> {
   final ScrollController _scrollController = ScrollController();
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -30,6 +34,7 @@ class _EventsListViewState extends State<EventsListView> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
@@ -41,6 +46,14 @@ class _EventsListViewState extends State<EventsListView> {
     if (_scrollController.position.pixels >= maxScroll - 200.h) {
       context.read<EventsBloc>().add(LoadMoreEventsRequested());
     }
+  }
+
+  void _onSearchChanged(String query) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      context.read<EventsBloc>().add(EventsSearchChanged(query: query));
+    });
   }
 
   void _openEventDetail(Events event) {
@@ -76,6 +89,14 @@ class _EventsListViewState extends State<EventsListView> {
             children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 0),
+                child: LibrarySearchBar(
+                  hintText: 'Search events...',
+                  onChanged: _onSearchChanged,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: EventFilterChips(
                   selected: selectedFilter,
                   onSelected: (filter) => context.read<EventsBloc>().add(
@@ -104,16 +125,20 @@ class _EventsListViewState extends State<EventsListView> {
     return AppRefreshIndicator(
       onRefresh: () async {
         context.read<EventsBloc>().add(
-          FetchEventsRequested(filter: state.filter),
+          FetchEventsRequested(filter: state.filter, search: state.search),
         );
       },
-      isEmpty: state.events.isEmpty,
-      emptyWidget: const RequestFailed(message: 'No events found.'),
+      isEmpty: state.visibleEvents.isEmpty,
+      emptyWidget: RequestFailed(
+        message: state.search.trim().isEmpty
+            ? 'No events found.'
+            : 'No events match "${state.search.trim()}".',
+      ),
       child: ListView.builder(
         controller: _scrollController,
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: state.events.length + 2,
+        itemCount: state.visibleEvents.length + 2,
         itemBuilder: (context, index) {
           if (index == 0) {
             return Padding(
@@ -128,7 +153,7 @@ class _EventsListViewState extends State<EventsListView> {
 
           final eventIndex = index - 1;
 
-          if (eventIndex == state.events.length) {
+          if (eventIndex == state.visibleEvents.length) {
             return state.isLoadingMore
                 ? Padding(
                     padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -139,7 +164,7 @@ class _EventsListViewState extends State<EventsListView> {
                 : SizedBox(height: 16.h);
           }
 
-          final event = state.events[eventIndex];
+          final event = state.visibleEvents[eventIndex];
           return Padding(
             padding: EdgeInsets.only(bottom: 14.h),
             child: EventCard(

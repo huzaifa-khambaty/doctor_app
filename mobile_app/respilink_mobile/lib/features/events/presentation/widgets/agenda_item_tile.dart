@@ -39,7 +39,11 @@ class AgendaItemTile extends StatelessWidget {
               SizedBox(height: 6.h),
               Row(
                 children: [
-                  Icon(Icons.location_on_outlined, color: AppColors.grey, size: 13.sp),
+                  Icon(
+                    Icons.location_on_outlined,
+                    color: AppColors.grey,
+                    size: 13.sp,
+                  ),
                   SizedBox(width: 4.w),
                   Expanded(
                     child: AppText.small(

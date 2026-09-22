@@ -4,11 +4,9 @@ class EventListingModel {
   List<Events>? data;
   Pagination? pagination;
 
-  EventListingModel(
-      {this.data,
-      this.pagination,});
+  EventListingModel({this.data, this.pagination});
 
- EventListingModel.fromJson(Map<String, dynamic> json) {
+  EventListingModel.fromJson(Map<String, dynamic> json) {
     if (json['data'] != null) {
       data = <Events>[];
       json['data'].forEach((v) {
@@ -57,30 +55,31 @@ class Events {
   String? bannerUrl;
   Creator? creator;
 
-  Events(
-      {this.id,
-      this.title,
-      this.type,
-      this.startsAt,
-      this.endsAt,
-      this.timezone,
-      this.location,
-      this.description,
-      this.bannerPath,
-      this.externalJoinLink,
-      this.recordingLink,
-      this.enableQaSession,
-      this.certificateOfParticipation,
-      this.sendEmailReminders,
-      this.status,
-      this.createdBy,
-      this.createdAt,
-      this.updatedAt,
-      this.deletedAt,
-      this.isRegistered,
-      this.isLive,
-      this.bannerUrl,
-      this.creator});
+  Events({
+    this.id,
+    this.title,
+    this.type,
+    this.startsAt,
+    this.endsAt,
+    this.timezone,
+    this.location,
+    this.description,
+    this.bannerPath,
+    this.externalJoinLink,
+    this.recordingLink,
+    this.enableQaSession,
+    this.certificateOfParticipation,
+    this.sendEmailReminders,
+    this.status,
+    this.createdBy,
+    this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+    this.isRegistered,
+    this.isLive,
+    this.bannerUrl,
+    this.creator,
+  });
 
   Events.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -105,8 +104,9 @@ class Events {
     isRegistered = json['is_registered'];
     isLive = json['is_live'];
     bannerUrl = json['banner_url'];
-    creator =
-        json['creator'] != null ? Creator.fromJson(json['creator']) : null;
+    creator = json['creator'] != null
+        ? Creator.fromJson(json['creator'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {

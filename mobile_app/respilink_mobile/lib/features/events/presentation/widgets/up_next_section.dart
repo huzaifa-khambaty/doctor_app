@@ -55,7 +55,9 @@ class UpNextSection extends StatelessWidget {
               separatorBuilder: (context, index) => SizedBox(width: 12.w),
               itemBuilder: (context, index) => UpNextEventCard(
                 event: events[index],
-                onTap: onEventTap != null ? () => onEventTap!(events[index]) : null,
+                onTap: onEventTap != null
+                    ? () => onEventTap!(events[index])
+                    : null,
               ),
             ),
           ),

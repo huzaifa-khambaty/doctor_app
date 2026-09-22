@@ -119,8 +119,8 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       // what's already shown as the main description.
       expandedContent:
           (model.syllabus != null && model.syllabus != model.description)
-              ? model.syllabus
-              : null,
+          ? model.syllabus
+          : null,
       listTitle: 'Learning Objectives',
       listItems: model.learningObjectives ?? const [],
       registrationNote: fee > 0 ? 'Fee: $fee' : 'Free for Members',
@@ -152,7 +152,8 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
             title: trainer.designation ?? '',
             avatarUrl: trainer.image,
             specialties: [
-              for (final specialty in trainer.specialties ?? const <WorkshopSpecialty>[])
+              for (final specialty
+                  in trainer.specialties ?? const <WorkshopSpecialty>[])
                 if (specialty.name != null) specialty.name!,
             ],
           ),
@@ -231,7 +232,11 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       ],
       speakers: [
         for (final speaker in model.speakers ?? const <Speakers>[])
-          SpeakerModel(name: speaker.name ?? '', avatarUrl: speaker.image, specialties: speaker.specialties),
+          SpeakerModel(
+            name: speaker.name ?? '',
+            avatarUrl: speaker.image,
+            specialties: speaker.specialties,
+          ),
       ],
       agendaByDay: _groupAgenda(model.agenda),
       priceLabel: price > 0 ? '$currency$price / person' : 'Free',
@@ -271,7 +276,9 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     if (date == null || date.trim().isEmpty) return '';
 
     final parsed = DateTimeUtils.parseBackendDate(date);
-    if (parsed != null) return DateFormat('MMM d, yyyy').format(parsed.toLocal());
+    if (parsed != null) {
+      return DateFormat('MMM d, yyyy').format(parsed.toLocal());
+    }
 
     for (final pattern in ['yyyy-MM-dd', 'dd-MM-yyyy', 'MM/dd/yyyy']) {
       try {

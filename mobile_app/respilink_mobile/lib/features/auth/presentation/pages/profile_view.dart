@@ -184,6 +184,37 @@ class ProfileView extends StatelessWidget {
                         ),
                       ),
 
+                      SizedBox(height: 12.h),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          onPressed: () => _showDeleteAccountDialog(context),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14.r),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.delete_outline,
+                                color: AppColors.grey,
+                                size: 18.sp,
+                              ),
+                              SizedBox(width: 8.w),
+                              AppText.medium(
+                                label: 'Delete Account',
+                                color: AppColors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
                       SizedBox(height: 20.h),
 
                       Center(child: _AppVersionLabel()),
@@ -239,6 +270,61 @@ void _showLogoutDialog(BuildContext context) {
                     ).add(LogoutRequested()),
                     child: Text(
                       'LOG OUT',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: AppConstants.fontFamily,
+                      ),
+                    ),
+                  ),
+          ],
+        );
+      },
+    ),
+  );
+}
+
+void _showDeleteAccountDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) => BlocConsumer<AuthBloc, AuthState>(
+      bloc: BlocProvider.of<AuthBloc>(context),
+      listener: (context, state) {
+        if (state is AccountDeletedSuccess) {
+          if (Navigator.canPop(dialogContext)) Navigator.pop(dialogContext);
+          SnackbarUtil.showSnackbar(message: 'Your account has been deleted.');
+          Handlers.onLogout(context);
+        } else if (state is AuthFailed) {
+          if (Navigator.canPop(dialogContext)) Navigator.pop(dialogContext);
+          SnackbarUtil.showSnackbar(message: state.message, isError: true);
+        }
+      },
+      builder: (context, state) {
+        return AlertDialog(
+          backgroundColor: AppColors.background,
+          title: AppText.medium(
+            label: 'Delete Account',
+            color: AppColors.black,
+          ),
+          content: AppText.small(
+            label:
+                'This will permanently delete your account and all associated data. This action cannot be undone.',
+            color: AppColors.black,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: AppText.small(label: 'CANCEL', color: AppColors.black),
+            ),
+            state is AuthLoading
+                ? AppLoader()
+                : TextButton(
+                    onPressed: () => BlocProvider.of<AuthBloc>(
+                      context,
+                    ).add(DeleteAccountRequested()),
+                    child: Text(
+                      'DELETE',
                       style: TextStyle(
                         color: AppColors.error,
                         fontSize: 13.sp,
