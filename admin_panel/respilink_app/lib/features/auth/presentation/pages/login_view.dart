@@ -74,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             SizedBox(width: 10),
                             Text(
-                              'MedSynapse Admin',
+                              'CareSynapse Admin',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -149,7 +149,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(width: 8),
                                   Text(
-                                    'MedSynapse Admin',
+                                    'CareSynapse Admin',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -198,7 +198,7 @@ class _LoginPageState extends State<LoginPage> {
                                 fontWeight: FontWeight.w500,
                               ),
                               decoration: _buildInputDecoration(
-                                hintText: 'name@medsynapse.com',
+                                hintText: 'name@caresynapse.com',
                                 prefixIcon: Icons.email_outlined,
                               ),
                               validator: (value) {

@@ -106,7 +106,22 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<ApiResponse<void>> logout() async {
+    // Biometric Login (Settings) being on means the currently-cached token
+    // is meant to keep unlocking the app after this — but the backend's
+    // logout endpoint revokes the token server-side, which would silently
+    // break that promise (biometric unlock would then fail with an
+    // "expired session" the next time it's used). When biometric login is
+    // enabled, treat "Log Out" as clearing the active session locally only
+    // and skip the server-side revoke, so the same token stays valid for
+    // biometric re-entry. With biometric login off, behavior is unchanged.
+    final biometricEnabled = await _localManager.getBiometricToken() != null;
+
     await _localManager.clearAuthData();
+
+    if (biometricEnabled) {
+      return ApiResponse.success();
+    }
+
     return _remoteDataSource.logout();
   }
 

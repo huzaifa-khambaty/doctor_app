@@ -27,7 +27,8 @@ Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
   final title = message.data['title']?.toString() ?? '';
   final body = message.data['body']?.toString() ?? '';
   final imageUrl =
-      message.data['imageUrl']?.toString() ?? message.data['image_url']?.toString();
+      message.data['imageUrl']?.toString() ??
+      message.data['image_url']?.toString();
 
   if (title.isNotEmpty || body.isNotEmpty) {
     await NotificationService.showLocalNotification(
@@ -179,8 +180,8 @@ class NotificationService {
     }
 
     final androidDetails = AndroidNotificationDetails(
-      'medsynapse',
-      'medsynapse Notifications',
+      'caresynapse',
+      'CareSynapse Notifications',
       importance: Importance.max,
       priority: Priority.high,
       styleInformation: bigPictureStyle,

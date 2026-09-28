@@ -67,19 +67,24 @@ class _LoginViewState extends State<LoginView> {
     // even once the user has signed out of their active session.
     final authLocalManager = locator<AuthLocalManager>();
     final token = await authLocalManager.getBiometricToken();
-    final user = await authLocalManager.getBiometricUser();
+    final cachedUser = await authLocalManager.getBiometricUser();
 
-    if (token != null && user != null) {
-      AppConstants.apiToken = token;
-      GlobalNotifiers.userNotifier.value = user;
-      Handlers.onLogin(user);
-    } else {
+    if (token == null || cachedUser == null) {
       SnackbarUtil.showSnackbar(
         message:
             'No saved session on this device. Please log in with your credentials once.',
         isError: true,
       );
+      return;
     }
+
+    // This token is only ever restored here when Biometric Login is
+    // enabled, and logging out with it enabled deliberately skips revoking
+    // the token server-side (see AuthRepositoryImpl.logout) specifically so
+    // it stays valid for this unlock.
+    AppConstants.apiToken = token;
+    GlobalNotifiers.userNotifier.value = cachedUser;
+    Handlers.onLogin(cachedUser);
   }
 
   @override
@@ -132,7 +137,7 @@ class _LoginViewState extends State<LoginView> {
                               ),
                             ),
                             AppText.large(
-                              label: 'MedSynapse',
+                              label: 'CareSynapse',
                               fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,

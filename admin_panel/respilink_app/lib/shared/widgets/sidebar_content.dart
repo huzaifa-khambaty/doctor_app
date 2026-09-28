@@ -62,7 +62,7 @@ class MySidebarContent extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                appName ?? 'MedSynapse Admin',
+                                appName ?? 'CareSynapse Admin',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 15,
@@ -591,7 +591,7 @@ class _UserProfileFooter extends StatelessWidget {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          "MedSynapse",
+                          "CareSynapse",
                           style: TextStyle(color: Colors.white54, fontSize: 11),
                           overflow: TextOverflow.ellipsis,
                         ),

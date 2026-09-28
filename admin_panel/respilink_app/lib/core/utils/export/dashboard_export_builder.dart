@@ -71,7 +71,7 @@ ExportDocument buildDashboardExportDocument({
   );
 
   return ExportDocument(
-    fileName: 'MedSynapse_Dashboard_$today',
+    fileName: 'CareSynapse_Dashboard_$today',
     sheets: [summarySheet, queueSheet],
   );
 }

@@ -70,7 +70,7 @@ class _ArticleReaderBody extends StatelessWidget {
         details.webinarUrl!.trim(),
     };
 
-    final text = StringBuffer(title.isNotEmpty ? title : 'MedSynapse Article');
+    final text = StringBuffer(title.isNotEmpty ? title : 'CareSynapse Article');
     // Full body — no truncation, share should carry everything shown on-screen.
     if (body.isNotEmpty) {
       text
@@ -173,7 +173,7 @@ class _ArticleReaderBody extends StatelessWidget {
                           SizedBox(height: 14.h),
 
                           ArticleAuthorRow(
-                            authorName: details.author?.name ?? 'MedSynapse',
+                            authorName: details.author?.name ?? 'CareSynapse',
                             publishedLabel: details.publishedAt ?? '',
                           ),
 

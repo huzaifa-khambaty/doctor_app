@@ -61,7 +61,7 @@ class SplashView extends StatelessWidget {
                     ),
                     SizedBox(height: 20.h),
                     AppText.large(
-                      label: 'MedSynapse',
+                      label: 'CareSynapse',
                       fontSize: 26.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,

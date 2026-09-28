@@ -351,7 +351,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
               iconTheme: const IconThemeData(color: AppColors.textDark),
               centerTitle: false,
               title: const Text(
-                'MedSynapse Admin',
+                'CareSynapse Admin',
                 style: TextStyle(
                   color: AppColors.textDark,
                   fontSize: 16,

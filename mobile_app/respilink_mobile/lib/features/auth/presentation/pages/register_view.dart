@@ -128,7 +128,7 @@ class _RegisterViewState extends State<RegisterView> {
                               ),
                             ),
                             AppText.large(
-                              label: 'MedSynapse',
+                              label: 'CareSynapse',
                               fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,

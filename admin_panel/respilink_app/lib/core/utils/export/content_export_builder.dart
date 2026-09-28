@@ -73,7 +73,7 @@ ExportDocument buildContentExportDocument({required ContentModel? contentData}) 
   );
 
   return ExportDocument(
-    fileName: 'MedSynapse_Content_$today',
+    fileName: 'CareSynapse_Content_$today',
     sheets: [summarySheet, listSheet, mixSheet],
   );
 }

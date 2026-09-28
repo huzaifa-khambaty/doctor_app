@@ -62,7 +62,7 @@ ExportDocument buildEventsExportDocument({
   );
 
   return ExportDocument(
-    fileName: 'MedSynapse_Events_$today',
+    fileName: 'CareSynapse_Events_$today',
     sheets: [summarySheet, listSheet],
   );
 }

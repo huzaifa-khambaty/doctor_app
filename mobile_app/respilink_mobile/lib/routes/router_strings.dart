@@ -7,7 +7,7 @@ class RouterStrings {
   static String login = '/login';
   static String register = '/register';
   static String forgetPassword = '/forgetPassword';
-    static String resetPassword = '/resetPassword';
+  static String resetPassword = '/resetPassword';
   static String changePassword = '/changePassword';
   static String otpVerificationView = '/otpVerificationView';
   static String webinarDetail = '/events/webinar';

@@ -1,4 +1,4 @@
-package com.example.respilink_mobile
+package com.app.caresynapse
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

@@ -61,7 +61,7 @@ class ProfileView extends StatelessWidget {
                   )
                 : null,
             title: AppText.large(
-              label: 'MedSynapse',
+              label: 'CareSynapse',
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.primary,

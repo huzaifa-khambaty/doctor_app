@@ -258,7 +258,7 @@ class TitleSection extends StatelessWidget {
             ),
             SizedBox(height: 4),
             Text(
-              'MedSynapse ecosystem and provider engagement.',
+              'CareSynapse ecosystem and provider engagement.',
               style: TextStyle(fontSize: 13, color: AppColors.textMuted),
             ),
           ],
